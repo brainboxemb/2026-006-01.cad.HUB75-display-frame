@@ -124,13 +124,31 @@ Reference renders generated from the current V1.1 OpenSCAD model are stored in:
 out/v1.1/png/
 ```
 
+The straight views are useful as technical references, while the angled views make the depth, module connections and tube clamps easier to inspect.
+
 #### Front view
 
 ![HUB75 display frame V1.1 - front view](out/v1.1/png/hub75-display-frame-front.png)
 
+#### Front angled view
+
+![HUB75 display frame V1.1 - front angled view](out/v1.1/png/hub75-display-frame-front-angled.png)
+
 #### Rear view
 
 ![HUB75 display frame V1.1 - rear view](out/v1.1/png/hub75-display-frame-rear.png)
+
+#### Rear angled view
+
+![HUB75 display frame V1.1 - rear angled view](out/v1.1/png/hub75-display-frame-rear-angled.png)
+
+#### Exploded rear view
+
+![HUB75 display frame V1.1 - exploded rear view](out/v1.1/png/hub75-display-frame-exploded-rear.png)
+
+#### Exploded rear angled view
+
+![HUB75 display frame V1.1 - exploded rear angled view](out/v1.1/png/hub75-display-frame-exploded-rear-angled.png)
 
 ### CAD structure
 
@@ -146,17 +164,26 @@ cad/v1.1/
 │   ├── frame_module.scad
 │   ├── panel_seam_joiner.scad
 │   └── ...
-└── assemblies/
-    ├── panels_assembly.scad
-    ├── frame_modules_assembly.scad
-    ├── seam_joiners_assembly.scad
-    ├── display_assembly.scad
-    └── ...
+├── assemblies/
+│   ├── panels_assembly.scad
+│   ├── frame_modules_assembly.scad
+│   ├── seam_joiners_assembly.scad
+│   ├── display_assembly.scad
+│   └── ...
+├── renders/
+│   ├── front.scad
+│   ├── front_angled.scad
+│   ├── rear.scad
+│   ├── rear_angled.scad
+│   ├── exploded_rear.scad
+│   └── exploded_rear_angled.scad
+└── scripts/
+    └── render_pngs.sh
 ```
 
 Open `cad/v1.1/main.scad` to view the complete concept.
 
-The model also provides separate views for individual components and subassemblies, together with an exploded view to inspect how the panels, printed frame modules, joiners and aluminium tubes fit together.
+The model also provides separate views for individual components and subassemblies, together with exploded views to inspect how the panels, printed frame modules, joiners and aluminium tubes fit together.
 
 ## Repository structure
 
@@ -178,5 +205,9 @@ The model also provides separate views for individual components and subassembli
     └── v1.1/
         └── png/
             ├── hub75-display-frame-front.png
-            └── hub75-display-frame-rear.png
+            ├── hub75-display-frame-front-angled.png
+            ├── hub75-display-frame-rear.png
+            ├── hub75-display-frame-rear-angled.png
+            ├── hub75-display-frame-exploded-rear.png
+            └── hub75-display-frame-exploded-rear-angled.png
 ```
