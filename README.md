@@ -7,7 +7,7 @@ This repository contains the OpenSCAD development of a frame for five HUB75 LED 
 The design uses a modular OpenSCAD structure with separate components and assemblies. Individual parts can be opened, rendered and tuned independently, while the complete construction can be viewed from `main.scad`.
 
 > **Project status:** Concept development  
-> V1.0 explores a frame based on 20 × 20 mm aluminium extrusion and is mainly retained as a reference concept. Active development is moving towards V1.1, in which the aluminium extrusion is replaced by a fully 3D-printed structural frame.
+> V1.0 explored a frame based on 20 × 20 mm aluminium extrusion and is mainly retained as a reference concept. Active development has moved to V1.1, which replaces the extrusion frame with modular 3D-printed frame sections, combined with two continuous aluminium tubes for alignment and stiffness.
 
 ## V1.0
 
@@ -89,15 +89,74 @@ Files in `assemblies/` combine these components into functional parts of the com
 
 ### Concept
 
-V1.1 continues the development with a different structural approach.
+V1.1 takes a different approach to the structural frame.
 
-The 20 × 20 mm aluminium extrusion used in V1.0 is removed. Instead, the intention is to develop the complete structural frame as a 3D-printed construction.
+Instead of using 20 × 20 mm aluminium extrusion as the main structure, the frame is built from modular **160 × 160 mm 3D-printed sections**. The module size follows the nominal 160 mm dimension of the HUB75 panels and creates a regular 5 × 2 structural grid behind the five displays.
 
-Development of this version is stored in:
+The current concept includes:
+
+- ten 160 × 160 mm 3D-printed frame modules;
+- large central openings to reduce material usage and keep the rear of the panels accessible;
+- interlocking edges that position neighbouring frame modules;
+- alternating module colours in the OpenSCAD model to make the modular construction easier to inspect;
+- mounting features that use the existing HUB75 panel screw locations;
+- dedicated seam joiners connecting neighbouring panels and frame sections;
+- two continuous Ø10 × 1 mm aluminium tubes, each 800 mm long;
+- integrated snap clamps connecting the upper and lower frame modules to these tubes.
+
+The aluminium tubes provide a continuous structural reference across the full width of the display and are intended to improve alignment and stiffness.
+
+Their position also leaves open the possibility of using the tubes as a mounting interface for additional parts on the front side, such as a future display surround or bezel.
+
+V1.1 is still an early concept. The geometry of the interlocks, joiners, tube clamps and outer frame will be refined in further iterations.
+
+The OpenSCAD model is stored in:
 
 ```text
 cad/v1.1/
 ```
+
+### Renders
+
+Reference renders generated from the current V1.1 OpenSCAD model are stored in:
+
+```text
+out/v1.1/png/
+```
+
+#### Front view
+
+![HUB75 display frame V1.1 - front view](out/v1.1/png/hub75-display-frame-front.png)
+
+#### Rear view
+
+![HUB75 display frame V1.1 - rear view](out/v1.1/png/hub75-display-frame-rear.png)
+
+### CAD structure
+
+V1.1 continues to use the modular OpenSCAD structure introduced for the project.
+
+```text
+cad/v1.1/
+├── main.scad
+├── config/
+│   └── project_config.scad
+├── components/
+│   ├── hub75_panel.scad
+│   ├── frame_module.scad
+│   ├── panel_seam_joiner.scad
+│   └── ...
+└── assemblies/
+    ├── panels_assembly.scad
+    ├── frame_modules_assembly.scad
+    ├── seam_joiners_assembly.scad
+    ├── display_assembly.scad
+    └── ...
+```
+
+Open `cad/v1.1/main.scad` to view the complete concept.
+
+The model also provides separate views for individual components and subassemblies, together with an exploded view to inspect how the panels, printed frame modules, joiners and aluminium tubes fit together.
 
 ## Repository structure
 
@@ -114,8 +173,10 @@ cad/v1.1/
 └── out/
     ├── v1.0/
     │   └── png/
-    │       ├── hub75-display-frame-v1.0-front.png
-    │       └── hub75-display-frame-v1.0-rear.png
+    │       ├── hub75-display-frame-front.png
+    │       └── hub75-display-frame-rear.png
     └── v1.1/
-        └── ...
+        └── png/
+            ├── hub75-display-frame-front.png
+            └── hub75-display-frame-rear.png
 ```
