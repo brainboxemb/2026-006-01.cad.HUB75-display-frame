@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage from repository root:
 #   bash cad/v1.1/scripts/render_pngs.sh out/v1.1/png
 #
-# The camera definitions live in renders/*.scad, not in this script.
+# Camera definitions live in renders/*.scad, not in this script.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -35,5 +35,8 @@ render_png() {
 }
 
 render_png front.scad hub75-display-frame-front.png
+render_png front_angled.scad hub75-display-frame-front-angled.png
 render_png rear.scad hub75-display-frame-rear.png
-render_png exploded.scad hub75-display-frame-exploded.png
+render_png rear_angled.scad hub75-display-frame-rear-angled.png
+render_png exploded_rear.scad hub75-display-frame-exploded-rear.png
+render_png exploded_rear_angled.scad hub75-display-frame-exploded-rear-angled.png

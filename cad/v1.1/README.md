@@ -87,13 +87,16 @@ The official documentation views are defined inside the CAD project rather than 
 ```text
 renders/
 ├── front.scad
+├── front_angled.scad
 ├── rear.scad
-└── exploded.scad
+├── rear_angled.scad
+├── exploded_rear.scad
+└── exploded_rear_angled.scad
 ```
 
-This keeps the camera position and model visibility reproducible when renders are generated locally or by GitHub Actions.
+The angled front and rear views are a matched pair. The rear camera is the exact mirrored counterpart of the front camera, so both images use the same apparent viewing angle. The exploded rear-angled view uses that same rear camera, making the assembled and exploded images directly comparable.
 
-The helper script renders all three images:
+The helper script renders all six documentation views:
 
 ```bash
 bash cad/v1.1/scripts/render_pngs.sh out/v1.1/png
@@ -104,8 +107,11 @@ It generates:
 ```text
 out/v1.1/png/
 ├── hub75-display-frame-front.png
+├── hub75-display-frame-front-angled.png
 ├── hub75-display-frame-rear.png
-└── hub75-display-frame-exploded.png
+├── hub75-display-frame-rear-angled.png
+├── hub75-display-frame-exploded-rear.png
+└── hub75-display-frame-exploded-rear-angled.png
 ```
 
 The repository-level GitHub Actions workflow belongs at:
@@ -118,7 +124,7 @@ It can be run manually and also runs when files below `cad/v1.1/` change. The ge
 
 ### Exploded view
 
-The V1.1 exploded view now separates more than just the depth layers:
+The exploded view separates the construction while preserving the same overall orientation:
 
 - HUB75 panels move forward;
 - the ten printed frame modules fan out slightly in X and Z to expose their interlocking edges;
@@ -126,4 +132,4 @@ The V1.1 exploded view now separates more than just the depth layers:
 - the top aluminium tube moves upward out of its clips;
 - the bottom aluminium tube moves downward out of its clips.
 
-`exploded_distance` in `main.scad` controls the complete exploded presentation from one parameter.
+`exploded_distance` in `main.scad` controls the exploded spacing.
