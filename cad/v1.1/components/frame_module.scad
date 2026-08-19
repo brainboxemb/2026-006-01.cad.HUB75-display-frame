@@ -13,126 +13,196 @@ module rounded_square_2d(size, radius) {
         square([size - 2*radius, size - 2*radius], center=true);
 }
 
-module interlock_right_2d(center_position, clearance=0) {
-    neck = frame_interlock_neck_width + 2*clearance;
-    head = frame_interlock_head_width + 2*clearance;
-    depth = frame_interlock_depth + clearance;
+// Adjacent modules deliberately do not meet on the nominal 160 mm grid line.
+// The FEMALE / pocket side owns a continuous 5 mm strip across that line and
+// the MALE side is cut back by 5 mm.
+//
+// Crossing refinement is handled explicitly in the REAR view used to inspect
+// the display:
+//
+//      A | B
+//     ---+---
+//      C | D
+//
+// A owns the first middle screw through the normal overlap. D gets one simple
+// tab upward into B with a 45-degree free corner so D owns the second middle screw.
+// At its lower corner the tab tapers directly back to the normal D/C boundary
+// with one 45-degree flank. No separately dimensioned tongue is used.
+function edge_min(edge) =
+    edge == "female" ? -frame_interlock_overlap :
+    edge == "male"   ?  frame_interlock_overlap : 0;
 
-    polygon([
-        [frame_module_size, center_position - neck/2],
-        [frame_module_size + depth*0.35, center_position - neck/2],
-        [frame_module_size + depth, center_position - head/2],
-        [frame_module_size + depth, center_position + head/2],
-        [frame_module_size + depth*0.35, center_position + neck/2],
-        [frame_module_size, center_position + neck/2]
-    ]);
-}
+function edge_max(edge) =
+    edge == "female" ? frame_module_size + frame_interlock_overlap :
+    edge == "male"   ? frame_module_size - frame_interlock_overlap : frame_module_size;
 
-module interlock_left_2d(center_position, clearance=0) {
-    neck = frame_interlock_neck_width + 2*clearance;
-    head = frame_interlock_head_width + 2*clearance;
-    depth = frame_interlock_depth + clearance;
+// Dovetail interlock profile.
+//
+// The profile is defined ONCE in local coordinates and is reused for every
+// male key and every female pocket.  The local X axis is the insertion
+// direction: x=0 is the narrow root and x=frame_interlock_depth is the wide
+// tip.  The 45-degree sides start immediately at the root and stop
+// frame_interlock_tip_flat before the end, leaving a short straight tip
+// instead of a sharp corner.
+module dovetail_profile_2d(clearance=0) {
+    depth = frame_interlock_depth;
+    neck = frame_interlock_neck_width;
+    flat = frame_interlock_tip_flat;
+    slope_run = depth - flat;
+    head = neck + 2*slope_run;
 
-    polygon([
-        [0, center_position - neck/2],
-        [depth*0.35, center_position - neck/2],
-        [depth, center_position - head/2],
-        [depth, center_position + head/2],
-        [depth*0.35, center_position + neck/2],
-        [0, center_position + neck/2]
-    ]);
-}
-
-module interlock_top_2d(center_position, clearance=0) {
-    neck = frame_interlock_neck_width + 2*clearance;
-    head = frame_interlock_head_width + 2*clearance;
-    depth = frame_interlock_depth + clearance;
-
-    polygon([
-        [center_position - neck/2, frame_module_size],
-        [center_position - neck/2, frame_module_size + depth*0.35],
-        [center_position - head/2, frame_module_size + depth],
-        [center_position + head/2, frame_module_size + depth],
-        [center_position + neck/2, frame_module_size + depth*0.35],
-        [center_position + neck/2, frame_module_size]
-    ]);
-}
-
-module interlock_bottom_2d(center_position, clearance=0) {
-    neck = frame_interlock_neck_width + 2*clearance;
-    head = frame_interlock_head_width + 2*clearance;
-    depth = frame_interlock_depth + clearance;
-
-    polygon([
-        [center_position - neck/2, 0],
-        [center_position - neck/2, depth*0.35],
-        [center_position - head/2, depth],
-        [center_position + head/2, depth],
-        [center_position + neck/2, depth*0.35],
-        [center_position + neck/2, 0]
-    ]);
-}
-
-// Ownership feature for the middle HUB75 screw row. The screw positions sit
-// close to the vertical module edges, so the lower module uses edge-connected
-// trapezoidal tabs instead of isolated puzzle heads. The upper module receives
-// matching trapezoidal pockets. This avoids thin points where four modules meet
-// and keeps the complete screw hole in one printed part.
-module middle_screw_edge_tab_top_2d(center_position, clearance=0) {
-    depth = frame_middle_screw_tab_depth + clearance;
-    base_width = frame_middle_screw_tab_base_width + clearance;
-    tip_width = frame_middle_screw_tab_tip_width + clearance;
-    left_side = center_position < frame_module_size/2;
-
-    if(left_side)
+    module raw_profile() {
         polygon([
-            [0, frame_module_size],
-            [base_width, frame_module_size],
-            [tip_width, frame_module_size + depth],
-            [0, frame_module_size + depth]
+            [0,              -neck/2],
+            [slope_run,      -head/2],
+            [depth,          -head/2],
+            [depth,           head/2],
+            [slope_run,       head/2],
+            [0,               neck/2]
         ]);
+    }
+
+    if(clearance > 0)
+        offset(delta=clearance)
+            raw_profile();
     else
-        polygon([
-            [frame_module_size - base_width, frame_module_size],
-            [frame_module_size, frame_module_size],
-            [frame_module_size, frame_module_size + depth],
-            [frame_module_size - tip_width, frame_module_size + depth]
-        ]);
+        raw_profile();
 }
 
-module middle_screw_edge_pocket_bottom_2d(center_position, clearance=0) {
-    depth = frame_middle_screw_tab_depth + clearance;
-    base_width = frame_middle_screw_tab_base_width + clearance;
-    tip_width = frame_middle_screw_tab_tip_width + clearance;
-    left_side = center_position < frame_module_size/2;
+// Male profiles start at the cut-back module edge and point towards the
+// neighbouring module. Female pockets are the SAME profile, transformed into
+// the neighbouring module's coordinate system. This is important: a female
+// LEFT edge mates a male RIGHT edge and therefore must not simply be a mirrored
+// copy of another female edge.
+module male_interlock_right_2d(center_position) {
+    translate([
+        frame_module_size - frame_interlock_overlap,
+        center_position
+    ])
+        dovetail_profile_2d();
+}
 
-    if(left_side)
-        polygon([
+module female_interlock_left_2d(center_position) {
+    translate([
+        -frame_interlock_overlap,
+        center_position
+    ])
+        dovetail_profile_2d(frame_interlock_clearance);
+}
+
+module male_interlock_left_2d(center_position) {
+    translate([
+        frame_interlock_overlap,
+        center_position
+    ])
+        mirror([1,0,0])
+            dovetail_profile_2d();
+}
+
+module female_interlock_right_2d(center_position) {
+    translate([
+        frame_module_size + frame_interlock_overlap,
+        center_position
+    ])
+        mirror([1,0,0])
+            dovetail_profile_2d(frame_interlock_clearance);
+}
+
+module male_interlock_top_2d(center_position) {
+    translate([
+        center_position,
+        frame_module_size - frame_interlock_overlap
+    ])
+        rotate([0,0,90])
+            dovetail_profile_2d();
+}
+
+module female_interlock_bottom_2d(center_position) {
+    translate([
+        center_position,
+        -frame_interlock_overlap
+    ])
+        rotate([0,0,90])
+            dovetail_profile_2d(frame_interlock_clearance);
+}
+
+module male_interlock_bottom_2d(center_position) {
+    translate([
+        center_position,
+        frame_interlock_overlap
+    ])
+        rotate([0,0,-90])
+            dovetail_profile_2d();
+}
+
+module female_interlock_top_2d(center_position) {
+    translate([
+        center_position,
+        frame_module_size + frame_interlock_overlap
+    ])
+        rotate([0,0,-90])
+            dovetail_profile_2d(frame_interlock_clearance);
+}
+
+// Four-module crossing, named as seen from the REAR of the display:
+//
+//      A | B
+//     ---+---
+//      C | D
+//
+// Rear viewing mirrors model X. Therefore visual D is the lower module whose
+// RIGHT edge is the internal vertical seam, and visual B is the upper module
+// above it. D gets a simple tab upward into B around the second middle screw.
+// The tab remains on the visual B/D side. Its base continues into the D body
+// over the full tab width; only the final 5 mm 45-degree tip enters C.
+module d_crossing_tab_2d(clearance=0) {
+    tab_width = 18.0;
+    tab_depth = 2 * frame_interlock_overlap;
+    tab_chamfer = 5.0;
+
+    // Simple D -> B ownership tab with one 45-degree free corner.
+    // In the normal rear inspection view this is the upper-left corner
+    // of the D tab. The corner is clipped instead of ending in a hard 90°.
+    module tab_profile() {
+        polygon(points=[
             [0, 0],
-            [base_width, 0],
-            [tip_width, depth],
-            [0, depth]
+            [tab_width, 0],
+            [tab_width, tab_depth],
+            [tab_chamfer, tab_depth],
+            [0, tab_depth-tab_chamfer]
         ]);
+    }
+
+    if(clearance > 0)
+        offset(delta=clearance)
+            tab_profile();
     else
-        polygon([
-            [frame_module_size - base_width, 0],
-            [frame_module_size, 0],
-            [frame_module_size, depth],
-            [frame_module_size - tip_width, depth]
+        tab_profile();
+}
+
+
+// D -> C transition at the base of the crossing tab.
+// Seen from the REAR, D is the lower-right module and C the lower-left.
+// This is not given an independent arbitrary depth. The transition simply
+// connects the extended D tab back to the normal D/C material boundary with
+// one 45-degree flank. Its size therefore follows the existing offset between
+// the nominal 160 mm grid line and the cut-back male module edge.
+module d_to_c_crossing_transition_2d(clearance=0) {
+    transition_run = frame_module_size - edge_max("male");
+
+    module transition_profile() {
+        polygon(points=[
+            [0, -transition_run],
+            [0, 0],
+            [transition_run, 0]
         ]);
-}
+    }
 
-module middle_screw_tabs_2d() {
-    for(x=panel_hole_x)
-        middle_screw_edge_tab_top_2d(x);
-}
-
-module middle_screw_tab_pockets_2d() {
-    for(x=panel_hole_x)
-        middle_screw_edge_pocket_bottom_2d(
-            x,
-            frame_middle_screw_tab_clearance
-        );
+    if(clearance > 0)
+        offset(delta=clearance)
+            transition_profile();
+    else
+        transition_profile();
 }
 
 module frame_module_outline_2d(
@@ -142,84 +212,139 @@ module frame_module_outline_2d(
     bottom_edge="female",
     top_edge="male"
 ) {
+    xmin = edge_min(left_edge);
+    xmax = edge_max(right_edge);
+    zmin = edge_min(bottom_edge);
+    zmax = edge_max(top_edge);
+
     difference() {
         union() {
-            square([frame_module_size, frame_module_size]);
+            // Female edges get the extra 5 mm material; male edges stop 5 mm
+            // before the nominal grid line.
+            translate([xmin,zmin])
+                square([xmax-xmin, zmax-zmin]);
 
-            // Give the middle screw row to the lower module rather than
-            // splitting each hole across two module edges. Because the screw
-            // positions are close to the left/right module edges, each tab
-            // runs all the way to that edge and uses one simple sloping side.
-            if(row == "lower")
-                middle_screw_tabs_2d();
-
+            // Male dovetails bridge the 10 mm joint region. Their 45-degree
+            // flanks start immediately at the root and finish with a short
+            // straight tip instead of a sharp point.
             if(right_edge == "male")
                 for(p=frame_interlock_positions)
-                    interlock_right_2d(p);
+                    male_interlock_right_2d(p);
 
             if(left_edge == "male")
                 for(p=frame_interlock_positions)
-                    mirror([1,0,0])
-                        interlock_right_2d(p);
+                    male_interlock_left_2d(p);
 
             if(top_edge == "male")
                 for(p=frame_interlock_positions)
-                    interlock_top_2d(p);
+                    male_interlock_top_2d(p);
 
             if(bottom_edge == "male")
                 for(p=frame_interlock_positions)
-                    translate([0,frame_module_size])
-                        mirror([0,1,0])
-                            interlock_top_2d(p);
+                    male_interlock_bottom_2d(p);
+
+            // Rear-view D -> B crossing tab. Visual D is the lower module
+            // on the right side of the rear-view crossing. In model coordinates
+            // this is the module with the internal RIGHT edge. The tab grows
+            // upward from z=155 to z=165 and contains the second middle screw
+            // at local x=151.85, z=159.855.
+            if(row == "lower" && right_edge == "male" && top_edge == "male") {
+                translate([
+                    frame_module_size-18.0,
+                    frame_module_size-frame_interlock_overlap
+                ])
+                    d_crossing_tab_2d();
+
+                // Taper the D tab directly back to the normal D/C boundary
+                // with one 45-degree flank. No horizontal tongue is added.
+                translate([
+                    edge_max("male"),
+                    frame_module_size-frame_interlock_overlap
+                ])
+                    d_to_c_crossing_transition_2d();
+            }
+
         }
 
-        // Matching trapezoidal pockets in the upper module accept the lower
-        // module tabs without leaving narrow points at the grid intersection.
-        if(row == "upper")
-            middle_screw_tab_pockets_2d();
+        // Rear-view B matching pocket for the D crossing tab. Visual B is the
+        // upper module with the internal RIGHT edge in model coordinates.
+        if(row == "upper" && right_edge == "male" && bottom_edge == "female")
+            translate([frame_module_size-18.0, -frame_interlock_overlap])
+                d_crossing_tab_2d(frame_interlock_clearance/2);
 
+        // Rear-view C matching pocket for the D -> C transition. Visual C is
+        // the lower module with the internal LEFT edge in model coordinates.
+        if(row == "lower" && left_edge == "female" && top_edge == "male")
+            translate([
+                -frame_interlock_overlap,
+                frame_module_size-frame_interlock_overlap
+            ])
+                d_to_c_crossing_transition_2d(frame_interlock_clearance/2);
+
+        // The upper-right module in model coordinates is visual A in the rear
+        // view. Because A owns the 5 mm female overlap strip, the D tab already
+        // reaches underneath A up to the nominal A/B grid line. Remove the
+        // matching part from A as well, so D visibly/structurally continues all
+        // the way to that nominal centre line instead of disappearing under A.
+        if(row == "upper" && left_edge == "female" && bottom_edge == "female")
+            translate([-18.0, -frame_interlock_overlap])
+                d_crossing_tab_2d(frame_interlock_clearance/2);
+
+        // Female pockets match the complete dovetail profile. Print clearance
+        // is added to the pocket only.
         if(left_edge == "female")
             for(p=frame_interlock_positions)
-                interlock_left_2d(p, frame_interlock_clearance);
+                female_interlock_left_2d(p);
 
         if(right_edge == "female")
             for(p=frame_interlock_positions)
-                translate([frame_module_size,0])
-                    mirror([1,0,0])
-                        interlock_left_2d(p, frame_interlock_clearance);
+                female_interlock_right_2d(p);
 
         if(bottom_edge == "female")
             for(p=frame_interlock_positions)
-                interlock_bottom_2d(p, frame_interlock_clearance);
+                female_interlock_bottom_2d(p);
 
         if(top_edge == "female")
             for(p=frame_interlock_positions)
-                translate([0,frame_module_size])
-                    mirror([0,1,0])
-                        interlock_bottom_2d(p, frame_interlock_clearance);
+                female_interlock_top_2d(p);
+
     }
 }
 
-function module_mount_z_positions(row) =
+function module_mount_points(row) =
+    // Middle-row screw ownership follows the model grid directly:
+    //
+    //      A | B
+    //     ---+---
+    //      C | D
+    //
+    // The RIGHT middle screw of the upper/left panel half belongs to A; the
+    // LEFT middle screw of the lower/right panel half belongs to D. Across the
+    // complete display this means upper modules own their local RIGHT middle
+    // screw and lower modules own their local LEFT middle screw.
     row == "upper"
-        ? [panel_hole_z[2] - frame_module_size]
-        : [panel_hole_z[0], panel_hole_z[1]];
+        ? [
+            [panel_hole_x[1], panel_hole_z[1] - frame_module_size],
+            [panel_hole_x[0], panel_hole_z[2] - frame_module_size],
+            [panel_hole_x[1], panel_hole_z[2] - frame_module_size]
+          ]
+        : [
+            [panel_hole_x[0], panel_hole_z[0]],
+            [panel_hole_x[1], panel_hole_z[0]],
+            [panel_hole_x[0], panel_hole_z[1]]
+          ];
 
-// Local Z positions for the locating holes used by the vertical seam joiners.
-// The middle panel screw row sits at the horizontal 160 mm grid seam. This
-// means the lower module receives the lower pin and the upper module receives
-// the upper pin from the same joiner.
 function seam_joiner_pin_z_positions(row) =
     row == "upper"
         ? [
-            panel_hole_z[1] + seam_joiner_pin_z_offset - frame_module_size,
+            panel_hole_z[1] + seam_joiner_middle_pin_z_offset - frame_module_size,
             panel_hole_z[2] - seam_joiner_pin_z_offset - frame_module_size,
             panel_hole_z[2] + seam_joiner_pin_z_offset - frame_module_size
           ]
         : [
             panel_hole_z[0] - seam_joiner_pin_z_offset,
             panel_hole_z[0] + seam_joiner_pin_z_offset,
-            panel_hole_z[1] - seam_joiner_pin_z_offset
+            panel_hole_z[1] - seam_joiner_middle_pin_z_offset
           ];
 
 module frame_module_2d(
@@ -246,13 +371,12 @@ module frame_module_2d(
                 frame_module_opening_radius
             );
 
-        // Mounting points follow the measured HUB75 PCB holes. The middle
-        // screw row is intentionally owned by the lower module; edge-connected
-        // trapezoidal tabs cross the seam and the upper module has matching pockets.
-        for(x=panel_hole_x)
-            for(z=module_mount_z_positions(row))
-                translate([x,z])
-                    circle(d=frame_module_mount_hole_diameter, $fn=28);
+        // Mounting points follow the measured HUB75 PCB holes. The middle row
+        // is split diagonally between the two module rows, so each screw hole
+        // is completely contained by one printed module.
+        for(point=module_mount_points(row))
+            translate(point)
+                circle(d=frame_module_mount_hole_diameter, $fn=28);
 
         // Locating holes are added only on internal vertical grid edges. The
         // seam joiner pins are deliberately shorter than the module thickness,

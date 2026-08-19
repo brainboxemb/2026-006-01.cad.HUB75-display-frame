@@ -49,10 +49,10 @@ module seam_joiner_body() {
         }
 }
 
-module seam_joiner_locating_pins() {
+module seam_joiner_locating_pins(pin_z_offset=seam_joiner_pin_z_offset) {
     color(color_seam_joiner)
         for(x=[-seam_joiner_pin_x_offset, seam_joiner_pin_x_offset])
-            for(z=[-seam_joiner_pin_z_offset, seam_joiner_pin_z_offset])
+            for(z=[-pin_z_offset, pin_z_offset])
                 translate([x,0,z])
                     rotate([90,0,0])
                         cylinder(
@@ -62,11 +62,11 @@ module seam_joiner_locating_pins() {
                         );
 }
 
-module panel_seam_joiner(show_pins=true) {
+module panel_seam_joiner(show_pins=true, pin_z_offset=seam_joiner_pin_z_offset) {
     union() {
         seam_joiner_body();
         if(show_pins)
-            seam_joiner_locating_pins();
+            seam_joiner_locating_pins(pin_z_offset=pin_z_offset);
     }
 }
 

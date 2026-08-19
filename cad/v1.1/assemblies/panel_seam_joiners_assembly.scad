@@ -8,13 +8,21 @@ use <../components/panel_seam_joiner.scad>
 
 module panel_seam_joiners_assembly(yshift=0, show_pins=true) {
     for(seam_index=[1:panel_count-1])
-        for(z=panel_hole_z)
+        for(z=panel_hole_z) {
+            pin_z_offset = abs(z-panel_hole_z[1]) < 0.01
+                ? seam_joiner_middle_pin_z_offset
+                : seam_joiner_pin_z_offset;
+
             translate([
                 seam_index * panel_pitch,
                 seam_joiner_y + yshift,
                 z
             ])
-                panel_seam_joiner(show_pins=show_pins);
+                panel_seam_joiner(
+                    show_pins=show_pins,
+                    pin_z_offset=pin_z_offset
+                );
+        }
 }
 
 /* [Preview] */

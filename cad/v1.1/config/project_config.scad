@@ -54,27 +54,31 @@ frame_module_opening_size = 132.0;
 frame_module_opening_radius = 8.0;
 frame_module_mount_hole_diameter = 3.4;
 
-// The middle HUB75 screw row lies almost exactly on the 160 mm horizontal
-// module seam. V1.1 assigns those screws to the lower module. Since both screw
-// positions are close to the vertical module edges, each lower module gets an
-// edge-connected trapezoidal tab. The upper module receives the matching cutout.
-// This keeps every screw hole in one part and avoids thin points where four
-// modules meet.
-frame_middle_screw_tab_depth = 7.0;
-frame_middle_screw_tab_base_width = 20.0;
-frame_middle_screw_tab_tip_width = 14.0;
-frame_middle_screw_tab_clearance = 0.35;
+// Adjacent printed modules do not meet exactly on the nominal 160 mm grid
+// line. The female/pocket module owns a 5 mm strip across the nominal boundary,
+// while the male module is cut back 5 mm. A puzzle key spans 10 mm in total:
+// from 5 mm before the nominal line to 5 mm beyond it. This deliberately
+// offsets the structural seam from the HUB75 panel seam.
+frame_interlock_overlap = 5.0;
 
 // The module lies directly behind the nominal rear face of the HUB75 panel.
 frame_module_y = panel_thickness;
 
-// Two puzzle-style keys per joined edge. Outer display edges are kept plain
-// by the assembly so a separate visible border can be added later.
+// Two puzzle-style keys per joined edge. The side containing the pockets owns
+// the continuous 5 mm overlap strip. Male keys cross that strip and span a
+// 10 mm total joint region. Outer display edges remain plain for the later
+// visible border.
 frame_interlock_positions = [50, 110];
-frame_interlock_depth = 8.0;
-frame_interlock_neck_width = 10.0;
-frame_interlock_head_width = 18.0;
+frame_interlock_depth = 10.0;
+// Dovetail profile. The flanks start directly at the 11 mm root and run at
+// 45 degrees. The last 1.5 mm is straight, so the wide end is derived from
+// depth, root width and tip-flat length instead of being tuned independently.
+frame_interlock_neck_width = 11.0;
+frame_interlock_tip_flat = 1.5;
 frame_interlock_clearance = 0.30;
+
+function frame_interlock_head_width() =
+    frame_interlock_neck_width + 2*(frame_interlock_depth-frame_interlock_tip_flat);
 
 frame_grid_columns = panel_count;
 frame_grid_rows = 2;
@@ -96,8 +100,9 @@ seam_joiner_right_screw_x = panel_hole_x[0];
 // Four small locating pins register the joiner to the printed frame modules.
 // At the middle screw row these naturally locate into all four modules around
 // the 160 x 160 mm grid intersection.
-seam_joiner_pin_x_offset = 5.0;
+seam_joiner_pin_x_offset = 11.0;
 seam_joiner_pin_z_offset = 4.0;
+seam_joiner_middle_pin_z_offset = 8.0;
 seam_joiner_pin_diameter = 2.4;
 seam_joiner_pin_hole_diameter = 2.8;
 seam_joiner_pin_length = 2.2;
@@ -149,7 +154,12 @@ function stiffening_tube_top_z() = display_nominal_height + tube_clip_outer_radi
 /* [Hidden] */
 color_panel = [0.08,0.10,0.09,1];
 color_pcb = [0.02,0.20,0.07,1];
-color_frame_module_r1 = [0.82,0.07,0.05,1];
-color_frame_module_r2 = [0.55,0.03,0.025,1];
+// Four related red shades are used in the normal assembly as a repeating
+// 2 x 2 visual pattern. This makes neighbouring printed modules easier to
+// distinguish without changing the intended material family.
+color_frame_module_r1 = [0.90, 0.05, 0.04, 1];   // red
+color_frame_module_r2 = [1.00, 0.30, 0.26, 1];   // light red
+color_frame_module_r3 = [0.38, 0.015, 0.012, 1]; // dark red
+color_frame_module_r4 = [0.55, 0.14, 0.09, 1];   // chestnut red
 color_seam_joiner = [0.96,0.18,0.08,1];
 color_aluminium_tube = [0.72,0.74,0.76,1];

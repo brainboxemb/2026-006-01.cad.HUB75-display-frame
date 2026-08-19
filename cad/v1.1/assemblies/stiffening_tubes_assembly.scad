@@ -8,11 +8,22 @@
 include <../config/project_config.scad>
 use <../components/aluminium_stiffening_tube.scad>
 
-module stiffening_tubes_assembly(yshift=0) {
-    for(z=[stiffening_tube_bottom_z(), stiffening_tube_top_z()])
-        translate([0, stiffening_tube_y()+yshift, z])
-            aluminium_stiffening_tube();
+module stiffening_tubes_assembly(
+    yshift=0,
+    bottom_zshift=0,
+    top_zshift=0
+) {
+    translate([0, stiffening_tube_y()+yshift, stiffening_tube_bottom_z()+bottom_zshift])
+        aluminium_stiffening_tube();
+
+    translate([0, stiffening_tube_y()+yshift, stiffening_tube_top_z()+top_zshift])
+        aluminium_stiffening_tube();
 }
 
 /* [Preview] */
-stiffening_tubes_assembly();
+preview_bottom_zshift = 0; // [-40:2:0]
+preview_top_zshift = 0;    // [0:2:40]
+stiffening_tubes_assembly(
+    bottom_zshift=preview_bottom_zshift,
+    top_zshift=preview_top_zshift
+);

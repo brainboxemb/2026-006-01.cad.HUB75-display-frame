@@ -7,7 +7,7 @@
 // clip interface for the visible border.
 
 /* [View] */
-view_mode = "assembly"; // [assembly, exploded, panels_only, frame_modules_only, seam_joiners_only, stiffening_tubes_only, single_module, single_seam_joiner]
+view_mode = "assembly"; // [assembly, exploded, render_front, render_rear, render_exploded, crossing_debug, panels_only, frame_modules_only, seam_joiners_only, stiffening_tubes_only, single_module, single_seam_joiner]
 
 show_panels = true;
 show_frame_modules = true;
@@ -18,7 +18,7 @@ show_panel_numbers = false;
 show_in_out_labels = false;
 
 /* [Exploded view] */
-exploded_distance = 30; // [10:5:80]
+exploded_distance = 40; // [10:5:80]
 
 /* [Single module view] */
 single_module_row = "lower"; // [lower, upper]
@@ -32,8 +32,9 @@ use <assemblies/panels_assembly.scad>
 use <assemblies/frame_modules_assembly.scad>
 use <assemblies/panel_seam_joiners_assembly.scad>
 use <assemblies/stiffening_tubes_assembly.scad>
+use <assemblies/crossing_debug_assembly.scad>
 
-if(view_mode == "exploded") {
+if(view_mode == "exploded" || view_mode == "render_exploded") {
     display_assembly(
         panels_visible=show_panels,
         frame_modules_visible=show_frame_modules,
@@ -44,6 +45,20 @@ if(view_mode == "exploded") {
         in_out_labels_visible=show_in_out_labels,
         explode_distance=exploded_distance
     );
+} else if(view_mode == "render_front" || view_mode == "render_rear") {
+    // Official front/rear render modes use the normal complete geometry.
+    // The camera itself is fixed in renders/front.scad and renders/rear.scad.
+    display_assembly(
+        panels_visible=true,
+        frame_modules_visible=true,
+        seam_joiners_visible=true,
+        stiffening_tubes_visible=true,
+        orientation_visible=false,
+        panel_numbers_visible=false,
+        in_out_labels_visible=false
+    );
+} else if(view_mode == "crossing_debug") {
+    crossing_debug_assembly();
 } else if(view_mode == "panels_only") {
     panels_assembly(
         orientation_visible=show_orientation,
