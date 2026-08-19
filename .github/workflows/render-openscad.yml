@@ -2,6 +2,7 @@ name: Render OpenSCAD PNGs
 
 on:
   workflow_dispatch:
+
   push:
     paths:
       - "cad/v1.0/**"
@@ -11,9 +12,16 @@ on:
 permissions:
   contents: write
 
+# Only the most recent render run for a branch is useful.
+# If a newer relevant commit arrives, cancel the older run.
+concurrency:
+  group: openscad-render-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   render:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -29,6 +37,8 @@ jobs:
           BEFORE_SHA: ${{ github.event.before }}
           CURRENT_SHA: ${{ github.sha }}
         run: |
+          set -euo pipefail
+
           render_v10=false
           render_v11=false
 
@@ -55,8 +65,7 @@ jobs:
               render_v11=true
             fi
 
-            # A workflow change may affect rendering for either version,
-            # so render both to keep all generated images consistent.
+            # A workflow change can affect both versions.
             if grep -qE '^\.github/workflows/render-openscad\.yml$' <<< "$changed_files"; then
               render_v10=true
               render_v11=true
@@ -70,25 +79,76 @@ jobs:
           echo "Render V1.1: $render_v11"
 
       - name: Install OpenSCAD
+        timeout-minutes: 5
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y openscad xvfb
+          set -euo pipefail
+
+          sudo apt-get \
+            -o Acquire::Retries=2 \
+            -o Acquire::http::Timeout=20 \
+            -o Acquire::https::Timeout=20 \
+            update
+
+          sudo apt-get \
+            -o Acquire::Retries=2 \
+            -o Acquire::http::Timeout=20 \
+            -o Acquire::https::Timeout=20 \
+            install -y --no-install-recommends openscad
+
+          openscad --version
+          xvfb-run --help >/dev/null
 
       - name: Render V1.0 documentation PNGs
         if: steps.changes.outputs.v10 == 'true'
+        timeout-minutes: 5
+        shell: bash
         run: |
+          set -euo pipefail
           bash cad/v1.0/scripts/render_pngs.sh out/v1.0/png
 
       - name: Render V1.1 documentation PNGs
         if: steps.changes.outputs.v11 == 'true'
+        timeout-minutes: 5
+        shell: bash
         run: |
+          set -euo pipefail
           bash cad/v1.1/scripts/render_pngs.sh out/v1.1/png
 
+      - name: Check run is still current
+        id: current
+        shell: bash
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+          RENDER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          # A workflow_dispatch run can also become stale while rendering.
+          git fetch origin "$BRANCH_NAME"
+
+          remote_sha="$(git rev-parse "origin/$BRANCH_NAME")"
+
+          echo "Rendered commit : $RENDER_SHA"
+          echo "Current remote  : $remote_sha"
+
+          if [[ "$remote_sha" != "$RENDER_SHA" ]]; then
+            echo "A newer commit exists. These renders belong to an older commit and will not be committed."
+            echo "is_current=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_current=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Commit updated renders
+        if: steps.current.outputs.is_current == 'true'
+        shell: bash
         env:
           GIT_USER_NAME: ${{ vars.GIT_USER_NAME }}
           GIT_USER_EMAIL: ${{ vars.GIT_USER_EMAIL }}
+          BRANCH_NAME: ${{ github.ref_name }}
         run: |
+          set -euo pipefail
+
           if [[ -z "$GIT_USER_NAME" || -z "$GIT_USER_EMAIL" ]]; then
             echo "Repository variables GIT_USER_NAME and GIT_USER_EMAIL must be configured."
             exit 1
@@ -105,4 +165,4 @@ jobs:
           fi
 
           git commit -m "Update OpenSCAD documentation renders"
-          git push
+          git push origin "HEAD:$BRANCH_NAME"
