@@ -1,0 +1,108 @@
+name: Render OpenSCAD PNGs
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "cad/v1.0/**"
+      - "cad/v1.1/**"
+      - ".github/workflows/render-openscad.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine versions to render
+        id: changes
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          render_v10=false
+          render_v11=false
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "Manual run: render both versions."
+            render_v10=true
+            render_v11=true
+          else
+            if [[ "$BEFORE_SHA" =~ ^0+$ ]] || ! git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+              echo "Previous commit is unavailable; inspect the current commit."
+              changed_files="$(git diff-tree --no-commit-id --name-only -r "$CURRENT_SHA")"
+            else
+              changed_files="$(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA")"
+            fi
+
+            echo "Changed files:"
+            printf '%s\n' "$changed_files"
+
+            if grep -qE '^cad/v1\.0/' <<< "$changed_files"; then
+              render_v10=true
+            fi
+
+            if grep -qE '^cad/v1\.1/' <<< "$changed_files"; then
+              render_v11=true
+            fi
+
+            # A workflow change may affect rendering for either version,
+            # so render both to keep all generated images consistent.
+            if grep -qE '^\.github/workflows/render-openscad\.yml$' <<< "$changed_files"; then
+              render_v10=true
+              render_v11=true
+            fi
+          fi
+
+          echo "v10=$render_v10" >> "$GITHUB_OUTPUT"
+          echo "v11=$render_v11" >> "$GITHUB_OUTPUT"
+
+          echo "Render V1.0: $render_v10"
+          echo "Render V1.1: $render_v11"
+
+      - name: Install OpenSCAD
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openscad xvfb
+
+      - name: Render V1.0 documentation PNGs
+        if: steps.changes.outputs.v10 == 'true'
+        run: |
+          bash cad/v1.0/scripts/render_pngs.sh out/v1.0/png
+
+      - name: Render V1.1 documentation PNGs
+        if: steps.changes.outputs.v11 == 'true'
+        run: |
+          bash cad/v1.1/scripts/render_pngs.sh out/v1.1/png
+
+      - name: Commit updated renders
+        env:
+          GIT_USER_NAME: ${{ vars.GIT_USER_NAME }}
+          GIT_USER_EMAIL: ${{ vars.GIT_USER_EMAIL }}
+        run: |
+          if [[ -z "$GIT_USER_NAME" || -z "$GIT_USER_EMAIL" ]]; then
+            echo "Repository variables GIT_USER_NAME and GIT_USER_EMAIL must be configured."
+            exit 1
+          fi
+
+          git config user.name "$GIT_USER_NAME"
+          git config user.email "$GIT_USER_EMAIL"
+
+          git add out/v1.0/png/ out/v1.1/png/
+
+          if git diff --cached --quiet; then
+            echo "No render changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Update OpenSCAD documentation renders"
+          git push
