@@ -2,7 +2,7 @@
 // Focus: aluminium frame and frame-mounted HUB75 hardware.
 
 /* [View] */
-view_mode = "frame_system"; // [frame_system, frame_only, panels_only, hardware_only, din_rail_only, cable_clips_only, esp32_only, power_supply_only, hole_check, print_seam_bracket_bottom, print_seam_bracket_top, print_corner_bracket, print_cable_clip, print_esp32_mount, print_esp32_clamp_cap, print_power_supply_din_clip, print_power_supply_top_bracket, print_power_supply_bottom_bracket]
+view_mode = "frame_system"; // [frame_system, exploded, render_front, render_rear, render_exploded, frame_only, panels_only, hardware_only, din_rail_only, cable_clips_only, esp32_only, power_supply_only, hole_check, print_seam_bracket_bottom, print_seam_bracket_top, print_corner_bracket, print_cable_clip, print_esp32_mount, print_esp32_clamp_cap, print_power_supply_din_clip, print_power_supply_top_bracket, print_power_supply_bottom_bracket]
 
 show_brackets = true;
 show_din_rail = true;
@@ -17,9 +17,13 @@ show_bolts = true;
 show_esp32 = false;
 show_power_supply = false;
 
+/* [Exploded view] */
+exploded_distance = 45; // [10:5:100]
+
 
 include <config/project_config.scad>
 
+use <assemblies/display_assembly.scad>
 use <assemblies/frame_assembly.scad>
 use <assemblies/panels_assembly.scad>
 use <assemblies/bracket_bolts_assembly.scad>
@@ -56,6 +60,33 @@ if(view_mode=="print_cable_clip") {
     power_supply_top_bracket();
 } else if(view_mode=="print_power_supply_bottom_bracket") {
     power_supply_bottom_bracket();
+} else if(view_mode=="exploded" || view_mode=="render_exploded") {
+    display_assembly(
+        brackets_visible=show_brackets,
+        din_rail_visible=show_din_rail,
+        cable_clips_visible=show_cable_clips,
+        ribbon_cables_visible=show_ribbon_cables,
+        orientation_visible=show_orientation,
+        panel_numbers_visible=show_panel_numbers,
+        in_out_labels_visible=show_in_out_labels,
+        bolts_visible=show_bolts,
+        esp32_visible=show_esp32,
+        power_supply_visible=show_power_supply,
+        explode_distance=exploded_distance
+    );
+} else if(view_mode=="render_front" || view_mode=="render_rear") {
+    display_assembly(
+        brackets_visible=true,
+        din_rail_visible=true,
+        cable_clips_visible=true,
+        ribbon_cables_visible=true,
+        orientation_visible=false,
+        panel_numbers_visible=false,
+        in_out_labels_visible=false,
+        bolts_visible=true,
+        esp32_visible=false,
+        power_supply_visible=false
+    );
 } else if(view_mode=="frame_only") {
     frame_assembly();
 } else if(view_mode=="panels_only") {
