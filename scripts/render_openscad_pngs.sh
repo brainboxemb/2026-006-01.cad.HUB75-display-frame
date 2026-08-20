@@ -8,6 +8,11 @@ set -euo pipefail
 #   bash scripts/render_openscad_pngs.sh cad/v1.1 out/v1.1/png
 #
 # Camera definitions live in <project>/renders/*.scad.
+#
+# Optional environment variables:
+#   OPENSCAD_IMG_SIZE         e.g. 2560,1440
+#   OPENSCAD_WATERMARK_TEXT  e.g. © 2026 brainboxemb
+#   WATERMARK_PYTHON         Python interpreter containing Pillow
 
 if [[ $# -ne 2 ]]; then
     echo "Usage: $0 <project-dir> <output-dir>"
@@ -51,8 +56,8 @@ if [[ ! -d "${RENDERS_DIR}" ]]; then
     exit 1
 fi
 
-# All current documentation views use the display assembly.
-# Fail here with a useful message instead of letting OpenSCAD create blank PNGs.
+# All current documentation render entry points use display_assembly.scad.
+# Fail early instead of allowing OpenSCAD to create a blank PNG.
 if [[ ! -f "${PROJECT_DIR}/assemblies/display_assembly.scad" ]]; then
     echo "ERROR: Missing required assembly:"
     echo "  ${PROJECT_DIR}/assemblies/display_assembly.scad"
@@ -63,16 +68,46 @@ mkdir -p "${OUTPUT_DIR}"
 
 OPENSCAD_BIN="${OPENSCAD_BIN:-openscad}"
 OPENSCAD_IMG_SIZE="${OPENSCAD_IMG_SIZE:-2560,1440}"
-OPENSCAD_RUN=("${OPENSCAD_BIN}")
+OPENSCAD_WATERMARK_TEXT="${OPENSCAD_WATERMARK_TEXT:-}"
+WATERMARK_PYTHON="${WATERMARK_PYTHON:-python3}"
+WATERMARK_SCRIPT="${REPO_ROOT}/scripts/add_watermark.py"
 
 if [[ ! "${OPENSCAD_IMG_SIZE}" =~ ^[0-9]+,[0-9]+$ ]]; then
     echo "ERROR: OPENSCAD_IMG_SIZE must use WIDTH,HEIGHT format, e.g. 2560,1440."
     exit 2
 fi
 
+OPENSCAD_RUN=("${OPENSCAD_BIN}")
+
 if command -v xvfb-run >/dev/null 2>&1; then
     OPENSCAD_RUN=(xvfb-run -a "${OPENSCAD_BIN}")
 fi
+
+apply_watermark() {
+    local image="$1"
+
+    if [[ -z "${OPENSCAD_WATERMARK_TEXT}" ]]; then
+        return 0
+    fi
+
+    if [[ ! -f "${WATERMARK_SCRIPT}" ]]; then
+        echo "ERROR: Watermark script not found: ${WATERMARK_SCRIPT}"
+        return 1
+    fi
+
+    local tmp_image
+    tmp_image="$(mktemp --suffix=.png)"
+
+    echo "Applying watermark: ${OPENSCAD_WATERMARK_TEXT}"
+
+    "${WATERMARK_PYTHON}" \
+        "${WATERMARK_SCRIPT}" \
+        "${image}" \
+        "${tmp_image}" \
+        "${OPENSCAD_WATERMARK_TEXT}"
+
+    mv "${tmp_image}" "${image}"
+}
 
 render_png() {
     local source="$1"
@@ -87,15 +122,14 @@ render_png() {
     fi
 
     render_log="$(mktemp)"
-    trap 'rm -f "${render_log}"' RETURN
 
     echo
     echo "Rendering ${source_path}"
     echo "       -> ${output_path}"
     echo "       size: ${OPENSCAD_IMG_SIZE}"
 
-    # OpenSCAD's include/use path behaviour is most predictable when the
-    # working directory is the directory containing the render entry point.
+    # Relative OpenSCAD use/include paths are resolved reliably when the
+    # render entry point is launched from its own directory.
     set +e
     (
         cd "${RENDERS_DIR}"
@@ -113,30 +147,35 @@ render_png() {
 
     if [[ ${status} -ne 0 ]]; then
         echo "ERROR: OpenSCAD exited with status ${status}."
+        rm -f "${render_log}"
         return "${status}"
     fi
 
-    # OpenSCAD 2021.01 can return success even when a library/module is
-    # missing. Treat those diagnostics as build failures.
+    # OpenSCAD can return success even when a dependency/module is missing.
+    # Treat those diagnostics as real build failures.
     if grep -Eq \
         "WARNING: Can't open library|WARNING: Ignoring unknown module|Parser error|ERROR:" \
         "${render_log}"; then
         echo
         echo "ERROR: OpenSCAD reported a missing dependency or invalid model."
         echo "The generated image will not be accepted."
-        rm -f "${output_path}"
+        rm -f "${output_path}" "${render_log}"
         return 1
     fi
+
+    rm -f "${render_log}"
 
     if [[ ! -s "${output_path}" ]]; then
         echo "ERROR: OpenSCAD did not create a non-empty PNG: ${output_path}"
         return 1
     fi
+
+    apply_watermark "${output_path}"
 }
 
-render_png front.scad                  hub75-display-frame-front.png
-render_png front_angled.scad           hub75-display-frame-front-angled.png
-render_png rear.scad                   hub75-display-frame-rear.png
-render_png rear_angled.scad            hub75-display-frame-rear-angled.png
-render_png exploded_rear.scad          hub75-display-frame-exploded-rear.png
-render_png exploded_rear_angled.scad   hub75-display-frame-exploded-rear-angled.png
+render_png front.scad                hub75-display-frame-front.png
+render_png front_angled.scad         hub75-display-frame-front-angled.png
+render_png rear.scad                 hub75-display-frame-rear.png
+render_png rear_angled.scad          hub75-display-frame-rear-angled.png
+render_png exploded_rear.scad        hub75-display-frame-exploded-rear.png
+render_png exploded_rear_angled.scad hub75-display-frame-exploded-rear-angled.png

@@ -8,6 +8,7 @@ on:
       - "cad/v1.0/**"
       - "cad/v1.1/**"
       - "scripts/render_openscad_pngs.sh"
+      - "scripts/add_watermark.py"
       - ".github/workflows/render-openscad.yml"
 
 permissions:
@@ -15,6 +16,8 @@ permissions:
 
 env:
   OPENSCAD_IMG_SIZE: "2560,1440"
+  OPENSCAD_WATERMARK_TEXT: ${{ vars.RENDER_WATERMARK_TEXT }}
+  WATERMARK_PYTHON: ${{ github.workspace }}/.venv-render/bin/python
 
 concurrency:
   group: openscad-render-${{ github.ref }}
@@ -66,8 +69,10 @@ jobs:
               render_v11=true
             fi
 
-            # Shared renderer/workflow changes affect both versions.
-            if grep -qE '^scripts/render_openscad_pngs\.sh$|^\.github/workflows/render-openscad\.yml$' <<< "$changed_files"; then
+            # Shared renderer/watermark/workflow changes affect both versions.
+            if grep -qE \
+              '^scripts/render_openscad_pngs\.sh$|^scripts/add_watermark\.py$|^\.github/workflows/render-openscad\.yml$' \
+              <<< "$changed_files"; then
               render_v10=true
               render_v11=true
             fi
@@ -99,6 +104,20 @@ jobs:
 
           openscad --version
           xvfb-run --help >/dev/null
+
+      - name: Install Pillow
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 -m venv .venv-render
+          .venv-render/bin/python -m pip install \
+            --disable-pip-version-check \
+            --no-input \
+            pillow
+
+          .venv-render/bin/python -c "from PIL import Image; print('Pillow OK:', Image.__version__)"
 
       - name: Render V1.0 documentation PNGs
         if: steps.changes.outputs.v10 == 'true'
