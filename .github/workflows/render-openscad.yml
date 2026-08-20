@@ -7,13 +7,15 @@ on:
     paths:
       - "cad/v1.0/**"
       - "cad/v1.1/**"
+      - "scripts/render_openscad_pngs.sh"
       - ".github/workflows/render-openscad.yml"
 
 permissions:
   contents: write
 
-# Only the most recent render run for a branch is useful.
-# If a newer relevant commit arrives, cancel the older run.
+env:
+  OPENSCAD_IMG_SIZE: "2560,1440"
+
 concurrency:
   group: openscad-render-${{ github.ref }}
   cancel-in-progress: true
@@ -48,7 +50,6 @@ jobs:
             render_v11=true
           else
             if [[ "$BEFORE_SHA" =~ ^0+$ ]] || ! git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
-              echo "Previous commit is unavailable; inspect the current commit."
               changed_files="$(git diff-tree --no-commit-id --name-only -r "$CURRENT_SHA")"
             else
               changed_files="$(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA")"
@@ -65,8 +66,8 @@ jobs:
               render_v11=true
             fi
 
-            # A workflow change can affect both versions.
-            if grep -qE '^\.github/workflows/render-openscad\.yml$' <<< "$changed_files"; then
+            # Shared renderer/workflow changes affect both versions.
+            if grep -qE '^scripts/render_openscad_pngs\.sh$|^\.github/workflows/render-openscad\.yml$' <<< "$changed_files"; then
               render_v10=true
               render_v11=true
             fi
@@ -104,16 +105,18 @@ jobs:
         timeout-minutes: 5
         shell: bash
         run: |
-          set -euo pipefail
-          bash cad/v1.0/scripts/render_pngs.sh out/v1.0/png
+          bash scripts/render_openscad_pngs.sh \
+            cad/v1.0 \
+            out/v1.0/png
 
       - name: Render V1.1 documentation PNGs
         if: steps.changes.outputs.v11 == 'true'
         timeout-minutes: 5
         shell: bash
         run: |
-          set -euo pipefail
-          bash cad/v1.1/scripts/render_pngs.sh out/v1.1/png
+          bash scripts/render_openscad_pngs.sh \
+            cad/v1.1 \
+            out/v1.1/png
 
       - name: Check run is still current
         id: current
@@ -124,16 +127,14 @@ jobs:
         run: |
           set -euo pipefail
 
-          # A workflow_dispatch run can also become stale while rendering.
           git fetch origin "$BRANCH_NAME"
-
           remote_sha="$(git rev-parse "origin/$BRANCH_NAME")"
 
           echo "Rendered commit : $RENDER_SHA"
           echo "Current remote  : $remote_sha"
 
           if [[ "$remote_sha" != "$RENDER_SHA" ]]; then
-            echo "A newer commit exists. These renders belong to an older commit and will not be committed."
+            echo "A newer commit exists; these renders will not be committed."
             echo "is_current=false" >> "$GITHUB_OUTPUT"
           else
             echo "is_current=true" >> "$GITHUB_OUTPUT"
@@ -146,6 +147,8 @@ jobs:
           GIT_USER_NAME: ${{ vars.GIT_USER_NAME }}
           GIT_USER_EMAIL: ${{ vars.GIT_USER_EMAIL }}
           BRANCH_NAME: ${{ github.ref_name }}
+          RENDER_V10: ${{ steps.changes.outputs.v10 }}
+          RENDER_V11: ${{ steps.changes.outputs.v11 }}
         run: |
           set -euo pipefail
 
@@ -157,7 +160,13 @@ jobs:
           git config user.name "$GIT_USER_NAME"
           git config user.email "$GIT_USER_EMAIL"
 
-          git add out/v1.0/png/ out/v1.1/png/
+          if [[ "$RENDER_V10" == "true" ]]; then
+            git add out/v1.0/png/
+          fi
+
+          if [[ "$RENDER_V11" == "true" ]]; then
+            git add out/v1.1/png/
+          fi
 
           if git diff --cached --quiet; then
             echo "No render changes to commit."
