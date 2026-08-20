@@ -7,190 +7,25 @@ on:
     paths:
       - "cad/v1.0/**"
       - "cad/v1.1/**"
-      - "scripts/render_openscad_pngs.sh"
-      - "scripts/add_watermark.py"
       - ".github/workflows/render-openscad.yml"
 
 permissions:
   contents: write
 
-env:
-  OPENSCAD_IMG_SIZE: "2560,1440"
-  OPENSCAD_WATERMARK_TEXT: ${{ vars.RENDER_WATERMARK_TEXT }}
-  WATERMARK_PYTHON: ${{ github.workspace }}/.venv-render/bin/python
-
-concurrency:
-  group: openscad-render-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   render:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    uses: brainboxemb/brainboxemb.github.actions/.github/workflows/openscad-render.yml@main
+    with:
+      projects: |
+        cad/v1.0|out/v1.0/png|hub75-display-frame
+        cad/v1.1|out/v1.1/png|hub75-display-frame
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      image_size: "2560,1440"
+      changed_only: true
 
-      - name: Determine versions to render
-        id: changes
-        shell: bash
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          BEFORE_SHA: ${{ github.event.before }}
-          CURRENT_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
+      watermark_text: ${{ vars.RENDER_WATERMARK_TEXT }}
 
-          render_v10=false
-          render_v11=false
+      git_user_name: ${{ vars.GIT_USER_NAME }}
+      git_user_email: ${{ vars.GIT_USER_EMAIL }}
 
-          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
-            echo "Manual run: render both versions."
-            render_v10=true
-            render_v11=true
-          else
-            if [[ "$BEFORE_SHA" =~ ^0+$ ]] || ! git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
-              changed_files="$(git diff-tree --no-commit-id --name-only -r "$CURRENT_SHA")"
-            else
-              changed_files="$(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA")"
-            fi
-
-            echo "Changed files:"
-            printf '%s\n' "$changed_files"
-
-            if grep -qE '^cad/v1\.0/' <<< "$changed_files"; then
-              render_v10=true
-            fi
-
-            if grep -qE '^cad/v1\.1/' <<< "$changed_files"; then
-              render_v11=true
-            fi
-
-            # Shared renderer/watermark/workflow changes affect both versions.
-            if grep -qE \
-              '^scripts/render_openscad_pngs\.sh$|^scripts/add_watermark\.py$|^\.github/workflows/render-openscad\.yml$' \
-              <<< "$changed_files"; then
-              render_v10=true
-              render_v11=true
-            fi
-          fi
-
-          echo "v10=$render_v10" >> "$GITHUB_OUTPUT"
-          echo "v11=$render_v11" >> "$GITHUB_OUTPUT"
-
-          echo "Render V1.0: $render_v10"
-          echo "Render V1.1: $render_v11"
-
-      - name: Install OpenSCAD
-        timeout-minutes: 5
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          sudo apt-get \
-            -o Acquire::Retries=2 \
-            -o Acquire::http::Timeout=20 \
-            -o Acquire::https::Timeout=20 \
-            update
-
-          sudo apt-get \
-            -o Acquire::Retries=2 \
-            -o Acquire::http::Timeout=20 \
-            -o Acquire::https::Timeout=20 \
-            install -y --no-install-recommends openscad
-
-          openscad --version
-          xvfb-run --help >/dev/null
-
-      - name: Install Pillow
-        timeout-minutes: 2
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          python3 -m venv .venv-render
-          .venv-render/bin/python -m pip install \
-            --disable-pip-version-check \
-            --no-input \
-            pillow
-
-          .venv-render/bin/python -c "from PIL import Image; print('Pillow OK:', Image.__version__)"
-
-      - name: Render V1.0 documentation PNGs
-        if: steps.changes.outputs.v10 == 'true'
-        timeout-minutes: 5
-        shell: bash
-        run: |
-          bash scripts/render_openscad_pngs.sh \
-            cad/v1.0 \
-            out/v1.0/png
-
-      - name: Render V1.1 documentation PNGs
-        if: steps.changes.outputs.v11 == 'true'
-        timeout-minutes: 5
-        shell: bash
-        run: |
-          bash scripts/render_openscad_pngs.sh \
-            cad/v1.1 \
-            out/v1.1/png
-
-      - name: Check run is still current
-        id: current
-        shell: bash
-        env:
-          BRANCH_NAME: ${{ github.ref_name }}
-          RENDER_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-
-          git fetch origin "$BRANCH_NAME"
-          remote_sha="$(git rev-parse "origin/$BRANCH_NAME")"
-
-          echo "Rendered commit : $RENDER_SHA"
-          echo "Current remote  : $remote_sha"
-
-          if [[ "$remote_sha" != "$RENDER_SHA" ]]; then
-            echo "A newer commit exists; these renders will not be committed."
-            echo "is_current=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "is_current=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Commit updated renders
-        if: steps.current.outputs.is_current == 'true'
-        shell: bash
-        env:
-          GIT_USER_NAME: ${{ vars.GIT_USER_NAME }}
-          GIT_USER_EMAIL: ${{ vars.GIT_USER_EMAIL }}
-          BRANCH_NAME: ${{ github.ref_name }}
-          RENDER_V10: ${{ steps.changes.outputs.v10 }}
-          RENDER_V11: ${{ steps.changes.outputs.v11 }}
-        run: |
-          set -euo pipefail
-
-          if [[ -z "$GIT_USER_NAME" || -z "$GIT_USER_EMAIL" ]]; then
-            echo "Repository variables GIT_USER_NAME and GIT_USER_EMAIL must be configured."
-            exit 1
-          fi
-
-          git config user.name "$GIT_USER_NAME"
-          git config user.email "$GIT_USER_EMAIL"
-
-          if [[ "$RENDER_V10" == "true" ]]; then
-            git add out/v1.0/png/
-          fi
-
-          if [[ "$RENDER_V11" == "true" ]]; then
-            git add out/v1.1/png/
-          fi
-
-          if git diff --cached --quiet; then
-            echo "No render changes to commit."
-            exit 0
-          fi
-
-          git commit -m "Update OpenSCAD documentation renders"
-          git push origin "HEAD:$BRANCH_NAME"
+      commit_message: "Update OpenSCAD documentation renders"
