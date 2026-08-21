@@ -304,6 +304,17 @@ Reference renders generated from the current V1.2 OpenSCAD model are stored in:
 out/v1.2/png/
 ```
 
+#### Panel reference
+
+The individual panel is also rendered in a light-grey inspection colour to
+make the rear housing geometry easier to distinguish.
+
+![HUB75 panel V1.2 - rear reference](out/v1.2/png/hub75-display-frame-panel.png)
+
+#### Panel reference — angled
+
+![HUB75 panel V1.2 - angled rear reference](out/v1.2/png/hub75-display-frame-panel-angled.png)
+
 #### Front view
 
 ![HUB75 display frame V1.2 - front view](out/v1.2/png/hub75-display-frame-front.png)
@@ -352,6 +363,8 @@ cad/v1.2/
 └── renders/
     ├── front.scad
     ├── front_angled.scad
+    ├── panel.scad
+    ├── panel_angled.scad
     ├── rear.scad
     ├── rear_angled.scad
     ├── exploded_rear.scad
