@@ -7,8 +7,8 @@ use <../assemblies/display_assembly.scad>
 exploded_render_distance = 40;
 
 $vpt = [display_nominal_width/2, 0, display_nominal_height/2];
-$vpr = [108, 0, 158];
-$vpd = 1550;
+$vpr = [265, 0, 320];
+$vpd = 1200;
 
 display_assembly(
     orientation_visible=false,

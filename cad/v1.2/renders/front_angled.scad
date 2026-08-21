@@ -5,8 +5,8 @@ include <../config/project_config.scad>
 use <../assemblies/display_assembly.scad>
 
 $vpt = [display_nominal_width/2, 0, display_nominal_height/2];
-$vpr = [72, 0, 22];
-$vpd = 1450;
+$vpr = [85, 0, 40];
+$vpd = 1200;
 
 display_assembly(
     orientation_visible=false,

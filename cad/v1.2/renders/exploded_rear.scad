@@ -8,7 +8,7 @@ exploded_render_distance = 40;
 
 $vpt = [display_nominal_width/2, 0, display_nominal_height/2];
 $vpr = [90, 0, 180];
-$vpd = 1550;
+$vpd = 1200;
 
 display_assembly(
     orientation_visible=false,

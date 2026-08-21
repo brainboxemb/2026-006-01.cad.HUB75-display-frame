@@ -6,7 +6,7 @@ use <../assemblies/display_assembly.scad>
 
 $vpt = [display_nominal_width/2, 0, display_nominal_height/2];
 $vpr = [90, 0, 0];
-$vpd = 1400;
+$vpd = 1200;
 
 display_assembly(
     orientation_visible=false,
