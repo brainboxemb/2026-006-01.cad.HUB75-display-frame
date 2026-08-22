@@ -1,4 +1,4 @@
-name: Render OpenSCAD PNGs
+name: Build OpenSCAD outputs
 
 on:
   workflow_dispatch:
@@ -8,19 +8,24 @@ on:
       - "cad/v1.0/**"
       - "cad/v1.1/**"
       - "cad/v1.2/**"
-      - ".github/workflows/render-openscad.yml"
+      - ".github/workflows/build-openscad.yml"
 
 permissions:
   contents: write
 
 jobs:
-  render:
-    uses: brainboxemb/brainboxemb.github.actions/.github/workflows/openscad-render.yml@main
+  build:
+    uses: brainboxemb/brainboxemb.github.actions/.github/workflows/openscad-build.yml@main
     with:
-      projects: |
+      render_projects: |
         cad/v1.0|out/v1.0/png|hub75-display-frame
         cad/v1.1|out/v1.1/png|hub75-display-frame
         cad/v1.2|out/v1.2/png|hub75-display-frame
+
+      # Add a version here once cad/<version>/exports contains STL entry points.
+      # v1.2 is included as the current example.
+      export_projects: |
+        cad/v1.2|out/v1.2/stl|hub75-display-frame
 
       image_size: "2560,1440"
       changed_only: true
@@ -30,4 +35,4 @@ jobs:
       git_user_name: ${{ vars.GIT_USER_NAME }}
       git_user_email: ${{ vars.GIT_USER_EMAIL }}
 
-      commit_message: "Update OpenSCAD documentation renders"
+      commit_message: "Update OpenSCAD generated outputs"
