@@ -1,12 +1,12 @@
-// HUB75 Display Frame - V1.2 / middle coupler V19
+// HUB75 Display Frame - V1.2 / coupler refinement V32
 //
 // Simplified proof-of-concept based directly on V1.1:
 // - V1.1 HUB75 panel reference retained unchanged;
 // - no 160 x 160 mm printed frame modules;
 // - wider top/bottom two-panel couplers;
-// - two tube clips per internal seam coupler, forming a shallow Y shape;
+// - four short tube clips per horizontal edge panel coupler;
 // - one-screw/one-clip couplers at both display ends;
-// - simple middle seam couplers;
+// - rounded middle panel couplers;
 // - V1.1 aluminium tube size, position and 40/120 mm clip spacing retained.
 
 include <config/project_config.scad>
@@ -14,14 +14,14 @@ use <assemblies/display_assembly.scad>
 use <assemblies/panels_assembly.scad>
 use <assemblies/couplers_assembly.scad>
 use <assemblies/tubes_assembly.scad>
-use <components/middle_seam_coupler.scad>
-use <components/tube_seam_coupler.scad>
-use <components/end_tube_coupler.scad>
-use <assemblies/middle_coupler_fit_section.scad>
+use <components/middle_panel_coupler.scad>
+use <components/horizontal_edge_panel_coupler.scad>
+use <components/corner_edge_panel_coupler.scad>
+use <assemblies/middle_panel_coupler_fit_section.scad>
 use <assemblies/rear_fit_section.scad>
 
 /* [View] */
-view_mode = "assembly"; // [assembly, exploded, panels, couplers, tubes, middle_coupler, middle_fit_section, rear_fit_section, seam_top, seam_bottom, end_left_top, end_right_top]
+view_mode = "assembly"; // [assembly, exploded, panels, couplers, tubes, middle_panel_coupler, horizontal_edge_panel_coupler, middle_panel_fit_section, rear_fit_section, corner_edge_panel_coupler_left, corner_edge_panel_coupler_right]
 
 /* [Visibility] */
 show_panels = true;
@@ -68,11 +68,11 @@ if(view_mode == "couplers")
 if(view_mode == "tubes")
     tubes_assembly();
 
-if(view_mode == "middle_coupler")
-    project_middle_coupler();
+if(view_mode == "middle_panel_coupler")
+    project_middle_panel_coupler();
 
-if(view_mode == "middle_fit_section")
-    middle_coupler_fit_section(
+if(view_mode == "middle_panel_fit_section")
+    middle_panel_coupler_fit_section(
         depth=5.0,
         crop_width=145.0,
         crop_height=115.0
@@ -86,14 +86,13 @@ if(view_mode == "rear_fit_section")
     );
 
 
-if(view_mode == "seam_top")
-    project_tube_seam_coupler(direction="top", screw_row_z=panel_hole_z[2]);
+// Top and bottom are the same printable component.  The assembly mirrors/
+// orients it as required, so one canonical component view is sufficient.
+if(view_mode == "horizontal_edge_panel_coupler")
+    project_horizontal_edge_panel_coupler(direction="top", screw_row_z=panel_hole_z[2]);
 
-if(view_mode == "seam_bottom")
-    project_tube_seam_coupler(direction="bottom", screw_row_z=panel_hole_z[0]);
+if(view_mode == "corner_edge_panel_coupler_left")
+    project_corner_edge_panel_coupler(side="left", direction="top", screw_row_z=panel_hole_z[2]);
 
-if(view_mode == "end_left_top")
-    end_tube_coupler(side="left", direction="top");
-
-if(view_mode == "end_right_top")
-    end_tube_coupler(side="right", direction="top");
+if(view_mode == "corner_edge_panel_coupler_right")
+    project_corner_edge_panel_coupler(side="right", direction="top", screw_row_z=panel_hole_z[2]);

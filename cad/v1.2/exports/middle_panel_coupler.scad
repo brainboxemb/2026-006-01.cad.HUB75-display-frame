@@ -1,5 +1,5 @@
 // HUB75 Display Frame - V1.2
-// STL export entry point: middle seam coupler.
+// STL export entry point: middle panel coupler.
 //
 // The GitHub export action can export every *.scad file in exports/ without
 // needing to know component internals. Project parameters remain mapped in the
@@ -7,4 +7,4 @@
 
 use <../assemblies/couplers_assembly.scad>
 
-project_middle_coupler();
+project_middle_panel_coupler();

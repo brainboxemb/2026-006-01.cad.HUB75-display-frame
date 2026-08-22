@@ -1,4 +1,4 @@
-// HUB75 display frame - V1.2 middle bracket V17
+// HUB75 display frame - V1.2 middle coupler V32
 //
 // V16 keeps the rounded PLUS footprint and 10 mm rib-following guide.
 // Cosmetic Ø3 mm holes are now 2.5 mm deep blind pockets.
@@ -7,10 +7,13 @@
 
 /* [Base plate] */
 base_thickness = 4.0;
-overall_width = 104.0;
+overall_width = 100.0;
 overall_height = 100.0;
-horizontal_arm_height = 36.0;
-vertical_arm_width = 38.0;
+// Standalone defaults follow the exact same rule as the project assembly:
+// real HUB75 rib width + equal printed material on both sides.
+profile_side_material = 6.5;
+horizontal_arm_height = 20.0 + 2*profile_side_material;
+vertical_arm_width = 2*12.5 + 2*profile_side_material;
 inside_corner_radius = 18.0;
 outer_corner_radius = 12.0;
 
@@ -59,89 +62,10 @@ show_print_orientation = false;
 $fn = 96;
 
 use <hub75_panel.scad>
+use <_lib/coupler_profile.scad>
 
 
-// Build the plus as an explicit outline.  The four re-entrant corners are
-// real concave quarter-circle arcs; unlike the previous difference() method,
-// these arcs actually cut into the arms and are therefore visible.
-// Build the plus as one explicit outline.  The four re-entrant corners
-// are true concave quarter-circle fillets, so the rounding is part of the
-// actual silhouette rather than a circle that only touches the old plus.
-module rounded_plus_2d(
-    width,
-    height,
-    h_arm_height,
-    v_arm_width,
-    inner_r,
-    outer_r
-) {
-    hw = width/2;
-    hh = height/2;
-    vx = v_arm_width/2;
-    hy = h_arm_height/2;
-
-    ir = min(inner_r, min(hw-vx, hh-hy) - 0.01);
-    or = min(outer_r, min(v_arm_width, h_arm_height)/2 - 0.01);
-    steps = 16;
-
-    pts = concat(
-        // top edge -> upper-right outside corner
-        [[-vx+or, hh], [vx-or, hh]],
-        [for (a=[90 : -90/steps : 0])
-            [vx-or + or*cos(a), hh-or + or*sin(a)]],
-        [[vx, hy+ir]],
-
-        // upper-right inside fillet
-        [for (a=[180 : 90/steps : 270])
-            [vx+ir + ir*cos(a), hy+ir + ir*sin(a)]],
-        [[hw-or, hy]],
-
-        // outer end of right arm
-        [for (a=[90 : -90/steps : 0])
-            [hw-or + or*cos(a), hy-or + or*sin(a)]],
-        [[hw, -hy+or]],
-        [for (a=[0 : -90/steps : -90])
-            [hw-or + or*cos(a), -hy+or + or*sin(a)]],
-        [[vx+ir, -hy]],
-
-        // lower-right inside fillet
-        [for (a=[90 : 90/steps : 180])
-            [vx+ir + ir*cos(a), -hy-ir + ir*sin(a)]],
-        [[vx, -hh+or]],
-
-        // bottom-right and bottom-left outside corners
-        [for (a=[0 : -90/steps : -90])
-            [vx-or + or*cos(a), -hh+or + or*sin(a)]],
-        [[-vx+or, -hh]],
-        [for (a=[-90 : -90/steps : -180])
-            [-vx+or + or*cos(a), -hh+or + or*sin(a)]],
-        [[-vx, -hy-ir]],
-
-        // lower-left inside fillet
-        [for (a=[0 : 90/steps : 90])
-            [-vx-ir + ir*cos(a), -hy-ir + ir*sin(a)]],
-        [[-hw+or, -hy]],
-
-        // outer end of left arm
-        [for (a=[-90 : -90/steps : -180])
-            [-hw+or + or*cos(a), -hy+or + or*sin(a)]],
-        [[-hw, hy-or]],
-        [for (a=[180 : -90/steps : 90])
-            [-hw+or + or*cos(a), hy-or + or*sin(a)]],
-        [[-vx-ir, hy]],
-
-        // upper-left inside fillet
-        [for (a=[-90 : 90/steps : 0])
-            [-vx-ir + ir*cos(a), hy+ir + ir*sin(a)]],
-        [[-vx, hh-or]],
-
-        // upper-left outside corner back to start
-        [for (a=[180 : -90/steps : 90])
-            [-vx+or + or*cos(a), hh-or + or*sin(a)]]
-    );
-
-    polygon(points=pts);
-}
+// Shared PLUS/T silhouette is defined in _lib/coupler_profile.scad.
 
 // Raised material lives BESIDE the panel ribs.  The free cross in the middle
 // is derived from the actual rear-frame dimensions in hub75_panel.scad:
@@ -196,7 +120,7 @@ module rib_side_guides_2d(
         offset(r=end_rounding)
             offset(delta=-end_rounding)
                 difference() {
-                    rounded_plus_2d(
+                    coupler_plus_profile_2d(
                         width, height,
                         h_arm_height, v_arm_width,
                         inner_r, outer_r
@@ -210,7 +134,7 @@ module rib_side_guides_2d(
                 }
     else
         difference() {
-            rounded_plus_2d(
+            coupler_plus_profile_2d(
                 width, height,
                 h_arm_height, v_arm_width,
                 inner_r, outer_r
@@ -292,7 +216,7 @@ module reference_perforations_2d(
                 translate([x, sz*z]) circle(d=hole_d);
 }
 
-module middle_seam_coupler(
+module middle_panel_coupler(
     width = overall_width,
     height = overall_height,
     horizontal_height = horizontal_arm_height,
@@ -343,7 +267,7 @@ module middle_seam_coupler(
                 translate([0, thickness, 0])
                     rotate([90,0,0])
                         linear_extrude(height=thickness)
-                            rounded_plus_2d(
+                            coupler_plus_profile_2d(
                             width, height,
                             horizontal_height, vertical_width,
                             inside_radius, outside_radius
@@ -376,7 +300,7 @@ module middle_seam_coupler(
                                 intersection() {
                                     // Clip the pattern to an inset of the true plus outline.
                                     offset(delta=-perforation_edge_margin_value/2)
-                                        rounded_plus_2d(
+                                        coupler_plus_profile_2d(
                                             width, height,
                                             horizontal_height, vertical_width,
                                             inside_radius, outside_radius
@@ -449,15 +373,15 @@ module middle_seam_coupler(
 
 
 // Fit inspection is implemented as a real two-panel section in
-// assemblies/middle_coupler_fit_section.scad.
+// assemblies/middle_panel_coupler_fit_section.scad.
 
-module middle_seam_coupler_print_orientation(part_color = preview_color) {
+module middle_panel_coupler_print_orientation(part_color = preview_color) {
     rotate([180,0,0])
-        middle_seam_coupler(part_color=part_color);
+        middle_panel_coupler(part_color=part_color);
 }
 
 
 if (show_print_orientation)
-    middle_seam_coupler_print_orientation();
+    middle_panel_coupler_print_orientation();
 else
-    middle_seam_coupler();
+    middle_panel_coupler();

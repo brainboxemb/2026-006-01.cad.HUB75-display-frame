@@ -100,10 +100,18 @@ data_connector_height = panel_ref_z(9.50);
 data_connector_depth = 10.64;
 data_connector_front_y = 2.63;
 
-// Simplified STEP-inspired open rear-frame geometry.
+// Rear-frame geometry used by both the panel model and the couplers.
+// Keep these in sync with the HUB75 component reference geometry:
+//   side rail       12.5 mm
+//   end rail        10.75 mm
+//   middle crossbar 20.0 mm
+// The previous V30 config still contained the older simplified 8 mm
+// crossbar / 12.5 mm end-rail values, which made the derived coupler
+// profile wrong even though hub75_panel.scad itself exposed the correct
+// dimensions.
 rear_frame_side_width = panel_ref_x(12.5);
-rear_frame_end_width = panel_ref_z(12.5);
-rear_frame_crossbar_width = panel_ref_z(8.0);
+rear_frame_end_width = panel_ref_z(10.75);
+rear_frame_crossbar_width = panel_ref_z(20.0);
 
 rear_frame_crossbar_z = [
     panel_ref_z(80),
@@ -156,14 +164,48 @@ coupler_screw_hole_diameter = 3.4;
 coupler_corner_radius = 3.0;
 coupler_y = panel_mounting_plane_y;
 
-// Middle seam bracket V13 - larger, softer PLUS base.
-// First get the footprint around the panel ribs right; reinforcement is added later.
-middle_coupler_width = 104.0;
-middle_coupler_height = 100.0;
-middle_coupler_horizontal_arm_height = 36.0;
-middle_coupler_vertical_width = 38.0;
-middle_coupler_inside_corner_radius = 18.0;
-middle_coupler_outer_corner_radius = 12.0;
+// Shared coupler design rules.
+//
+// The profile envelope is exactly 100 mm. The middle PLUS therefore reaches
+// 50 mm from the screw-row centre in both Z directions. The upper/lower T
+// likewise reaches 50 mm inward from the screw-row centre.
+//
+// Arm thickness is derived from the REAL HUB75 rib width, not from one fixed
+// visual width. We keep the same printed material on both sides of each rib.
+coupler_profile_size = 100.0;
+coupler_profile_rib_side_material = 6.5;
+coupler_profile_inside_corner_radius = 18.0;
+coupler_profile_outer_corner_radius = 12.0;
+
+// At an internal panel seam, two side rails meet.
+coupler_seam_rib_width = 2 * rear_frame_side_width;
+
+// Middle PLUS: thickness follows the real middle crossbar and seam rib.
+middle_profile_horizontal_arm_height =
+    rear_frame_crossbar_width + 2 * coupler_profile_rib_side_material;
+middle_profile_vertical_arm_width =
+    coupler_seam_rib_width + 2 * coupler_profile_rib_side_material;
+
+// Upper/lower T: thickness follows the real top/bottom end rail and seam rib.
+horizontal_edge_panel_coupler_profile_horizontal_arm_height =
+    max(
+        rear_frame_end_width + 2 * coupler_profile_rib_side_material,
+        middle_profile_horizontal_arm_height
+    );
+horizontal_edge_panel_coupler_profile_vertical_arm_width =
+    coupler_seam_rib_width + 2 * coupler_profile_rib_side_material;
+
+// Shared visual treatment for the exposed ends of the raised fit guides.
+// This is safe to share: it only rounds the printed guide termination; the
+// actual rib keep-outs remain derived independently from hub75_panel.scad.
+coupler_guide_end_rounding = 2.5;
+
+middle_panel_coupler_width = coupler_profile_size;
+middle_panel_coupler_height = coupler_profile_size;
+middle_panel_coupler_horizontal_arm_height = middle_profile_horizontal_arm_height;
+middle_panel_coupler_vertical_width = middle_profile_vertical_arm_width;
+middle_panel_coupler_inside_corner_radius = coupler_profile_inside_corner_radius;
+middle_panel_coupler_outer_corner_radius = coupler_profile_outer_corner_radius;
 
 // Only the smaller Ø8.5 mounting tubes protrude.
 middle_mounting_tube_outer_diameter = 8.50;
@@ -182,24 +224,66 @@ middle_centre_locator_height = 2.0;
 middle_guide_wall_thickness = 0.50;
 middle_guide_wall_height = 10.0;
 middle_guide_wall_straight = 0.0;
+middle_guide_end_rounding = coupler_guide_end_rounding;
 
 // Tapered centre rib enters the small gap between adjacent panels.
 middle_centre_rib_width = 3.0;
 middle_centre_rib_height = 4.0;
 middle_centre_rib_length = 30.0;
 
-tube_seam_plate_width = 56.0;
-tube_seam_plate_height = 24.0;
+// Horizontal edge panel couplers use the same profile generator as the
+// middle PLUS, but their arm thickness follows the actual end-rail width.
+horizontal_edge_panel_coupler_plate_width = coupler_profile_size;
+horizontal_edge_panel_coupler_plate_height = coupler_profile_size;
+// Retained for API compatibility; silhouette is now controlled by the shared profile.
+horizontal_edge_panel_coupler_inboard_reach = coupler_profile_size / 2;
+horizontal_edge_panel_coupler_max_outside_projection = 20.0;
+horizontal_edge_panel_coupler_horizontal_arm_height = horizontal_edge_panel_coupler_profile_horizontal_arm_height;
+horizontal_edge_panel_coupler_vertical_width = horizontal_edge_panel_coupler_profile_vertical_arm_width;
+horizontal_edge_panel_coupler_inside_corner_radius = coupler_profile_inside_corner_radius;
+horizontal_edge_panel_coupler_outer_corner_radius = coupler_profile_outer_corner_radius;
+horizontal_edge_panel_coupler_guide_clearance = 0.50;
+horizontal_edge_panel_coupler_guide_height = 10.0;
+horizontal_edge_panel_coupler_guide_end_rounding = coupler_guide_end_rounding;
 
-// Single-screw end plate. The plate is intentionally asymmetric because the
-// existing HUB75 mounting hole is only 7.85 mm from the outside panel edge.
-end_coupler_plate_width = 34.0;
-end_coupler_plate_height = 24.0;
-end_coupler_outer_margin = 6.0;
+// STEP-inspired blind Ø3 mm pockets on the visible rear face.
+horizontal_edge_panel_coupler_perforation_diameter = 3.0;
+horizontal_edge_panel_coupler_perforation_depth = 2.5;
+horizontal_edge_panel_coupler_perforation_spacing = 10.0;
+horizontal_edge_panel_coupler_perforation_edge_margin = 7.0;
+horizontal_edge_panel_coupler_perforation_centre_keepout = 20.0;
 
-// Shift the clip slightly inward so its full 20 mm width remains inside the
-// panel outline while staying close to the screw/load path.
-end_clip_inward_offset = 6.0;
+// Each of the four short tube clips has its own local support foot.
+// The foot deliberately extends toward the ring so the clip is not attached
+// by an almost tangential contact point.
+horizontal_edge_panel_coupler_clip_root_height = 6.0;
+horizontal_edge_panel_coupler_clip_root_depth = 5.0;
+
+// Tapered locating wedge in the vertical gap between adjacent panels.
+horizontal_edge_panel_coupler_wedge_width = 3.0;
+horizontal_edge_panel_coupler_wedge_height = 4.0;
+horizontal_edge_panel_coupler_wedge_length = 30.0;
+
+// Clearance around the STEP-derived Ø14 reinforcement bushings.
+horizontal_edge_panel_coupler_bushing_clearance = 0.45;
+
+// Corner edge panel coupler. All four corners use one mirrored/oriented
+// printable component. The profile is derived from the REAL single side rail
+// and top/bottom end rail, with the same 6.5 mm printed material rule.
+corner_edge_panel_coupler_profile_horizontal_arm_height =
+    rear_frame_end_width + 2 * coupler_profile_rib_side_material;
+corner_edge_panel_coupler_profile_vertical_arm_width =
+    rear_frame_side_width + 2 * coupler_profile_rib_side_material;
+corner_edge_panel_coupler_max_outside_projection = 19.5;
+corner_edge_panel_coupler_guide_clearance = 0.50;
+corner_edge_panel_coupler_guide_height = 10.0;
+corner_edge_panel_coupler_guide_end_rounding = coupler_guide_end_rounding;
+corner_edge_panel_coupler_perforation_diameter = 3.0;
+corner_edge_panel_coupler_perforation_depth = 2.5;
+corner_edge_panel_coupler_clip_inboard_positions = [12.0, 28.0];
+corner_edge_panel_coupler_clip_root_height = 6.0;
+corner_edge_panel_coupler_clip_root_depth = 7.0;
+corner_edge_panel_coupler_bushing_clearance = 0.45;
 
 /* [Aluminium stiffening tubes] */
 // Exact V1.1 tube geometry and placement.
@@ -234,21 +318,11 @@ function stiffening_tube_bottom_z() =
 function stiffening_tube_top_z() =
     display_nominal_height + tube_clip_outer_radius();
 
-// Compact V1.2 distribution:
-// two clips close to the seam connection instead of spreading them across
-// the complete 160 mm module width.
-seam_clip_x_left = -14.0;
-seam_clip_x_right = 14.0;
-
-// End parts are mirrored. Positive X is inward on the left end; negative X
-// is inward on the right end.
-function end_plate_center_x(side="left") =
-    side == "left"
-        ? (-end_coupler_outer_margin + end_coupler_plate_width/2)
-        : ( end_coupler_outer_margin - end_coupler_plate_width/2);
-
-function end_clip_x(side="left") =
-    side == "left" ? end_clip_inward_offset : -end_clip_inward_offset;
+// Internal T-couplers use four short snap clips instead of two long clips.
+// Shorter clips need less force to snap over the Ø10 aluminium tube while
+// the four-point distribution still spreads the load across the T body.
+horizontal_edge_clip_x_positions = [-30.0, -10.0, 10.0, 30.0];
+horizontal_edge_tube_clip_length = 10.0;
 
 /* [Exploded view] */
 exploded_coupler_offset = 20.0;
@@ -258,6 +332,6 @@ exploded_tube_offset = 30.0;
 color_panel = [0.72, 0.72, 0.72, 1];
 color_pcb = [0.02,0.20,0.07,1];
 color_coupler = [0.88,0.08,0.05,1];
-color_middle_coupler = [0.62,0.04,0.03,1];
-color_end_coupler = [0.95,0.20,0.08,1];
+color_middle_panel_coupler = [0.62,0.04,0.03,1];
+color_corner_edge_panel_coupler = [0.95,0.20,0.08,1];
 color_aluminium_tube = [0.72,0.74,0.76,1];

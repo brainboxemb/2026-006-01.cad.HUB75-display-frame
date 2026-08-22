@@ -256,6 +256,7 @@ function preview_front_color(scheme) =
 // Keep couplers and other printed parts tied to the actual HUB75 panel model
 // instead of duplicating these dimensions in their own source files.
 function hub75_rear_side_rail_width() = rear_frame_side_width_reference;
+function hub75_rear_end_rail_width() = rear_frame_end_width_reference;
 function hub75_rear_middle_rib_width() = rear_frame_crossbar_width_reference;
 function hub75_rear_opening_corner_radius() = rear_opening_corner_radius_reference;
 function hub75_reinforcement_bushing_outer_diameter() = reinforcement_bushing_outer_diameter;

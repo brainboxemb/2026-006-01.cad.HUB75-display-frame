@@ -1,6 +1,6 @@
 // HUB75 display frame - V1.2 middle coupler fit section
 //
-// Two real HUB75 panel components plus the real middle seam coupler.
+// Two real HUB75 panel components plus the real middle panel coupler.
 // Everything behind a plane 5 mm into the rear of the panels is removed,
 // leaving a true exposed 3D section through the rib/coupler interface.
 
@@ -55,7 +55,7 @@ module section_keep_volume(depth, crop_width, crop_height) {
         ]);
 }
 
-module middle_coupler_fit_section(
+module middle_panel_coupler_fit_section(
     depth=fit_section_depth,
     crop_width=fit_section_crop_width,
     crop_height=fit_section_crop_height
@@ -69,15 +69,15 @@ module middle_coupler_fit_section(
             section_keep_volume(depth, crop_width, crop_height);
         }
 
-    color(color_middle_coupler)
+    color(color_middle_panel_coupler)
         intersection() {
             translate([0, coupler_y, 0])
-                project_middle_coupler();
+                project_middle_panel_coupler();
             section_keep_volume(depth, crop_width, crop_height);
         }
 }
 
-middle_coupler_fit_section();
+middle_panel_coupler_fit_section();
 
 $vpt = [0, coupler_y-fit_section_depth, 0];
 $vpr = [72, 0, 180];

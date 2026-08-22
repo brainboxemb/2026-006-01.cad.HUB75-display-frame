@@ -367,16 +367,25 @@ cad/v1.2/
 │   └── project_config.scad
 ├── components/
 │   ├── hub75_panel.scad
-│   ├── middle_seam_coupler.scad
-│   ├── tube_seam_coupler.scad
+│   ├── middle_panel_coupler.scad
+│   ├── horizontal_edge_panel_coupler.scad
+│   ├── corner_edge_panel_coupler_left.scad
+│   ├── corner_edge_panel_coupler_right.scad
 │   ├── tube_clip.scad
-│   ├── end_tube_coupler.scad
-│   └── aluminium_tube.scad
+│   ├── corner_edge_panel_coupler.scad
+│   ├── aluminium_tube.scad
+│   └── _lib/
+│       └── coupler_profile.scad
 ├── assemblies/
 │   ├── panels_assembly.scad
 │   ├── couplers_assembly.scad
 │   ├── tubes_assembly.scad
+│   ├── middle_panel_coupler_fit_section.scad
+│   ├── rear_fit_section.scad
 │   └── display_assembly.scad
+├── exports/
+│   ├── middle_panel_coupler.scad
+│   └── horizontal_edge_panel_coupler.scad
 └── renders/
     ├── front.scad
     ├── front_angled.scad
@@ -385,6 +394,7 @@ cad/v1.2/
     ├── rear.scad
     ├── rear_angled.scad
     ├── rear_wiring.scad
+    ├── middle_panel_fit_section.scad
     ├── rear_fit_section.scad
     ├── exploded_rear.scad
     └── exploded_rear_angled.scad

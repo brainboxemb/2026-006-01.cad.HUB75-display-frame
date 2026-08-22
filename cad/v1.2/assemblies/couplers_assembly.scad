@@ -5,20 +5,20 @@
 
 include <../config/project_config.scad>
 
-use <../components/middle_seam_coupler.scad>
-use <../components/tube_seam_coupler.scad>
-use <../components/end_tube_coupler.scad>
+use <../components/middle_panel_coupler.scad>
+use <../components/horizontal_edge_panel_coupler.scad>
+use <../components/corner_edge_panel_coupler.scad>
 
 
-module project_middle_coupler() {
-    middle_seam_coupler(
-        width=middle_coupler_width,
-        height=middle_coupler_height,
-        horizontal_height=middle_coupler_horizontal_arm_height,
-        vertical_width=middle_coupler_vertical_width,
+module project_middle_panel_coupler() {
+    middle_panel_coupler(
+        width=middle_panel_coupler_width,
+        height=middle_panel_coupler_height,
+        horizontal_height=middle_panel_coupler_horizontal_arm_height,
+        vertical_width=middle_panel_coupler_vertical_width,
         thickness=coupler_thickness,
-        inside_radius=middle_coupler_inside_corner_radius,
-        outside_radius=middle_coupler_outer_corner_radius,
+        inside_radius=middle_panel_coupler_inside_corner_radius,
+        outside_radius=middle_panel_coupler_outer_corner_radius,
 
         left_hole_x_value=seam_left_screw_x,
         right_hole_x_value=seam_right_screw_x,
@@ -39,17 +39,18 @@ module project_middle_coupler() {
         guide_wall_thickness_value=middle_guide_wall_thickness,
         guide_wall_height_value=middle_guide_wall_height,
         guide_wall_straight_value=middle_guide_wall_straight,
+        guide_end_rounding_value=middle_guide_end_rounding,
 
         centre_rib_width_value=middle_centre_rib_width,
         centre_rib_height_value=middle_centre_rib_height,
         centre_rib_length_value=middle_centre_rib_length,
 
-        part_color=color_middle_coupler
+        part_color=color_middle_panel_coupler
     );
 }
 
 
-module project_tube_seam_coupler(
+module project_horizontal_edge_panel_coupler(
     direction="top",
     screw_row_z=0
 ) {
@@ -65,13 +66,28 @@ module project_tube_seam_coupler(
         stiffening_tube_y()
         - coupler_y;
 
-    tube_seam_coupler(
+    horizontal_edge_panel_coupler(
         direction=direction,
 
-        width=tube_seam_plate_width,
-        height=tube_seam_plate_height,
+        width=horizontal_edge_panel_coupler_plate_width,
+        height=horizontal_edge_panel_coupler_plate_height,
+        inward_reach_value=horizontal_edge_panel_coupler_inboard_reach,
+        max_outside_projection_value=horizontal_edge_panel_coupler_max_outside_projection,
+        horizontal_height=horizontal_edge_panel_coupler_horizontal_arm_height,
+        vertical_width=horizontal_edge_panel_coupler_vertical_width,
         thickness=coupler_thickness,
-        radius=coupler_corner_radius,
+        inside_radius=horizontal_edge_panel_coupler_inside_corner_radius,
+        outside_radius=horizontal_edge_panel_coupler_outer_corner_radius,
+        rib_clearance_value=horizontal_edge_panel_coupler_guide_clearance,
+        guide_height_value=horizontal_edge_panel_coupler_guide_height,
+        guide_end_rounding_value=horizontal_edge_panel_coupler_guide_end_rounding,
+
+        show_perforation_holes_value=true,
+        perforation_hole_diameter_value=horizontal_edge_panel_coupler_perforation_diameter,
+        perforation_depth_value=horizontal_edge_panel_coupler_perforation_depth,
+        perforation_spacing_value=horizontal_edge_panel_coupler_perforation_spacing,
+        perforation_edge_margin_value=horizontal_edge_panel_coupler_perforation_edge_margin,
+        perforation_centre_keepout_value=horizontal_edge_panel_coupler_perforation_centre_keepout,
 
         left_hole_x_value=
             seam_left_screw_x,
@@ -82,17 +98,26 @@ module project_tube_seam_coupler(
         hole_diameter_value=
             coupler_screw_hole_diameter,
 
-        left_clip_x_value=
-            seam_clip_x_left,
+        clip_x_positions_value=
+            horizontal_edge_clip_x_positions,
 
-        right_clip_x_value=
-            seam_clip_x_right,
+        seam_wedge_width_value=
+            horizontal_edge_panel_coupler_wedge_width,
+
+        seam_wedge_height_value=
+            horizontal_edge_panel_coupler_wedge_height,
+
+        seam_wedge_length_value=
+            horizontal_edge_panel_coupler_wedge_length,
+
+        bushing_clearance_value=
+            horizontal_edge_panel_coupler_bushing_clearance,
 
         local_tube_y=local_tube_y,
         local_tube_z=local_tube_z,
 
         clip_length_value=
-            tube_clip_length,
+            horizontal_edge_tube_clip_length,
 
         clip_wall_value=
             tube_clip_wall,
@@ -105,6 +130,9 @@ module project_tube_seam_coupler(
 
         clip_vertical_overlap_value=
             tube_clip_vertical_overlap,
+
+        clip_root_height_value=horizontal_edge_panel_coupler_clip_root_height,
+        clip_root_depth_value=horizontal_edge_panel_coupler_clip_root_depth,
 
         part_color=
             color_coupler
@@ -112,61 +140,45 @@ module project_tube_seam_coupler(
 }
 
 
-module project_end_tube_coupler(
+module project_corner_edge_panel_coupler(
     side="left",
     direction="top",
     screw_row_z=0
 ) {
-    tube_z =
-        direction == "top"
-            ? stiffening_tube_top_z()
-            : stiffening_tube_bottom_z();
+    tube_z = direction == "top" ? stiffening_tube_top_z() : stiffening_tube_bottom_z();
+    local_tube_z = tube_z - screw_row_z;
+    local_tube_y = stiffening_tube_y() - coupler_y;
 
-    local_tube_z =
-        tube_z - screw_row_z;
-
-    local_tube_y =
-        stiffening_tube_y()
-        - coupler_y;
-
-    end_tube_coupler(
+    corner_edge_panel_coupler(
         side=side,
         direction=direction,
-
-        width=end_coupler_plate_width,
-        height=end_coupler_plate_height,
+        size=coupler_profile_size,
+        horizontal_height=corner_edge_panel_coupler_profile_horizontal_arm_height,
+        vertical_width=corner_edge_panel_coupler_profile_vertical_arm_width,
         thickness=coupler_thickness,
-        radius=coupler_corner_radius,
-
-        hole_diameter_value=
-            coupler_screw_hole_diameter,
-
-        outside_material_value=6.0,
-        clip_inward_offset_value=6.0,
-
+        inside_radius=coupler_profile_inside_corner_radius,
+        outside_radius=coupler_profile_outer_corner_radius,
+        max_outside_projection_value=corner_edge_panel_coupler_max_outside_projection,
+        hole_diameter_value=coupler_screw_hole_diameter,
+        rib_clearance_value=corner_edge_panel_coupler_guide_clearance,
+        guide_height_value=corner_edge_panel_coupler_guide_height,
+        guide_end_rounding_value=corner_edge_panel_coupler_guide_end_rounding,
+        bushing_clearance_value=corner_edge_panel_coupler_bushing_clearance,
+        show_perforation_holes_value=true,
+        perforation_hole_diameter_value=corner_edge_panel_coupler_perforation_diameter,
+        perforation_depth_value=corner_edge_panel_coupler_perforation_depth,
+        clip_inboard_positions_value=corner_edge_panel_coupler_clip_inboard_positions,
         local_tube_y=local_tube_y,
         local_tube_z=local_tube_z,
-
-        clip_length_value=
-            tube_clip_length,
-
-        clip_wall_value=
-            tube_clip_wall,
-
-        clip_inner_diameter_value=
-            tube_clip_inner_diameter,
-
-        clip_opening_value=
-            tube_clip_opening,
-
-        clip_vertical_overlap_value=
-            tube_clip_vertical_overlap,
-
-        part_color=
-            color_end_coupler
+        clip_length_value=horizontal_edge_tube_clip_length,
+        clip_wall_value=tube_clip_wall,
+        clip_inner_diameter_value=tube_clip_inner_diameter,
+        clip_opening_value=tube_clip_opening,
+        clip_root_height_value=corner_edge_panel_coupler_clip_root_height,
+        clip_root_depth_value=corner_edge_panel_coupler_clip_root_depth,
+        part_color=color_corner_edge_panel_coupler
     );
 }
-
 
 module couplers_assembly(
     yshift=0,
@@ -189,7 +201,7 @@ module couplers_assembly(
             coupler_y + y_offset,
             panel_hole_z[0]
         ])
-            project_tube_seam_coupler(
+            project_horizontal_edge_panel_coupler(
                 direction="bottom",
                 screw_row_z=panel_hole_z[0]
             );
@@ -199,20 +211,20 @@ module couplers_assembly(
             coupler_y + y_offset,
             panel_hole_z[1]
         ])
-            project_middle_coupler();
+            project_middle_panel_coupler();
 
         translate([
             x,
             coupler_y + y_offset,
             panel_hole_z[2]
         ])
-            project_tube_seam_coupler(
+            project_horizontal_edge_panel_coupler(
                 direction="top",
                 screw_row_z=panel_hole_z[2]
             );
     }
 
-    // Left and right outer end couplers.
+    // Four outer corner edge panel couplers.
     left_x =
         panel_x(0)
         + panel_hole_x[0];
@@ -232,7 +244,7 @@ module couplers_assembly(
             coupler_y + y_offset,
             z
         ])
-            project_end_tube_coupler(
+            project_corner_edge_panel_coupler(
                 side="left",
                 direction=direction,
                 screw_row_z=z
@@ -243,7 +255,7 @@ module couplers_assembly(
             coupler_y + y_offset,
             z
         ])
-            project_end_tube_coupler(
+            project_corner_edge_panel_coupler(
                 side="right",
                 direction=direction,
                 screw_row_z=z
