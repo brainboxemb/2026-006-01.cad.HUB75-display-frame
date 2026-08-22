@@ -1,4 +1,4 @@
-// HUB75 Display Frame - V1.2 / middle coupler V17
+// HUB75 Display Frame - V1.2 / middle coupler V19
 //
 // Simplified proof-of-concept based directly on V1.1:
 // - V1.1 HUB75 panel reference retained unchanged;
@@ -18,9 +18,10 @@ use <components/middle_seam_coupler.scad>
 use <components/tube_seam_coupler.scad>
 use <components/end_tube_coupler.scad>
 use <assemblies/middle_coupler_fit_section.scad>
+use <assemblies/rear_fit_section.scad>
 
 /* [View] */
-view_mode = "assembly"; // [assembly, exploded, panels, couplers, tubes, middle_coupler, middle_fit_section, seam_top, seam_bottom, end_left_top, end_right_top]
+view_mode = "assembly"; // [assembly, exploded, panels, couplers, tubes, middle_coupler, middle_fit_section, rear_fit_section, seam_top, seam_bottom, end_left_top, end_right_top]
 
 /* [Visibility] */
 show_panels = true;
@@ -75,6 +76,13 @@ if(view_mode == "middle_fit_section")
         depth=5.0,
         crop_width=145.0,
         crop_height=115.0
+    );
+
+if(view_mode == "rear_fit_section")
+    rear_fit_section(
+        depth=5.0,
+        show_panel_numbers=show_panel_numbers,
+        show_io_labels=show_in_out_labels
     );
 
 

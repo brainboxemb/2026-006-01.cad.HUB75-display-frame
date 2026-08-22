@@ -331,6 +331,23 @@ make the rear housing geometry easier to distinguish.
 
 ![HUB75 display frame V1.2 - rear angled view](out/v1.2/png/hub75-display-frame-rear-angled.png)
 
+#### Rear wiring / panel order
+
+This view shows the HUB75 panel chain as seen from the rear. Panel 1 is the
+first module in the chain, with its input positioned at the top. The alternating
+panel orientation makes the intended IN/OUT routing across the five panels
+easier to verify.
+
+![HUB75 display frame V1.2 - rear wiring and panel order](out/v1.2/png/hub75-display-frame-rear-wiring.png)
+
+#### Rear fit section
+
+This diagnostic render shows a section through the complete rear assembly,
+5 mm into the panel structure. It is intended to make the fit between the
+printed couplers and the HUB75 rear ribs visible across all panel seams at once.
+
+![HUB75 display frame V1.2 - rear fit section](out/v1.2/png/hub75-display-frame-rear-fit-section.png)
+
 #### Exploded rear view
 
 ![HUB75 display frame V1.2 - exploded rear view](out/v1.2/png/hub75-display-frame-exploded-rear.png)
@@ -367,6 +384,8 @@ cad/v1.2/
     ├── panel_angled.scad
     ├── rear.scad
     ├── rear_angled.scad
+    ├── rear_wiring.scad
+    ├── rear_fit_section.scad
     ├── exploded_rear.scad
     └── exploded_rear_angled.scad
 ```

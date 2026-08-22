@@ -24,6 +24,26 @@ panel_height = 319.71;
 panel_depth = 14.50;
 panel_count = 5;
 
+// Data-chain order is defined from the REAR of the assembled display.
+// Default: panel 1 is the rear-left panel and its HUB75 input is at the top.
+// Adjacent panels alternate 180 degrees so the chain snakes across the rear.
+rear_chain_start_side = "left"; // [left,right]
+first_panel_input_side = "top"; // [top,bottom]
+
+function panel_chain_number(global_index) =
+    rear_chain_start_side == "left"
+        ? panel_count - global_index
+        : global_index + 1;
+
+function panel_input_is_top(global_index) =
+    let(chain_index = panel_chain_number(global_index) - 1)
+        first_panel_input_side == "top"
+            ? chain_index % 2 == 0
+            : chain_index % 2 == 1;
+
+function panel_rotated(global_index) =
+    !panel_input_is_top(global_index);
+
 // Nominal array pitch remains 160 x 320 mm.
 panel_nominal_width = 160.00;
 panel_nominal_height = 320.00;
