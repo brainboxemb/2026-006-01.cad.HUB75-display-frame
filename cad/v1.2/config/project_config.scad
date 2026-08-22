@@ -21,7 +21,7 @@ $fn = 48;
 
 panel_width = 159.70;
 panel_height = 319.71;
-panel_depth = 13.00;
+panel_depth = 14.50;
 panel_count = 5;
 
 // Nominal array pitch remains 160 x 320 mm.
@@ -39,13 +39,14 @@ function panel_ref_z(value) =
     value * panel_height / panel_reference_nominal_height;
 
 // STEP-derived front layer approximation retained for visual modelling.
-panel_front_mask_depth = 1.75;
+panel_front_mask_depth = 1.00;
 panel_pcb_thickness = 1.00;
 panel_pcb_back_y =
     panel_front_mask_depth
     + panel_pcb_thickness;
 
-// Datasheet depth is authoritative for the basic panel envelope.
+// Current physical/modelled depth. The 2D drawing remains authoritative for
+// width, height and mounting-hole pattern.
 panel_mounting_plane_y = panel_depth;
 panel_max_depth = panel_depth;
 
@@ -113,11 +114,14 @@ display_nominal_height = panel_nominal_height;
 display_actual_width = (panel_count - 1) * panel_pitch + panel_width;
 display_actual_height = panel_height;
 
-// Keep the V1.1 coordinate system unchanged.
+// Global array coordinates remain lower-left based, while the panel component
+// itself is centred around X=0 and Z=0. Assemblies place each panel by centre.
 panel_front_y = 0;
 panel_z_offset = 0;
 
 function panel_x(index) = index * panel_pitch;
+function panel_center_x(index) = panel_x(index) + panel_width/2;
+function panel_center_z() = panel_z_offset + panel_height/2;
 function panel_hole_x_global(index, right=false) =
     panel_x(index) + (right ? panel_hole_x[1] : panel_hole_x[0]);
 function seam_x(seam_index) = (seam_index + 1) * panel_pitch;
@@ -205,7 +209,7 @@ exploded_coupler_offset = 20.0;
 exploded_tube_offset = 30.0;
 
 /* [Hidden] */
-color_panel = [0.08,0.10,0.09,1];
+color_panel = [0.72, 0.72, 0.72, 1];
 color_pcb = [0.02,0.20,0.07,1];
 color_coupler = [0.88,0.08,0.05,1];
 color_middle_coupler = [0.62,0.04,0.03,1];
