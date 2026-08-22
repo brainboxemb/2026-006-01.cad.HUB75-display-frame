@@ -1,4 +1,4 @@
-// Official V1.1 README render - rear view.
+// Official V1.2 README render - rear view.
 // Camera values are deliberately stored in CAD so CI and local renders match.
 
 include <../config/project_config.scad>

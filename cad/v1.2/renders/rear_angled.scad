@@ -1,4 +1,4 @@
-// Official V1.1 README render - rear three-quarter view.
+// Official V1.2 README render - rear three-quarter view.
 // Exact mirrored counterpart of front_angled.scad.
 
 include <../config/project_config.scad>

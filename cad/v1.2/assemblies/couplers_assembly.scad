@@ -14,16 +14,37 @@ module project_middle_coupler() {
     middle_seam_coupler(
         width=middle_coupler_width,
         height=middle_coupler_height,
+        horizontal_height=middle_coupler_horizontal_arm_height,
+        vertical_width=middle_coupler_vertical_width,
         thickness=coupler_thickness,
-        radius=coupler_corner_radius,
-        left_hole_x_value=
-            seam_left_screw_x,
-        right_hole_x_value=
-            seam_right_screw_x,
-        hole_diameter_value=
-            coupler_screw_hole_diameter,
-        part_color=
-            color_middle_coupler
+        inside_radius=middle_coupler_inside_corner_radius,
+        outside_radius=middle_coupler_outer_corner_radius,
+
+        left_hole_x_value=seam_left_screw_x,
+        right_hole_x_value=seam_right_screw_x,
+        hole_diameter_value=coupler_screw_hole_diameter,
+
+        mounting_tube_outer_diameter_value=
+            middle_mounting_tube_outer_diameter,
+        mounting_tube_clearance_value=
+            middle_mounting_tube_clearance,
+        mounting_tube_pocket_depth_value=
+            middle_mounting_tube_pocket_depth,
+
+        centre_locator_x_value=middle_centre_locator_x,
+        centre_locator_z_value=middle_centre_locator_z,
+        centre_locator_diameter_value=middle_centre_locator_diameter,
+        centre_locator_height_value=middle_centre_locator_height,
+
+        guide_wall_thickness_value=middle_guide_wall_thickness,
+        guide_wall_height_value=middle_guide_wall_height,
+        guide_wall_straight_value=middle_guide_wall_straight,
+
+        centre_rib_width_value=middle_centre_rib_width,
+        centre_rib_height_value=middle_centre_rib_height,
+        centre_rib_length_value=middle_centre_rib_length,
+
+        part_color=color_middle_coupler
     );
 }
 

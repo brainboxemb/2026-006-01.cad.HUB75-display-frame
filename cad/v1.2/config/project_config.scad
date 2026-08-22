@@ -136,12 +136,38 @@ coupler_screw_hole_diameter = 3.4;
 coupler_corner_radius = 3.0;
 coupler_y = panel_mounting_plane_y;
 
-// Simple middle seam plate.
-middle_coupler_width = 48.0;
-middle_coupler_height = 24.0;
+// Middle seam bracket V13 - larger, softer PLUS base.
+// First get the footprint around the panel ribs right; reinforcement is added later.
+middle_coupler_width = 104.0;
+middle_coupler_height = 100.0;
+middle_coupler_horizontal_arm_height = 36.0;
+middle_coupler_vertical_width = 38.0;
+middle_coupler_inside_corner_radius = 18.0;
+middle_coupler_outer_corner_radius = 12.0;
 
-// Top/bottom plate only needs to cover the two screws and the two compact
-// clip extensions. The clips are deliberately kept close to the joint.
+// Only the smaller Ø8.5 mounting tubes protrude.
+middle_mounting_tube_outer_diameter = 8.50;
+middle_mounting_tube_clearance = 0.45;
+middle_mounting_tube_pocket_depth = 0.90;
+
+// Passive centre locator.
+middle_centre_locator_x = 0.0;
+middle_centre_locator_z = 0.0;
+middle_centre_locator_diameter = 2.10;
+middle_centre_locator_height = 2.0;
+
+// V13: 10 mm rib-following guide on the panel side of the base plate.
+// The middle coupler reads the rib widths directly from hub75_panel.scad.
+// This value is the fitting clearance on EACH side of those ribs.
+middle_guide_wall_thickness = 0.50;
+middle_guide_wall_height = 10.0;
+middle_guide_wall_straight = 0.0;
+
+// Tapered centre rib enters the small gap between adjacent panels.
+middle_centre_rib_width = 3.0;
+middle_centre_rib_height = 4.0;
+middle_centre_rib_length = 30.0;
+
 tube_seam_plate_width = 56.0;
 tube_seam_plate_height = 24.0;
 

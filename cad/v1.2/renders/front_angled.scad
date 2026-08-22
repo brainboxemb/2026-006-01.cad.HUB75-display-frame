@@ -1,4 +1,4 @@
-// Official V1.1 README render - front three-quarter view.
+// Official V1.2 README render - front three-quarter view.
 // A small angle makes frame depth, panel thickness and tube clamps easier to read.
 
 include <../config/project_config.scad>

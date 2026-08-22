@@ -1,4 +1,4 @@
-// Official V1.1 exploded render - rear three-quarter view.
+// Official V1.2 exploded render - rear three-quarter view.
 // Uses exactly the same camera as rear_angled.scad so the normal and exploded views compare directly.
 
 include <../config/project_config.scad>

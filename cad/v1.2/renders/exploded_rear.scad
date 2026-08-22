@@ -1,4 +1,4 @@
-// Official V1.1 exploded render - straight rear view.
+// Official V1.2 exploded render - straight rear view.
 // This view keeps all exploded offsets easy to compare against the normal rear view.
 
 include <../config/project_config.scad>
