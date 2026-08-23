@@ -133,6 +133,8 @@ module project_horizontal_edge_panel_coupler(
 
         clip_root_height_value=horizontal_edge_panel_coupler_clip_root_height,
         clip_root_depth_value=horizontal_edge_panel_coupler_clip_root_depth,
+        outer_ridge_height_value=horizontal_edge_panel_coupler_outer_ridge_height,
+        outer_ridge_taper_inset_value=horizontal_edge_panel_coupler_outer_ridge_taper_inset,
 
         part_color=
             color_coupler
@@ -170,12 +172,15 @@ module project_corner_edge_panel_coupler(
         clip_inboard_positions_value=corner_edge_panel_coupler_clip_inboard_positions,
         local_tube_y=local_tube_y,
         local_tube_z=local_tube_z,
-        clip_length_value=horizontal_edge_tube_clip_length,
+        clip_length_value=corner_edge_tube_clip_length,
         clip_wall_value=tube_clip_wall,
         clip_inner_diameter_value=tube_clip_inner_diameter,
         clip_opening_value=tube_clip_opening,
         clip_root_height_value=corner_edge_panel_coupler_clip_root_height,
         clip_root_depth_value=corner_edge_panel_coupler_clip_root_depth,
+        outer_ridge_height_value=corner_edge_panel_coupler_outer_ridge_height,
+        outer_ridge_taper_inset_value=corner_edge_panel_coupler_outer_ridge_taper_inset,
+        clip_ridge_clearance_value=corner_edge_panel_coupler_clip_ridge_clearance,
         part_color=color_corner_edge_panel_coupler
     );
 }

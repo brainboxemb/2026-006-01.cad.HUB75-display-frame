@@ -1,4 +1,4 @@
-// HUB75 display frame - V1.2 V32 shared-profile 100 mm rounded horizontal edge panel coupler with four short tube clips
+// HUB75 display frame - V1.2 shared-profile 100 mm horizontal edge panel coupler with two short tube clips
 //
 // Used for the four upper and four lower internal panel joins at the horizontal display edges.
 // The outer corner/end couplers are deliberately a separate component and
@@ -21,14 +21,13 @@ max_outside_projection = 19.5;
 overall_height = 100.0;
 // Standalone defaults follow the exact same rule as the project assembly:
 // real HUB75 rib width + equal printed material on both sides.
-profile_side_material = 6.5;
-horizontal_arm_height = max(
-    hub75_rear_end_rail_width() + 2*profile_side_material,
-    hub75_rear_middle_rib_width() + 2*profile_side_material
-);
+wall_thickness = 5.0;
+rib_clearance = 0.50;
+profile_side_material = wall_thickness + rib_clearance;
+horizontal_arm_height = hub75_rear_end_rail_width() + 2*profile_side_material;
 vertical_arm_width = 2*12.5 + 2*profile_side_material;
-inside_corner_radius = 18.0;
-outer_corner_radius = 12.0;
+inside_corner_radius = 10.0;
+outer_corner_radius = 6.0;
 base_thickness = 4.0;
 
 /* [Mounting holes] */
@@ -39,15 +38,19 @@ screw_row_to_panel_edge = 7.855;
 
 
 /* [Panel fit] */
-rib_clearance = 0.50;
 guide_height = 10.0;
-guide_end_rounding = 2.5;
+guide_end_rounding = 1.5;
 
 /* [Seam wedge] */
 seam_wedge_width = 3.0;
 seam_wedge_height = 4.0;
 seam_wedge_length = 30.0;
 seam_wedge_end_radius = 1.2;
+
+/* [Outer display-edge ridge] */
+// Keep this low ridge equal in height and taper to the small seam wedge.
+outer_ridge_height = seam_wedge_height;
+outer_ridge_taper_inset = seam_wedge_width * (1.0 - 0.73) / 2;
 
 /* [Reinforcement bushing relief] */
 reinforcement_bushing_clearance = 0.45;
@@ -62,16 +65,17 @@ perforation_edge_margin = 7.0;
 perforation_centre_keepout = 20.0;
 
 /* [Clip positions] */
-clip_x_positions = [-30.0, -10.0, 10.0, 30.0];
+clip_x_positions = [-25.0, 25.0];
 
 /* [Tube clip] */
-clip_length = 10.0;
+clip_length = 16.0;
 clip_wall = 2.6;
 clip_inner_diameter = 10.4;
 clip_opening = 8.2;
 clip_vertical_overlap = 2.0;
 clip_root_height = 6.0;
 clip_root_depth = 5.0;
+clip_ridge_clearance = 2.5;
 
 /* [Standalone preview] */
 preview_direction = "top"; // [top, bottom]
@@ -84,6 +88,13 @@ $fn = 64;
 
 
 // Shared T silhouette is the shared PLUS with one arm clipped away.
+
+// The end rail is not centred on the mounting screw row.  Position the
+// horizontal T arm around the REAL rail so the printed wall is the same on
+// its inward and outward sides.
+function panel_end_rail_center_z(direction) =
+    (direction == "top" ? 1 : -1)
+    * (screw_row_to_panel_edge - hub75_rear_end_rail_width()/2);
 
 // Rear housing T at a top/bottom panel edge.  At an internal seam two side
 // rails meet, while the panel end rail forms the horizontal part of the T.
@@ -137,7 +148,7 @@ module t_side_guides_2d(
     outer_r,
     clearance,
     end_rounding,
-    body_center_z=0
+    horizontal_center_z=0
 ) {
     if(end_rounding > 0)
         offset(r=end_rounding)
@@ -146,7 +157,8 @@ module t_side_guides_2d(
                     coupler_t_profile_2d(
                         direction=direction, width=width, height=height,
                         horizontal_arm_height=bar_height, vertical_arm_width=stem_width,
-                        inside_radius=inner_r, outside_radius=outer_r
+                        inside_radius=inner_r, outside_radius=outer_r,
+                        horizontal_arm_center_z=horizontal_center_z
                     );
                     offset(delta=clearance)
                         panel_edge_t_keepout_2d(direction,width,height);
@@ -156,11 +168,129 @@ module t_side_guides_2d(
             coupler_t_profile_2d(
                 direction=direction, width=width, height=height,
                 horizontal_arm_height=bar_height, vertical_arm_width=stem_width,
-                inside_radius=inner_r, outside_radius=outer_r
+                inside_radius=inner_r, outside_radius=outer_r,
+                horizontal_arm_center_z=horizontal_center_z
             );
             offset(delta=clearance)
                 panel_edge_t_keepout_2d(direction,width,height);
         }
+}
+
+
+module outer_edge_zone_2d(direction, width, height, edge_z, clearance) {
+    // Region outside the physical HUB75 panel edge.  The normal fitted guide
+    // is suppressed here and rebuilt as a segmented outer ridge so it cannot
+    // run through the tube clips.
+    zone_h = height + 20;
+    if(direction == "top")
+        translate([0, edge_z + clearance + zone_h/2])
+            square([width + 20, zone_h], center=true);
+    else
+        translate([0, edge_z - clearance - zone_h/2])
+            square([width + 20, zone_h], center=true);
+}
+
+module segmented_outer_edge_ridge_2d(
+    direction,
+    width,
+    height,
+    bar_height,
+    stem_width,
+    inner_r,
+    outer_r,
+    clearance,
+    end_rounding,
+    horizontal_center_z,
+    edge_z,
+    clip_positions,
+    clip_length,
+    clip_clearance
+) {
+    difference() {
+        intersection() {
+            t_side_guides_2d(
+                direction,width,height,
+                bar_height,stem_width,
+                inner_r,outer_r,
+                clearance,end_rounding,horizontal_center_z
+            );
+            outer_edge_zone_2d(direction,width,height,edge_z,clearance);
+        }
+
+        // Two clip gaps split the outside ridge into three explicit pieces.
+        // The gaps are slightly wider than the clips so neither the ridge nor
+        // its rounded ends can pass through the C-rings.
+        for(cx=clip_positions)
+            translate([cx, direction == "top" ? height/2 : -height/2])
+                square([clip_length + 2*clip_clearance, height + 30], center=true);
+    }
+}
+
+module _horizontal_ridge_patch_taper_3d(ridge_height, taper_inset) {
+    // Taper ONE connected 2D patch only.  Keeping each patch separate is
+    // essential: hull() across the complete interrupted ridge would bridge
+    // the clip gaps and recreate a bar through the C-rings.
+    hull() {
+        rotate([90,0,0])
+            linear_extrude(height=0.02)
+                children();
+
+        translate([0,-ridge_height+0.02,0])
+            rotate([90,0,0])
+                linear_extrude(height=0.02)
+                    offset(delta=-taper_inset)
+                        children();
+    }
+}
+
+module tapered_segmented_outer_edge_ridge_3d(
+    direction,
+    width,
+    height,
+    bar_height,
+    stem_width,
+    inner_r,
+    outer_r,
+    clearance,
+    end_rounding,
+    horizontal_center_z,
+    edge_z,
+    clip_positions,
+    clip_length,
+    clip_clearance,
+    ridge_height,
+    taper_inset
+) {
+    // With two clips the outside ridge is exactly three independent pieces.
+    // Build and taper those pieces independently so no hull operation can
+    // bridge the spaces reserved for the snap clips.
+    gap_half = clip_length/2 + clip_clearance;
+    span = width + 40;
+    x0 = clip_positions[0];
+    x1 = clip_positions[1];
+
+    intervals = [
+        [-span/2, x0-gap_half],
+        [x0+gap_half, x1-gap_half],
+        [x1+gap_half, span/2]
+    ];
+
+    for(interval=intervals) {
+        lo = interval[0];
+        hi = interval[1];
+        if(hi > lo + 0.2)
+            _horizontal_ridge_patch_taper_3d(ridge_height,taper_inset)
+                intersection() {
+                    segmented_outer_edge_ridge_2d(
+                        direction,width,height,bar_height,stem_width,
+                        inner_r,outer_r,clearance,end_rounding,
+                        horizontal_center_z,edge_z,clip_positions,
+                        clip_length,clip_clearance
+                    );
+                    translate([(lo+hi)/2,0])
+                        square([hi-lo,height+40],center=true);
+                }
+    }
 }
 
 module tapered_seam_wedge(
@@ -216,7 +346,7 @@ module t_reference_perforations_2d(
 
     // One clean row across the broad horizontal arm: two blind pockets
     // on each side of the mounting screw pair.
-    row_z = sign * (hy * 0.22);
+    row_z = panel_end_rail_center_z(direction) + sign * (hy * 0.22);
     for (x=[-34,-24,24,34])
         translate([x, row_z])
             circle(d=hole_d);
@@ -267,9 +397,13 @@ module horizontal_edge_panel_coupler(
     clip_vertical_overlap_value = clip_vertical_overlap,
     clip_root_height_value = clip_root_height,
     clip_root_depth_value = clip_root_depth,
+    clip_ridge_clearance_value = clip_ridge_clearance,
+    outer_ridge_height_value = outer_ridge_height,
+    outer_ridge_taper_inset_value = outer_ridge_taper_inset,
     part_color = preview_color
 ) {
-    body_center_z = 0; // shared T is centred on the panel screw row
+    body_center_z = 0;
+    horizontal_center_z = panel_end_rail_center_z(direction);
 
     color(part_color)
         union() {
@@ -281,7 +415,8 @@ module horizontal_edge_panel_coupler(
                             coupler_t_profile_2d(
                                 direction=direction, width=width, height=height,
                                 horizontal_arm_height=horizontal_height, vertical_arm_width=vertical_width,
-                                inside_radius=inside_radius, outside_radius=outside_radius
+                                inside_radius=inside_radius, outside_radius=outside_radius,
+                                horizontal_arm_center_z=horizontal_center_z
                             );
 
                 // Existing pair of mounting screws at the panel seam.
@@ -300,7 +435,8 @@ module horizontal_edge_panel_coupler(
                                         coupler_t_profile_2d(
                                             direction=direction, width=width, height=height,
                                             horizontal_arm_height=horizontal_height, vertical_arm_width=vertical_width,
-                                            inside_radius=inside_radius, outside_radius=outside_radius
+                                            inside_radius=inside_radius, outside_radius=outside_radius,
+                                            horizontal_arm_center_z=horizontal_center_z
                                         );
                                     translate([0, body_center_z])
                                         t_reference_perforations_2d(
@@ -315,36 +451,34 @@ module horizontal_edge_panel_coupler(
             }
 
             // 10 mm high fitted guide around the actual HUB75 end/seam ribs.
+            // Keep the guide on BOTH sides of the top/bottom end rail. This makes
+            // the outside display contour a continuous raised ridge and gives the
+            // end rail the same printed side-material rule in Z that the seam rail
+            // already has in X. The slimmer rib-derived T bar prevents this ridge
+            // from becoming the large solid fence seen in earlier revisions.
             // The Ø14 reinforcement bushings are relieved ONLY from this wall;
             // the 4 mm base plate remains continuous underneath them.
             if(guide_height_value > 0)
                 difference() {
-                    // Only keep guide material on the PANEL side of the real
-                    // top/bottom edge.  The earlier version continued the 10 mm
-                    // wall outside the panel, creating a large solid fence behind
-                    // the aluminium tube and visually swallowing the snap clips.
                     rotate([90,0,0])
                         linear_extrude(height=guide_height_value)
-                            intersection() {
+                            // Main 10 mm fitted guide only on the inboard side.
+                            // The outer display-edge ridge is deliberately built
+                            // separately below at the much lower seam-wedge height.
+                            difference() {
                                 t_side_guides_2d(
                                     direction,width,height,
                                     horizontal_height,vertical_width,
                                     inside_radius,outside_radius,
                                     rib_clearance_value,
                                     guide_end_rounding_value,
-                                    body_center_z
+                                    horizontal_center_z
                                 );
-
-                                edge_z = direction == "top"
-                                    ? screw_row_to_panel_edge
-                                    : -screw_row_to_panel_edge;
-
-                                if(direction == "top")
-                                    translate([0, edge_z - (height+20)/2])
-                                        square([width+20, height+20], center=true);
-                                else
-                                    translate([0, edge_z + (height+20)/2])
-                                        square([width+20, height+20], center=true);
+                                outer_edge_zone_2d(
+                                    direction,width,height,
+                                    direction == "top" ? screw_row_to_panel_edge : -screw_row_to_panel_edge,
+                                    rib_clearance_value
+                                );
                             }
 
                     bushing_d = hub75_reinforcement_bushing_outer_diameter();
@@ -361,6 +495,52 @@ module horizontal_edge_panel_coupler(
                                     $fn=64
                                 );
                 }
+
+            // Low outer display-edge ridge: three separate X segments so both
+            // snap clips stay completely free.  Its height equals the centre
+            // seam wedge, and the top is inset to create the same sloped wall.
+            if(outer_ridge_height_value > 0)
+                color(part_color)
+                    difference() {
+                        tapered_segmented_outer_edge_ridge_3d(
+                            direction,width,height,
+                            horizontal_height,vertical_width,
+                            inside_radius,outside_radius,
+                            rib_clearance_value,guide_end_rounding_value,
+                            horizontal_center_z,
+                            direction == "top" ? screw_row_to_panel_edge : -screw_row_to_panel_edge,
+                            clip_x_positions_value,clip_length_value,
+                            clip_ridge_clearance_value,
+                            outer_ridge_height_value,
+                            outer_ridge_taper_inset_value
+                        );
+
+                        // The aluminium tube runs continuously in X.  Therefore
+                        // an X-only gap around each clip is not sufficient: the
+                        // ridge must also be outside the complete tube envelope.
+                        // Use the clip's inner diameter as the fitted tube
+                        // clearance, so a Ø10 tube has 0.2 mm radial clearance.
+                        tube_axis_keepout(
+                            center_x=0,
+                            local_tube_y=local_tube_y,
+                            local_tube_z=local_tube_z,
+                            length=width + 20,
+                            diameter=clip_inner_diameter_value
+                        );
+
+                        // Also keep the flexible C-ring itself completely free.
+                        for(clip_x=clip_x_positions_value)
+                            tube_clip_outer_keepout(
+                                center_x=clip_x,
+                                local_tube_y=local_tube_y,
+                                local_tube_z=local_tube_z,
+                                length=clip_length_value,
+                                wall=clip_wall_value,
+                                inner_diameter=clip_inner_diameter_value,
+                                axial_clearance=clip_ridge_clearance_value,
+                                radial_clearance=0.6
+                            );
+                    }
 
             // A tapered wedge fills the narrow vertical gap between the two
             // adjacent panels. It starts at the outer panel edge and extends
@@ -379,7 +559,7 @@ module horizontal_edge_panel_coupler(
             }
         }
 
-    // Four genuinely separate short C-clips.  Each ring is attached only by
+    // Two genuinely separate short C-clips.  Each ring is attached only by
     // a small local root at the real panel edge; there is deliberately no
     // continuous extension wall between neighbouring clips.
     clip_outer_r = (clip_inner_diameter_value + 2*clip_wall_value)/2;
@@ -399,25 +579,22 @@ module horizontal_edge_panel_coupler(
             part_color=part_color
         );
 
-        // Local support foot for this individual C-clip.  The support extends
-        // from the panel edge TOWARD the clip (outward in Z), so the ring has
-        // a real overlap area instead of touching the plate almost tangentially.
-        // There is still no continuous bridge between neighbouring clips.
-        root_center_z = direction == "top"
-            ? panel_edge_z + clip_root_height_value/2
-            : panel_edge_z - clip_root_height_value/2;
-
-        color(part_color)
-            translate([
-                clip_x - clip_length_value/2,
-                -clip_root_depth_value + 1.5,
-                root_center_z - clip_root_height_value/2
-            ])
-                cube([
-                    clip_length_value,
-                    clip_root_depth_value,
-                    clip_root_height_value
-                ]);
+        // Tapered support web: strong local connection without the visible
+        // rectangular block used in earlier revisions.
+        tube_clip_support_web(
+            center_x=clip_x,
+            edge=direction,
+            panel_edge_z=panel_edge_z,
+            local_tube_y=local_tube_y,
+            local_tube_z=local_tube_z,
+            length=clip_length_value,
+            wall=clip_wall_value,
+            inner_diameter=clip_inner_diameter_value,
+            root_depth=clip_root_depth_value,
+            root_height=clip_root_height_value,
+            neck_height=2.8,
+            part_color=part_color
+        );
     }
 }
 

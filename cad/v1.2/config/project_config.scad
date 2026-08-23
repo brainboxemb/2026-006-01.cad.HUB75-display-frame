@@ -173,9 +173,11 @@ coupler_y = panel_mounting_plane_y;
 // Arm thickness is derived from the REAL HUB75 rib width, not from one fixed
 // visual width. We keep the same printed material on both sides of each rib.
 coupler_profile_size = 100.0;
-coupler_profile_rib_side_material = 6.5;
-coupler_profile_inside_corner_radius = 18.0;
-coupler_profile_outer_corner_radius = 12.0;
+coupler_wall_thickness = 5.0;
+coupler_fit_clearance = 0.50;
+coupler_profile_rib_side_material = coupler_wall_thickness + coupler_fit_clearance;
+coupler_profile_inside_corner_radius = 10.0;
+coupler_profile_outer_corner_radius = 6.0;
 
 // At an internal panel seam, two side rails meet.
 coupler_seam_rib_width = 2 * rear_frame_side_width;
@@ -188,17 +190,14 @@ middle_profile_vertical_arm_width =
 
 // Upper/lower T: thickness follows the real top/bottom end rail and seam rib.
 horizontal_edge_panel_coupler_profile_horizontal_arm_height =
-    max(
-        rear_frame_end_width + 2 * coupler_profile_rib_side_material,
-        middle_profile_horizontal_arm_height
-    );
+    rear_frame_end_width + 2 * coupler_profile_rib_side_material;
 horizontal_edge_panel_coupler_profile_vertical_arm_width =
     coupler_seam_rib_width + 2 * coupler_profile_rib_side_material;
 
 // Shared visual treatment for the exposed ends of the raised fit guides.
 // This is safe to share: it only rounds the printed guide termination; the
 // actual rib keep-outs remain derived independently from hub75_panel.scad.
-coupler_guide_end_rounding = 2.5;
+coupler_guide_end_rounding = 1.5;
 
 middle_panel_coupler_width = coupler_profile_size;
 middle_panel_coupler_height = coupler_profile_size;
@@ -221,7 +220,7 @@ middle_centre_locator_height = 2.0;
 // V13: 10 mm rib-following guide on the panel side of the base plate.
 // The middle coupler reads the rib widths directly from hub75_panel.scad.
 // This value is the fitting clearance on EACH side of those ribs.
-middle_guide_wall_thickness = 0.50;
+middle_guide_wall_thickness = coupler_fit_clearance;
 middle_guide_wall_height = 10.0;
 middle_guide_wall_straight = 0.0;
 middle_guide_end_rounding = coupler_guide_end_rounding;
@@ -242,7 +241,7 @@ horizontal_edge_panel_coupler_horizontal_arm_height = horizontal_edge_panel_coup
 horizontal_edge_panel_coupler_vertical_width = horizontal_edge_panel_coupler_profile_vertical_arm_width;
 horizontal_edge_panel_coupler_inside_corner_radius = coupler_profile_inside_corner_radius;
 horizontal_edge_panel_coupler_outer_corner_radius = coupler_profile_outer_corner_radius;
-horizontal_edge_panel_coupler_guide_clearance = 0.50;
+horizontal_edge_panel_coupler_guide_clearance = coupler_fit_clearance;
 horizontal_edge_panel_coupler_guide_height = 10.0;
 horizontal_edge_panel_coupler_guide_end_rounding = coupler_guide_end_rounding;
 
@@ -264,26 +263,35 @@ horizontal_edge_panel_coupler_wedge_width = 3.0;
 horizontal_edge_panel_coupler_wedge_height = 4.0;
 horizontal_edge_panel_coupler_wedge_length = 30.0;
 
+// Outer display-edge ridge follows the same low tapered build-up as the
+// centre seam wedge, rather than the full 10 mm panel-fit guide height.
+horizontal_edge_panel_coupler_outer_ridge_height = horizontal_edge_panel_coupler_wedge_height;
+horizontal_edge_panel_coupler_outer_ridge_taper_inset =
+    horizontal_edge_panel_coupler_wedge_width * (1.0 - 0.73) / 2;
+
 // Clearance around the STEP-derived Ø14 reinforcement bushings.
 horizontal_edge_panel_coupler_bushing_clearance = 0.45;
 
 // Corner edge panel coupler. All four corners use one mirrored/oriented
 // printable component. The profile is derived from the REAL single side rail
-// and top/bottom end rail, with the same 6.5 mm printed material rule.
+// and top/bottom end rail, with the same shared wall-thickness rule.
 corner_edge_panel_coupler_profile_horizontal_arm_height =
     rear_frame_end_width + 2 * coupler_profile_rib_side_material;
 corner_edge_panel_coupler_profile_vertical_arm_width =
     rear_frame_side_width + 2 * coupler_profile_rib_side_material;
 corner_edge_panel_coupler_max_outside_projection = 19.5;
-corner_edge_panel_coupler_guide_clearance = 0.50;
+corner_edge_panel_coupler_guide_clearance = coupler_fit_clearance;
 corner_edge_panel_coupler_guide_height = 10.0;
 corner_edge_panel_coupler_guide_end_rounding = coupler_guide_end_rounding;
 corner_edge_panel_coupler_perforation_diameter = 3.0;
 corner_edge_panel_coupler_perforation_depth = 2.5;
-corner_edge_panel_coupler_clip_inboard_positions = [12.0, 28.0];
+corner_edge_panel_coupler_clip_inboard_positions = [20.0];
 corner_edge_panel_coupler_clip_root_height = 6.0;
 corner_edge_panel_coupler_clip_root_depth = 7.0;
 corner_edge_panel_coupler_bushing_clearance = 0.45;
+corner_edge_panel_coupler_outer_ridge_height = horizontal_edge_panel_coupler_outer_ridge_height;
+corner_edge_panel_coupler_outer_ridge_taper_inset = horizontal_edge_panel_coupler_outer_ridge_taper_inset;
+corner_edge_panel_coupler_clip_ridge_clearance = 2.5;
 
 /* [Aluminium stiffening tubes] */
 // Exact V1.1 tube geometry and placement.
@@ -318,11 +326,12 @@ function stiffening_tube_bottom_z() =
 function stiffening_tube_top_z() =
     display_nominal_height + tube_clip_outer_radius();
 
-// Internal T-couplers use four short snap clips instead of two long clips.
-// Shorter clips need less force to snap over the Ø10 aluminium tube while
-// the four-point distribution still spreads the load across the T body.
-horizontal_edge_clip_x_positions = [-30.0, -10.0, 10.0, 30.0];
-horizontal_edge_tube_clip_length = 10.0;
+// Internal horizontal edge couplers use two short snap clips.
+// Keeping the clips short limits the force needed to snap over the Ø10 tube,
+// while two well-spaced clips keep the edge coupler visually and mechanically simple.
+horizontal_edge_clip_x_positions = [-25.0, 25.0];
+horizontal_edge_tube_clip_length = 16.0;
+corner_edge_tube_clip_length = 16.0;
 
 /* [Exploded view] */
 exploded_coupler_offset = 20.0;

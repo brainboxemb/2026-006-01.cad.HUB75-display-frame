@@ -1,4 +1,4 @@
-// HUB75 display frame - V1.2 middle coupler V32
+// HUB75 display frame - V1.2 middle coupler V36
 //
 // V16 keeps the rounded PLUS footprint and 10 mm rib-following guide.
 // Cosmetic Ø3 mm holes are now 2.5 mm deep blind pockets.
@@ -11,16 +11,18 @@ overall_width = 100.0;
 overall_height = 100.0;
 // Standalone defaults follow the exact same rule as the project assembly:
 // real HUB75 rib width + equal printed material on both sides.
-profile_side_material = 6.5;
+wall_thickness = 5.0;
+fit_clearance = 0.50;
+profile_side_material = wall_thickness + fit_clearance;
 horizontal_arm_height = 20.0 + 2*profile_side_material;
 vertical_arm_width = 2*12.5 + 2*profile_side_material;
-inside_corner_radius = 18.0;
-outer_corner_radius = 12.0;
+inside_corner_radius = 10.0;
+outer_corner_radius = 6.0;
 
 /* [Raised rib guides] */
 reinforcement_height = 10.0;
 rib_clearance = 0.50;
-guide_end_rounding = 2.5;
+guide_end_rounding = 1.5;
 
 /* [Mounting screws] */
 left_screw_x = -8.15;
