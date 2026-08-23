@@ -32,6 +32,7 @@ rib_clearance = 0.50;
 guide_height = 10.0;
 guide_end_rounding = 1.5;
 bushing_clearance = 0.45;
+locator_pin_clearance = 0.40;
 
 /* [Decorative pockets] */
 show_perforation_holes = true;
@@ -63,6 +64,23 @@ preview_tube_z = 18.0;
 preview_color = [0.95, 0.20, 0.08, 1];
 
 $fn = 64;
+
+// The two physical Ø3 locator pins are diagonal on the HUB75 panel.
+// Relative to the corner screw positions they occur only at:
+//   - top-left
+//   - bottom-right
+// The opposite two corners therefore need no locator clearance.
+function corner_has_locator_pin(side, direction) =
+    (side == "left" && direction == "top")
+    || (side == "right" && direction == "bottom");
+
+function corner_locator_pin_x(side) =
+    -(side == "left" ? 1 : -1)
+    * hub75_locator_pin_near_edge_screw_x_delta();
+
+function corner_locator_pin_z(direction) =
+    (direction == "top" ? -1 : 1)
+    * hub75_locator_pin_edge_screw_z_delta();
 
 module corner_panel_keepout_2d(side, direction, total_size) {
     ix = side == "left" ? 1 : -1;
@@ -327,6 +345,7 @@ module corner_edge_panel_coupler(
     guide_height_value=guide_height,
     guide_end_rounding_value=guide_end_rounding,
     bushing_clearance_value=bushing_clearance,
+    locator_pin_clearance_value=locator_pin_clearance,
     show_perforation_holes_value=show_perforation_holes,
     perforation_hole_diameter_value=perforation_hole_diameter,
     perforation_depth_value=perforation_depth,
@@ -485,9 +504,30 @@ module corner_edge_panel_coupler(
     }
 
     color(part_color)
-        intersection() {
-            raw_corner_body();
-            final_corner_body_envelope();
+        difference() {
+            intersection() {
+                raw_corner_body();
+                final_corner_body_envelope();
+            }
+
+            // The panel has two diagonal Ø3 x 3 mm locator pins. Only the
+            // top-left and bottom-right corner positions overlap one. Cut a
+            // true through-clearance through the complete corner body at those
+            // positions; do not create a shallow pocket.
+            if(corner_has_locator_pin(side,direction))
+                translate([
+                    corner_locator_pin_x(side),
+                    thickness + 2,
+                    corner_locator_pin_z(direction)
+                ])
+                    rotate([90,0,0])
+                        cylinder(
+                            d=hub75_locator_pin_diameter()
+                              + 2*locator_pin_clearance_value,
+                            h=thickness + guide_height_value
+                              + outer_ridge_height_value + 4,
+                            $fn=48
+                        );
         }
 
     // Clip geometry intentionally sits outside the clipped corner-body

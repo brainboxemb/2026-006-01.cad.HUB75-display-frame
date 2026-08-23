@@ -263,6 +263,15 @@ function hub75_reinforcement_bushing_outer_diameter() = reinforcement_bushing_ou
 function hub75_reinforcement_bushing_protrusion() = reinforcement_bushing_protrusion;
 function hub75_reinforcement_bushing_offset() = reinforcement_disc_offset;
 
+// Locator-pin dimensions exposed for couplers that must clear the two
+// PDF-dimensioned Ø3 mm locating pins.  Keep the positional relationships
+// derived here so couplers do not duplicate panel geometry.
+function hub75_locator_pin_diameter() = locator_pin_diameter;
+function hub75_locator_pin_near_edge_screw_x_delta() =
+    hole_x_left - (panel_width/2 - locator_pin_landscape_y_offset);
+function hub75_locator_pin_edge_screw_z_delta() =
+    panel_height/2 - locator_pin_landscape_x_offset - hole_z_bottom;
+
 // -----------------------------------------------------------------------------
 // Geometry
 // -----------------------------------------------------------------------------

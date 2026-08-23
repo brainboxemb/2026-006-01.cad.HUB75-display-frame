@@ -56,6 +56,12 @@ outer_ridge_taper_inset = seam_wedge_width * (1.0 - 0.73) / 2;
 reinforcement_bushing_clearance = 0.45;
 reinforcement_bushing_relief_extra_depth = 0.20;
 
+/* [Locator-pin clearance] */
+// The physical panel has a Ø3 x 3 mm locating pin close to each relevant
+// horizontal edge coupler.  This is a true through-clearance in the 4 mm
+// base plate, not a shallow pocket.
+locator_pin_clearance = 0.40;
+
 /* [Decorative pockets] */
 show_perforation_holes = true;
 perforation_hole_diameter = 3.0;
@@ -95,6 +101,19 @@ $fn = 64;
 function panel_end_rail_center_z(direction) =
     (direction == "top" ? 1 : -1)
     * (screw_row_to_panel_edge - hub75_rear_end_rail_width()/2);
+
+
+// Position of the one panel locator pin that falls under an internal
+// horizontal edge coupler.  The offsets are derived by hub75_panel.scad from
+// the PDF locator-pin position and mounting-hole pattern.
+function edge_locator_pin_x(direction, left_screw_x, right_screw_x) =
+    direction == "top"
+        ? right_screw_x - hub75_locator_pin_near_edge_screw_x_delta()
+        : left_screw_x  + hub75_locator_pin_near_edge_screw_x_delta();
+
+function edge_locator_pin_z(direction) =
+    (direction == "top" ? -1 : 1)
+    * hub75_locator_pin_edge_screw_z_delta();
 
 // Rear housing T at a top/bottom panel edge.  At an internal seam two side
 // rails meet, while the panel end rail forms the horizontal part of the T.
@@ -388,6 +407,7 @@ module horizontal_edge_panel_coupler(
     seam_wedge_height_value = seam_wedge_height,
     seam_wedge_length_value = seam_wedge_length,
     bushing_clearance_value = reinforcement_bushing_clearance,
+    locator_pin_clearance_value = locator_pin_clearance,
     local_tube_y = preview_tube_y,
     local_tube_z = preview_tube_z,
     clip_length_value = clip_length,
@@ -424,6 +444,22 @@ module horizontal_edge_panel_coupler(
                     translate([x, thickness+0.25, 0])
                         rotate([90,0,0])
                             cylinder(d=hole_diameter_value,h=thickness+0.5,$fn=36);
+
+                // Full through-clearance for the physical Ø3 x 3 mm locator
+                // pin.  Unlike the decorative Ø3 pockets below, this cut runs
+                // completely through the base plate so the coupler never
+                // bears on the locating pin.
+                translate([
+                    edge_locator_pin_x(direction,left_hole_x_value,right_hole_x_value),
+                    thickness + 0.25,
+                    edge_locator_pin_z(direction)
+                ])
+                    rotate([90,0,0])
+                        cylinder(
+                            d=hub75_locator_pin_diameter() + 2*locator_pin_clearance_value,
+                            h=thickness + 0.5,
+                            $fn=48
+                        );
 
                 // STEP-inspired blind pockets, matching the middle coupler.
                 if(show_perforation_holes_value && perforation_depth_value > 0)

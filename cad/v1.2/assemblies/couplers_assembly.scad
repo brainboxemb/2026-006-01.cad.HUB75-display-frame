@@ -113,6 +113,9 @@ module project_horizontal_edge_panel_coupler(
         bushing_clearance_value=
             horizontal_edge_panel_coupler_bushing_clearance,
 
+        locator_pin_clearance_value=
+            horizontal_edge_panel_coupler_locator_pin_clearance,
+
         local_tube_y=local_tube_y,
         local_tube_z=local_tube_z,
 
@@ -166,6 +169,7 @@ module project_corner_edge_panel_coupler(
         guide_height_value=corner_edge_panel_coupler_guide_height,
         guide_end_rounding_value=corner_edge_panel_coupler_guide_end_rounding,
         bushing_clearance_value=corner_edge_panel_coupler_bushing_clearance,
+        locator_pin_clearance_value=corner_edge_panel_coupler_locator_pin_clearance,
         show_perforation_holes_value=true,
         perforation_hole_diameter_value=corner_edge_panel_coupler_perforation_diameter,
         perforation_depth_value=corner_edge_panel_coupler_perforation_depth,

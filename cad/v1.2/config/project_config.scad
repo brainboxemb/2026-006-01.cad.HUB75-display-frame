@@ -272,6 +272,10 @@ horizontal_edge_panel_coupler_outer_ridge_taper_inset =
 // Clearance around the STEP-derived Ø14 reinforcement bushings.
 horizontal_edge_panel_coupler_bushing_clearance = 0.45;
 
+// Clearance around the panel's Ø3 x 3 mm locator pin.  The corresponding
+// hole is cut fully through the horizontal edge coupler base plate.
+horizontal_edge_panel_coupler_locator_pin_clearance = 0.40;
+
 // Corner edge panel coupler. All four corners use one mirrored/oriented
 // printable component. The profile is derived from the REAL single side rail
 // and top/bottom end rail, with the same shared wall-thickness rule.
@@ -289,6 +293,8 @@ corner_edge_panel_coupler_clip_inboard_positions = [20.0];
 corner_edge_panel_coupler_clip_root_height = 6.0;
 corner_edge_panel_coupler_clip_root_depth = 7.0;
 corner_edge_panel_coupler_bushing_clearance = 0.45;
+// Full through-clearance for the diagonal Ø3 x 3 mm panel locator pin.
+corner_edge_panel_coupler_locator_pin_clearance = horizontal_edge_panel_coupler_locator_pin_clearance;
 corner_edge_panel_coupler_outer_ridge_height = horizontal_edge_panel_coupler_outer_ridge_height;
 corner_edge_panel_coupler_outer_ridge_taper_inset = horizontal_edge_panel_coupler_outer_ridge_taper_inset;
 corner_edge_panel_coupler_clip_ridge_clearance = 2.5;
