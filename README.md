@@ -228,7 +228,7 @@ The current V1.2 concept includes:
 - two continuous Ø10 × 1 mm aluminium tubes;
 - dedicated fit-section views for checking the coupler-to-panel interfaces.
 
-The printed couplers follow the actual rear-panel rib geometry and use the existing screw locations, locator features and reinforcement-bushing geometry as alignment references.
+The printed couplers follow the actual rear-panel rib geometry and use the existing screw locations, locator features and reinforcement-bushing geometry as alignment references. The edge and corner families are dimensioned from the nominal 160 × 320 mm panel boundary while their physical fit geometry remains tied to the real panel rails, holes and bosses. This keeps the parts visually and mechanically consistent without moving the real fit features.
 
 ### Panel dimensional basis
 
@@ -242,7 +242,7 @@ Panel height      319.71 mm
 Panel depth        14.50 mm
 ```
 
-The panel component also owns the rear rib geometry, mounting-hole pattern, IDC connector geometry, locator pins and reinforcement-bushing dimensions.
+The panel component also owns the rear rib geometry, mounting-hole pattern, IDC connector geometry, locator pins and reinforcement-bushing dimensions. The reinforcement feature is modelled as a Ø14 mm internal boss that is flush with the rear mounting plane, with a Ø10 mm × 2.5 mm recess and a central Ø2.5 mm blind hole extending 10 mm from the bottom of that recess.
 
 ### Aluminium tube layout
 
@@ -257,12 +257,14 @@ Tube outer diameter             10 mm
 Tube centre from panel rear      7 mm
 ```
 
-The 840 × 360 mm envelope is centred around the nominal five-panel display. The two tube centres are positioned symmetrically at ±170 mm from the vertical display centre, giving a 340 mm centre-to-centre distance.
+The 840 × 360 mm project envelope is centred around **X = 0 / Z = 0**. The project assembly uses the **rear mounting plane of the HUB75 panels as Y = 0**. The two tube centres are positioned symmetrically at Z = ±170 mm, giving a 340 mm centre-to-centre distance. Their Y centre is **-7 mm**, i.e. 7 mm from the rear mounting plane toward the panel front.
 
-The Y position is defined from the **rear mounting plane of the HUB75 panel toward the front face**. With a 14.5 mm thick panel and a Ø10 mm tube, a 7 mm centre offset leaves approximately:
+`main.scad` also provides an optional `show_project_envelope` checkbox. When enabled, a wireframe 840 × 360 mm reference box is drawn around the assembly. Its Y-direction corner lines extend from the panel front face to the Y=0 rear mounting plane, making the panel depth and the project Y reference easy to inspect.
 
-- 2.0 mm between the rear panel plane and the rear side of the tube;
-- 2.5 mm between the front side of the tube and the front panel face.
+The Y position is defined from the **rear mounting plane of the HUB75 panel toward the front face**. With the rear plane at Y=0, the 14.5 mm panel front is at Y=-14.5 mm and the Ø10 mm tube centre is at Y=-7 mm. This leaves:
+
+- 2.0 mm between the rear panel plane and the nearest tube surface;
+- 2.5 mm between the opposite tube surface and the panel front face.
 
 This relationship is stored in `config/project_config.scad` as:
 
@@ -286,7 +288,7 @@ V1.2 deliberately separates **reusable physical components** from **project-deri
 - `tube_clip.scad` — reusable snap-clip geometry;
 - `_lib/reference_grid.scad` — generic inspection helper.
 
-`project_components/` contains printable parts whose geometry is deliberately derived from both reusable component dimensions and `project_config.scad`. The V1.2 couplers belong here because their clip positions, display-edge relationships and assembly clearances are specific to this project configuration.
+`project_components/` contains printable parts whose geometry is deliberately derived from both reusable component dimensions and `project_config.scad`. The V1.2 couplers belong here because their clip positions, display-edge relationships and assembly clearances are specific to this project configuration. Shared coupler rules such as the nominal 5 mm material wall, rail-following fit and profile dimensions are kept in `project_components/_lib/` so edge and corner variants do not duplicate those calculations.
 
 This means it is expected and intentional that a file in `project_components/` can depend on project settings. A generic component under `components/` should not.
 
@@ -361,6 +363,26 @@ This diagnostic render shows a section through the complete rear assembly, 5 mm 
 
 ![HUB75 display frame V1.2 - rear fit section](out/v1.2/png/hub75-display-frame-rear-fit-section.png)
 
+#### Coupler comparison — side by side
+
+All four printable coupler variants are shown next to each other using their
+geometric `+` reference points rather than their screw holes as the alignment
+reference. The reference points are placed on grid intersections, making it
+easier to compare the nominal panel-edge references, overall height and profile
+proportions across the coupler family.
+
+![HUB75 display frame V1.2 - couplers side by side](out/v1.2/png/hub75-display-frame-couplers-side-by-side.png)
+
+#### Coupler comparison — stacked
+
+The two coupler comparison renders use the standard reference grid by default (10 mm major spacing with 5 mm half-steps), while the same grid remains controlled by `show_reference_grid` in `main.scad`.
+
+The same four variants are stacked vertically for a second proportional check.
+The view is intended primarily for comparing overall width and the relationship
+between the shared profile rules of the middle, edge and corner variants.
+
+![HUB75 display frame V1.2 - couplers stacked](out/v1.2/png/hub75-display-frame-couplers-stacked.png)
+
 #### Middle panel coupler fit section
 
 ![HUB75 display frame V1.2 - middle panel coupler fit section](out/v1.2/png/hub75-display-frame-middle-panel-fit-section.png)
@@ -385,19 +407,22 @@ cad/v1.2/
 │   ├── aluminium_tube.scad
 │   ├── tube_clip.scad
 │   └── _lib/
-│       └── reference_grid.scad
+│       ├── reference_grid.scad
+│       └── reference_box.scad
 ├── project_components/
 │   ├── middle_panel_coupler.scad
 │   ├── horizontal_edge_panel_coupler.scad
 │   ├── corner_edge_panel_coupler.scad
 │   └── _lib/
-│       └── coupler_profile.scad
+│       ├── coupler_profile.scad
+│       └── coupler_dimensions.scad
 ├── assemblies/
 │   ├── panels_assembly.scad
 │   ├── couplers_assembly.scad
 │   ├── tubes_assembly.scad
 │   ├── middle_panel_coupler_fit_section.scad
 │   ├── rear_fit_section.scad
+│   ├── coupler_comparison_assembly.scad
 │   └── display_assembly.scad
 ├── exports/
 │   ├── display.scad
@@ -415,11 +440,15 @@ cad/v1.2/
     ├── rear_wiring.scad
     ├── middle_panel_fit_section.scad
     ├── rear_fit_section.scad
+    ├── couplers_side_by_side.scad
+    ├── couplers_stacked.scad
     ├── exploded_rear.scad
     └── exploded_rear_angled.scad
 ```
 
 Open `cad/v1.2/main.scad` to view the complete concept.
+
+`assemblies/coupler_comparison_assembly.scad` is also directly openable in OpenSCAD. It provides `side_by_side` and `stacked` comparison modes and can use the same reference-grid settings as the normal inspection views.
 
 ## Automatic renders and exports
 
