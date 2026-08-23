@@ -1,4 +1,4 @@
-// HUB75 Display Frame - V1.2 / project coordinates and envelope V82
+// HUB75 Display Frame - V1.2 / project coordinates and envelope V82 - comparison/profile alignment V94
 //
 // Simplified proof-of-concept based directly on V1.1:
 // - V1.1 HUB75 panel reference retained unchanged;
@@ -19,12 +19,13 @@ use <project_components/horizontal_edge_panel_coupler.scad>
 use <project_components/corner_edge_panel_coupler.scad>
 use <assemblies/middle_panel_coupler_fit_section.scad>
 use <assemblies/rear_fit_section.scad>
+use <assemblies/coupler_comparison_assembly.scad>
 use <components/_lib/reference_grid.scad>
 use <components/_lib/reference_box.scad>
 use <components/hub75_panel.scad>
 
 /* [View] */
-view_mode = "assembly"; // [assembly, exploded, panels, single_panel, couplers, tubes, middle_panel_coupler, horizontal_edge_panel_coupler, middle_panel_fit_section, rear_fit_section, corner_edge_panel_coupler_left, corner_edge_panel_coupler_right]
+view_mode = "assembly"; // [assembly, exploded, panels, single_panel, couplers, tubes, middle_panel_coupler, horizontal_edge_panel_coupler, middle_panel_fit_section, rear_fit_section, corner_edge_panel_coupler_left, corner_edge_panel_coupler_right, couplers_side_by_side, couplers_stacked]
 
 /* [Visibility] */
 show_panels = true;
@@ -128,6 +129,20 @@ if(view_mode == "corner_edge_panel_coupler_left")
 
 if(view_mode == "corner_edge_panel_coupler_right")
     project_corner_edge_panel_coupler(side="right", direction="top", screw_row_z=panel_hole_z_top());
+
+if(view_mode == "couplers_side_by_side")
+    coupler_comparison_side_by_side(
+        show_grid=show_reference_grid,
+        grid_major=reference_grid_spacing,
+        grid_half_step=reference_grid_half_step
+    );
+
+if(view_mode == "couplers_stacked")
+    coupler_comparison_stacked(
+        show_grid=show_reference_grid,
+        grid_major=reference_grid_spacing,
+        grid_half_step=reference_grid_half_step
+    );
 
 
 // Optional project-level dimensional check. The 840 x 360 rectangle is

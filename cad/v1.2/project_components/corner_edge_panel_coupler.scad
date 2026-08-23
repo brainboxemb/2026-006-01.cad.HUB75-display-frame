@@ -9,14 +9,15 @@
 use <../components/tube_clip.scad>
 use <../components/hub75_panel.scad>
 use <_lib/coupler_profile.scad>
+use <_lib/coupler_dimensions.scad>
 
 /* [Profile] */
 profile_size = coupler_profile_size_default();
 wall_thickness = coupler_wall_thickness_default();
 fit_clearance = coupler_fit_clearance_default();
-profile_side_material = wall_thickness + fit_clearance;
-horizontal_arm_height = hub75_rear_end_rail_width() + 2*profile_side_material;
-vertical_arm_width = hub75_rear_side_rail_width() + 2*profile_side_material;
+profile_side_material = coupler_project_side_material();
+horizontal_arm_height = coupler_project_horizontal_arm_height();
+vertical_arm_width = coupler_project_corner_vertical_arm_width();
 inside_corner_radius = coupler_profile_inside_radius_default();
 outside_corner_radius = coupler_profile_outside_radius_default();
 base_thickness = coupler_base_thickness_default();
@@ -92,6 +93,83 @@ function corner_locator_pin_x(side) =
 function corner_locator_pin_z(direction) =
     (direction == "top" ? -1 : 1)
     * hub75_locator_pin_edge_screw_z_delta();
+
+// Reference the printable corner geometry to the nominal 160 x 320 mm panel
+// corner, not to the mounting-screw centre.  The real screw remains at local
+// [0,0]; these offsets place the nominal panel edge/corner around it.  Using
+// the nominal drawing dimensions keeps the corner profile and its pocket
+// raster tied to the rounded 160 x 320 reference envelope.
+function corner_nominal_reference_x(side) =
+    side == "left"
+        ? -hub75_panel_hole_x_left()
+        : hub75_panel_nominal_width() - hub75_panel_hole_x_right();
+
+function corner_nominal_reference_z(direction) =
+    direction == "top"
+        ? hub75_panel_nominal_height() - hub75_panel_hole_z_top()
+        : -hub75_panel_hole_z_bottom();
+
+// Public comparison/inspection anchors.  These are the nominal 160 x 320 mm
+// corner (+) expressed in the screw-centred local component system.
+function corner_edge_panel_coupler_reference_x(side="left") =
+    corner_nominal_reference_x(side);
+function corner_edge_panel_coupler_reference_z(direction="top") =
+    corner_nominal_reference_z(direction);
+
+// Physical rear-rail centre lines relative to the corner mounting screw.
+// The mounting screw is not centred in either rear rail.  The base silhouette
+// must follow these real rail centres so its 5 mm wall rule matches the
+// horizontal-edge coupler when both are placed on the same nominal panel edge.
+function corner_side_rail_center_x(side) =
+    side == "left"
+        ? -screw_to_side_edge + hub75_rear_side_rail_width()/2
+        :  screw_to_side_edge - hub75_rear_side_rail_width()/2;
+
+function corner_end_rail_center_z(direction) =
+    direction == "top"
+        ?  screw_to_horizontal_edge - hub75_rear_end_rail_width()/2
+        : -screw_to_horizontal_edge + hub75_rear_end_rail_width()/2;
+
+// Keep the physical corner profile in the real screw-centred coordinate
+// system.  The nominal 160 x 320 mm corner only determines where the outer
+// edge is and how far the inward arms extend.  This is important: translating
+// the complete profile to the nominal corner also translated the fitted guide
+// geometry away from the real panel ribs.
+//
+// A nominal 100 mm corner profile means 50 mm inward from the nominal panel
+// corner.  Because the screw is ~8 mm inward from that corner, the screw-local
+// half-span is correspondingly smaller.  The outside crop is the nominal
+// screw-to-corner offset plus the requested outside projection.  The resulting
+// overall extent therefore remains 50 + outside_projection (69.5 mm by
+// default), independent of the mounting-hole offset.
+module corner_nominal_profile_2d(
+    side, direction, width, height,
+    horizontal_arm_height, vertical_arm_width,
+    inside_radius, outside_radius, outward_x, outward_z,
+    horizontal_arm_center_z=0, vertical_arm_center_x=0
+) {
+    reference_x = abs(corner_nominal_reference_x(side));
+    reference_z = abs(corner_nominal_reference_z(direction));
+    effective_width = 2 * max(1, width/2 - reference_x);
+    effective_height = 2 * max(1, height/2 - reference_z);
+    screw_local_outward_x = reference_x + outward_x;
+    screw_local_outward_z = reference_z + outward_z;
+
+    coupler_corner_profile_2d(
+        side=side,
+        direction=direction,
+        width=effective_width,
+        height=effective_height,
+        horizontal_arm_height=horizontal_arm_height,
+        vertical_arm_width=vertical_arm_width,
+        inside_radius=inside_radius,
+        outside_radius=outside_radius,
+        outward_x=screw_local_outward_x,
+        outward_z=screw_local_outward_z,
+        horizontal_arm_center_z=horizontal_arm_center_z,
+        vertical_arm_center_x=vertical_arm_center_x
+    );
+}
 
 module corner_panel_keepout_2d(side, direction, total_size) {
     ix = side == "left" ? 1 : -1;
@@ -188,7 +266,7 @@ module corner_fitted_guides_2d(
         offset(r=end_rounding)
             offset(delta=-end_rounding)
                 difference() {
-                    coupler_corner_profile_2d(
+                    corner_nominal_profile_2d(
                         side=side,direction=direction,
                         width=size,height=size,
                         horizontal_arm_height=horizontal_height,
@@ -196,14 +274,16 @@ module corner_fitted_guides_2d(
                         inside_radius=inside_radius,
                         outside_radius=outside_radius,
                         outward_x=outward_x,
-                        outward_z=outward_z
+                        outward_z=outward_z,
+                        horizontal_arm_center_z=corner_end_rail_center_z(direction),
+                        vertical_arm_center_x=corner_side_rail_center_x(side)
                     );
                     offset(delta=clearance)
                         corner_panel_keepout_2d(side,direction,size);
                 }
     else
         difference() {
-            coupler_corner_profile_2d(
+            corner_nominal_profile_2d(
                 side=side,direction=direction,
                 width=size,height=size,
                 horizontal_arm_height=horizontal_height,
@@ -211,7 +291,9 @@ module corner_fitted_guides_2d(
                 inside_radius=inside_radius,
                 outside_radius=outside_radius,
                 outward_x=outward_x,
-                outward_z=outward_z
+                outward_z=outward_z,
+                horizontal_arm_center_z=corner_end_rail_center_z(direction),
+                vertical_arm_center_x=corner_side_rail_center_x(side)
             );
             offset(delta=clearance)
                 corner_panel_keepout_2d(side,direction,size);
@@ -424,8 +506,13 @@ module corner_edge_panel_coupler(
 ) {
     ix = side == "left" ? 1 : -1;
     iz = direction == "top" ? -1 : 1;
-    outward_x = screw_to_side_edge + max_outside_projection_value;
-    outward_z = screw_to_horizontal_edge + max_outside_projection_value;
+    // The corner profile is centred on the nominal panel corner.  Therefore
+    // the outside projection is measured directly from that corner instead
+    // of adding the screw-to-edge distance a second time.
+    outward_x = max_outside_projection_value;
+    outward_z = max_outside_projection_value;
+    corner_reference_x = corner_nominal_reference_x(side);
+    corner_reference_z = corner_nominal_reference_z(direction);
     panel_edge_z = -iz * screw_to_horizontal_edge;
 
     // Final X/Z envelope of the printable corner plate.  All local body
@@ -438,7 +525,7 @@ module corner_edge_panel_coupler(
         translate([0, guide_height_value + thickness + 2, 0])
             rotate([90,0,0])
                 linear_extrude(height=guide_height_value + thickness + outer_ridge_height_value + 4)
-                    coupler_corner_profile_2d(
+                    corner_nominal_profile_2d(
                         side=side,
                         direction=direction,
                         width=size,
@@ -448,7 +535,9 @@ module corner_edge_panel_coupler(
                         inside_radius=inside_radius,
                         outside_radius=outside_radius,
                         outward_x=outward_x,
-                        outward_z=outward_z
+                        outward_z=outward_z,
+                        horizontal_arm_center_z=corner_end_rail_center_z(direction),
+                        vertical_arm_center_x=corner_side_rail_center_x(side)
                     );
     }
 
@@ -458,7 +547,7 @@ module corner_edge_panel_coupler(
                 translate([0, thickness, 0])
                     rotate([90,0,0])
                         linear_extrude(height=thickness)
-                            coupler_corner_profile_2d(
+                            corner_nominal_profile_2d(
                                 side=side,
                                 direction=direction,
                                 width=size,
@@ -468,7 +557,9 @@ module corner_edge_panel_coupler(
                                 inside_radius=inside_radius,
                                 outside_radius=outside_radius,
                                 outward_x=outward_x,
-                                outward_z=outward_z
+                                outward_z=outward_z,
+                                horizontal_arm_center_z=corner_end_rail_center_z(direction),
+                                vertical_arm_center_x=corner_side_rail_center_x(side)
                             );
 
                 coupler_screw_hole_y(
@@ -485,7 +576,7 @@ module corner_edge_panel_coupler(
                             linear_extrude(height=min(perforation_depth_value,thickness-0.2)+0.15)
                                 intersection() {
                                     offset(delta=-4)
-                                        coupler_corner_profile_2d(
+                                        corner_nominal_profile_2d(
                                             side=side,direction=direction,
                                             width=size,height=size,
                                             horizontal_arm_height=horizontal_height,
@@ -493,18 +584,21 @@ module corner_edge_panel_coupler(
                                             inside_radius=inside_radius,
                                             outside_radius=outside_radius,
                                             outward_x=outward_x,
-                                            outward_z=outward_z
+                                            outward_z=outward_z,
+                                            horizontal_arm_center_z=corner_end_rail_center_z(direction),
+                                            vertical_arm_center_x=corner_side_rail_center_x(side)
                                         );
-                                    corner_reference_perforations_2d(
-                                        side,direction,
-                                        perforation_hole_diameter_value,
-                                        perforation_spacing,
-                                        horizontal_height,
-                                        vertical_width,
-                                        reference_pocket_steps_value,
-                                        reference_pocket_pitch_value,
-                                        reference_pocket_lane_offset_value
-                                    );
+                                    translate([corner_reference_x, corner_reference_z])
+                                        corner_reference_perforations_2d(
+                                            side,direction,
+                                            perforation_hole_diameter_value,
+                                            perforation_spacing,
+                                            horizontal_height,
+                                            vertical_width,
+                                            reference_pocket_steps_value,
+                                            reference_pocket_pitch_value,
+                                            reference_pocket_lane_offset_value
+                                        );
                                 }
 
                 if(show_center_marks_value && center_mark_depth_value > 0)
@@ -513,7 +607,7 @@ module corner_edge_panel_coupler(
                             linear_extrude(height=min(center_mark_depth_value,thickness-0.2)+0.15)
                                 intersection() {
                                     offset(delta=-center_mark_edge_margin_value)
-                                        coupler_corner_profile_2d(
+                                        corner_nominal_profile_2d(
                                             side=side,direction=direction,
                                             width=size,height=size,
                                             horizontal_arm_height=horizontal_height,
@@ -521,17 +615,20 @@ module corner_edge_panel_coupler(
                                             inside_radius=inside_radius,
                                             outside_radius=outside_radius,
                                             outward_x=outward_x,
-                                            outward_z=outward_z
+                                            outward_z=outward_z,
+                                            horizontal_arm_center_z=corner_end_rail_center_z(direction),
+                                            vertical_arm_center_x=corner_side_rail_center_x(side)
                                         );
-                                    coupler_center_marks_2d(
-                                        span_x=size, span_z=size,
-                                        pitch=center_mark_pitch_value,
-                                        dash_length=center_mark_dash_length_value,
-                                        dash_width=center_mark_dash_width_value,
-                                        cross_length=center_mark_cross_length_value,
-                                        keepout_points=[[0,0]],
-                                        keepout_radius=hole_diameter_value/2 + coupler_center_mark_screw_keepout_default()
-                                    );
+                                    translate([corner_reference_x, corner_reference_z])
+                                        coupler_center_marks_2d(
+                                            span_x=size, span_z=size,
+                                            pitch=center_mark_pitch_value,
+                                            dash_length=center_mark_dash_length_value,
+                                            dash_width=center_mark_dash_width_value,
+                                            cross_length=center_mark_cross_length_value,
+                                            keepout_points=[[-corner_reference_x,-corner_reference_z]],
+                                            keepout_radius=hole_diameter_value/2 + coupler_center_mark_screw_keepout_default()
+                                        );
                                 }
             }
 

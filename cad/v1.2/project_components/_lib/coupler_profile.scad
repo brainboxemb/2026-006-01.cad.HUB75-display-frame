@@ -90,45 +90,50 @@ module coupler_plus_profile_2d(
     vertical_arm_width = coupler_profile_vertical_arm_width_default(),
     inside_radius = coupler_profile_inside_radius_default(),
     outside_radius = coupler_profile_outside_radius_default(),
-    horizontal_arm_center_z = 0
+    horizontal_arm_center_z = 0,
+    vertical_arm_center_x = 0
 ) {
     hw = width/2;
     hh = height/2;
-    vx = vertical_arm_width/2;
+    vx_left = vertical_arm_center_x - vertical_arm_width/2;
+    vx_right = vertical_arm_center_x + vertical_arm_width/2;
     z_top = horizontal_arm_center_z + horizontal_arm_height/2;
     z_bot = horizontal_arm_center_z - horizontal_arm_height/2;
 
     ir = min(inside_radius,
-             min(hw-vx, min(hh-z_top, z_bot+hh)) - 0.01);
+             min(
+                 min(hw-vx_right, vx_left+hw),
+                 min(hh-z_top, z_bot+hh)
+             ) - 0.01);
     or = min(outside_radius,
              min(vertical_arm_width, horizontal_arm_height)/2 - 0.01);
     steps = 20;
 
     pts = concat(
-        [[-vx+or, hh], [vx-or, hh]],
-        [for (a=[90 : -90/steps : 0]) [vx-or + or*cos(a), hh-or + or*sin(a)]],
-        [[vx, z_top+ir]],
-        [for (a=[180 : 90/steps : 270]) [vx+ir + ir*cos(a), z_top+ir + ir*sin(a)]],
+        [[vx_left+or, hh], [vx_right-or, hh]],
+        [for (a=[90 : -90/steps : 0]) [vx_right-or + or*cos(a), hh-or + or*sin(a)]],
+        [[vx_right, z_top+ir]],
+        [for (a=[180 : 90/steps : 270]) [vx_right+ir + ir*cos(a), z_top+ir + ir*sin(a)]],
         [[hw-or, z_top]],
         [for (a=[90 : -90/steps : 0]) [hw-or + or*cos(a), z_top-or + or*sin(a)]],
         [[hw, z_bot+or]],
         [for (a=[0 : -90/steps : -90]) [hw-or + or*cos(a), z_bot+or + or*sin(a)]],
-        [[vx+ir, z_bot]],
-        [for (a=[90 : 90/steps : 180]) [vx+ir + ir*cos(a), z_bot-ir + ir*sin(a)]],
-        [[vx, -hh+or]],
-        [for (a=[0 : -90/steps : -90]) [vx-or + or*cos(a), -hh+or + or*sin(a)]],
-        [[-vx+or, -hh]],
-        [for (a=[-90 : -90/steps : -180]) [-vx+or + or*cos(a), -hh+or + or*sin(a)]],
-        [[-vx, z_bot-ir]],
-        [for (a=[0 : 90/steps : 90]) [-vx-ir + ir*cos(a), z_bot-ir + ir*sin(a)]],
+        [[vx_right+ir, z_bot]],
+        [for (a=[90 : 90/steps : 180]) [vx_right+ir + ir*cos(a), z_bot-ir + ir*sin(a)]],
+        [[vx_right, -hh+or]],
+        [for (a=[0 : -90/steps : -90]) [vx_right-or + or*cos(a), -hh+or + or*sin(a)]],
+        [[vx_left+or, -hh]],
+        [for (a=[-90 : -90/steps : -180]) [vx_left+or + or*cos(a), -hh+or + or*sin(a)]],
+        [[vx_left, z_bot-ir]],
+        [for (a=[0 : 90/steps : 90]) [vx_left-ir + ir*cos(a), z_bot-ir + ir*sin(a)]],
         [[-hw+or, z_bot]],
         [for (a=[-90 : -90/steps : -180]) [-hw+or + or*cos(a), z_bot+or + or*sin(a)]],
         [[-hw, z_top-or]],
         [for (a=[180 : -90/steps : 90]) [-hw+or + or*cos(a), z_top-or + or*sin(a)]],
-        [[-vx-ir, z_top]],
-        [for (a=[-90 : 90/steps : 0]) [-vx-ir + ir*cos(a), z_top+ir + ir*sin(a)]],
-        [[-vx, hh-or]],
-        [for (a=[180 : -90/steps : 90]) [-vx+or + or*cos(a), hh-or + or*sin(a)]]
+        [[vx_left-ir, z_top]],
+        [for (a=[-90 : 90/steps : 0]) [vx_left-ir + ir*cos(a), z_top+ir + ir*sin(a)]],
+        [[vx_left, hh-or]],
+        [for (a=[180 : -90/steps : 90]) [vx_left+or + or*cos(a), hh-or + or*sin(a)]]
     );
 
     polygon(points=pts);
@@ -187,7 +192,9 @@ module coupler_corner_profile_2d(
     inside_radius = coupler_profile_inside_radius_default(),
     outside_radius = coupler_profile_outside_radius_default(),
     outward_x = 27.0,
-    outward_z = 27.0
+    outward_z = 27.0,
+    horizontal_arm_center_z = 0,
+    vertical_arm_center_x = 0
 ) {
     hw = width/2;
     hh = height/2;
@@ -205,7 +212,9 @@ module coupler_corner_profile_2d(
             horizontal_arm_height=horizontal_arm_height,
             vertical_arm_width=vertical_arm_width,
             inside_radius=inside_radius,
-            outside_radius=outside_radius
+            outside_radius=outside_radius,
+            horizontal_arm_center_z=horizontal_arm_center_z,
+            vertical_arm_center_x=vertical_arm_center_x
         );
 
         translate([xmin, zmin])

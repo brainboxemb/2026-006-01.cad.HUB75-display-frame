@@ -13,6 +13,7 @@
 use <../components/tube_clip.scad>
 use <../components/hub75_panel.scad>
 use <_lib/coupler_profile.scad>
+use <_lib/coupler_dimensions.scad>
 
 /* [T body] */
 overall_width = coupler_profile_size_default();
@@ -23,9 +24,9 @@ overall_height = coupler_profile_size_default();
 // real HUB75 rib width + equal printed material on both sides.
 wall_thickness = coupler_wall_thickness_default();
 rib_clearance = coupler_fit_clearance_default();
-profile_side_material = wall_thickness + rib_clearance;
-horizontal_arm_height = hub75_rear_end_rail_width() + 2*profile_side_material;
-vertical_arm_width = 2*hub75_rear_side_rail_width() + 2*profile_side_material;
+profile_side_material = coupler_project_side_material();
+horizontal_arm_height = coupler_project_horizontal_arm_height();
+vertical_arm_width = coupler_project_edge_vertical_arm_width();
 inside_corner_radius = coupler_profile_inside_radius_default();
 outer_corner_radius = coupler_profile_outside_radius_default();
 base_thickness = coupler_base_thickness_default();
@@ -46,7 +47,7 @@ guide_end_rounding = coupler_guide_end_rounding_default();
 /* [Seam wedge] */
 seam_wedge_width = coupler_seam_wedge_width_default();
 seam_wedge_height = coupler_seam_wedge_height_default();
-seam_wedge_length = inboard_reach + screw_row_to_panel_edge;
+seam_wedge_length = inboard_reach;
 seam_wedge_end_radius = 1.2;
 
 /* [Outer display-edge ridge] */
@@ -113,6 +114,46 @@ function panel_end_rail_center_z(direction) =
     (direction == "top" ? 1 : -1)
     * (screw_row_to_panel_edge - hub75_rear_end_rail_width()/2);
 
+// Nominal 320 mm envelope edge relative to the real mounting-hole row.
+// This is the geometric + reference for the horizontal edge coupler.
+function panel_nominal_edge_reference_z(direction) =
+    direction == "top"
+        ? hub75_panel_nominal_height()/2
+            - (hub75_panel_hole_z_top() - hub75_panel_height()/2)
+        : -hub75_panel_nominal_height()/2
+            - (hub75_panel_hole_z_bottom() - hub75_panel_height()/2);
+
+// Public comparison/inspection anchor: the engraved + lies on this nominal
+// 320 mm panel edge, expressed in the screw-centred local component system.
+function horizontal_edge_panel_coupler_reference_z(direction="top") =
+    panel_nominal_edge_reference_z(direction);
+
+// Keep the original rail-fitted T profile intact and only trim its far
+// inboard end so the printed arm reaches exactly `inward_reach_value` from
+// the nominal 320 mm panel edge.  This avoids shifting the horizontal arm or
+// its guide away from the real rear end rail.
+module edge_profile_2d(
+    direction, width, height, bar_height, stem_width, inner_r, outer_r,
+    horizontal_center_z, inward_reach_value
+) {
+    nominal_z = panel_nominal_edge_reference_z(direction);
+    limit_z = nominal_z + (direction == "top" ? -inward_reach_value : inward_reach_value);
+
+    // Do not hard-clip the far end of the T stem: that removed the normal R6
+    // outside corner and left the edge coupler with a square bottom.  Instead
+    // choose a symmetric PLUS/T source height whose inward end lands exactly
+    // on the nominal 320 mm reference reach.  coupler_t_profile_2d then keeps
+    // the same rounded end treatment as the rest of the coupler family.
+    effective_height = 2*abs(limit_z);
+
+    coupler_t_profile_2d(
+        direction=direction, width=width, height=effective_height,
+        horizontal_arm_height=bar_height, vertical_arm_width=stem_width,
+        inside_radius=inner_r, outside_radius=outer_r,
+        horizontal_arm_center_z=horizontal_center_z
+    );
+}
+
 
 // Position of the one panel locator pin that falls under an internal
 // horizontal edge coupler.  The offsets are derived by hub75_panel.scad from
@@ -130,7 +171,7 @@ function edge_locator_pin_z(direction) =
 // rails meet, while the panel end rail forms the horizontal part of the T.
 // The end-rail position is derived from the real screw-row-to-edge distance.
 module panel_edge_t_keepout_2d(direction, total_width, total_height) {
-    vertical_w = 2 * hub75_rear_side_rail_width();
+    vertical_w = coupler_project_edge_seam_keepout_width();
     horizontal_w = hub75_rear_end_rail_width();
     corner_r = hub75_rear_opening_corner_radius();
 
@@ -178,28 +219,25 @@ module t_side_guides_2d(
     outer_r,
     clearance,
     end_rounding,
-    horizontal_center_z=0
+    horizontal_center_z=0,
+    inward_reach_value=inboard_reach
 ) {
     if(end_rounding > 0)
         offset(r=end_rounding)
             offset(delta=-end_rounding)
                 difference() {
-                    coupler_t_profile_2d(
-                        direction=direction, width=width, height=height,
-                        horizontal_arm_height=bar_height, vertical_arm_width=stem_width,
-                        inside_radius=inner_r, outside_radius=outer_r,
-                        horizontal_arm_center_z=horizontal_center_z
+                    edge_profile_2d(
+                        direction,width,height,bar_height,stem_width,
+                        inner_r,outer_r,horizontal_center_z,inward_reach_value
                     );
                     offset(delta=clearance)
                         panel_edge_t_keepout_2d(direction,width,height);
                 }
     else
         difference() {
-            coupler_t_profile_2d(
-                direction=direction, width=width, height=height,
-                horizontal_arm_height=bar_height, vertical_arm_width=stem_width,
-                inside_radius=inner_r, outside_radius=outer_r,
-                horizontal_arm_center_z=horizontal_center_z
+            edge_profile_2d(
+                direction,width,height,bar_height,stem_width,
+                inner_r,outer_r,horizontal_center_z,inward_reach_value
             );
             offset(delta=clearance)
                 panel_edge_t_keepout_2d(direction,width,height);
@@ -453,6 +491,7 @@ module horizontal_edge_panel_coupler(
     part_color = preview_color
 ) {
     body_center_z = 0;
+    nominal_edge_z = panel_nominal_edge_reference_z(direction);
     horizontal_center_z = panel_end_rail_center_z(direction);
 
     color(part_color)
@@ -462,11 +501,9 @@ module horizontal_edge_panel_coupler(
                 translate([0, thickness, 0])
                     rotate([90,0,0])
                         linear_extrude(height=thickness)
-                            coupler_t_profile_2d(
-                                direction=direction, width=width, height=height,
-                                horizontal_arm_height=horizontal_height, vertical_arm_width=vertical_width,
-                                inside_radius=inside_radius, outside_radius=outside_radius,
-                                horizontal_arm_center_z=horizontal_center_z
+                            edge_profile_2d(
+                                direction,width,height,horizontal_height,vertical_width,
+                                inside_radius,outside_radius,horizontal_center_z,inward_reach_value
                             );
 
                 // Existing pair of mounting screws at the panel seam.
@@ -505,13 +542,11 @@ module horizontal_edge_panel_coupler(
                             linear_extrude(height=min(perforation_depth_value, thickness-0.2)+0.15)
                                 intersection() {
                                     offset(delta=-perforation_edge_margin_value/2)
-                                        coupler_t_profile_2d(
-                                            direction=direction, width=width, height=height,
-                                            horizontal_arm_height=horizontal_height, vertical_arm_width=vertical_width,
-                                            inside_radius=inside_radius, outside_radius=outside_radius,
-                                            horizontal_arm_center_z=horizontal_center_z
+                                        edge_profile_2d(
+                                            direction,width,height,horizontal_height,vertical_width,
+                                            inside_radius,outside_radius,horizontal_center_z,inward_reach_value
                                         );
-                                    translate([0, body_center_z])
+                                    translate([0, nominal_edge_z])
                                         t_reference_perforations_2d(
                                         direction,width,height,
                                         horizontal_height,vertical_width,
@@ -531,21 +566,23 @@ module horizontal_edge_panel_coupler(
                             linear_extrude(height=min(center_mark_depth_value, thickness-0.2)+0.15)
                                 intersection() {
                                     offset(delta=-center_mark_edge_margin_value)
-                                        coupler_t_profile_2d(
-                                            direction=direction, width=width, height=height,
-                                            horizontal_arm_height=horizontal_height, vertical_arm_width=vertical_width,
-                                            inside_radius=inside_radius, outside_radius=outside_radius,
-                                            horizontal_arm_center_z=horizontal_center_z
+                                        edge_profile_2d(
+                                            direction,width,height,horizontal_height,vertical_width,
+                                            inside_radius,outside_radius,horizontal_center_z,inward_reach_value
                                         );
-                                    coupler_center_marks_2d(
-                                        span_x=width, span_z=height,
-                                        pitch=center_mark_pitch_value,
-                                        dash_length=center_mark_dash_length_value,
-                                        dash_width=center_mark_dash_width_value,
-                                        cross_length=center_mark_cross_length_value,
-                                        keepout_points=[[left_hole_x_value,0],[right_hole_x_value,0]],
-                                        keepout_radius=hole_diameter_value/2 + coupler_center_mark_screw_keepout_default()
-                                    );
+                                    translate([0, nominal_edge_z])
+                                        coupler_center_marks_2d(
+                                            span_x=width, span_z=height,
+                                            pitch=center_mark_pitch_value,
+                                            dash_length=center_mark_dash_length_value,
+                                            dash_width=center_mark_dash_width_value,
+                                            cross_length=center_mark_cross_length_value,
+                                            keepout_points=[
+                                                [left_hole_x_value,-nominal_edge_z],
+                                                [right_hole_x_value,-nominal_edge_z]
+                                            ],
+                                            keepout_radius=hole_diameter_value/2 + coupler_center_mark_screw_keepout_default()
+                                        );
                                 }
             }
 
@@ -571,7 +608,8 @@ module horizontal_edge_panel_coupler(
                                     inside_radius,outside_radius,
                                     rib_clearance_value,
                                     guide_end_rounding_value,
-                                    horizontal_center_z
+                                    horizontal_center_z,
+                                    inward_reach_value
                                 );
                                 outer_edge_zone_2d(
                                     direction,width,height,
@@ -659,7 +697,7 @@ module horizontal_edge_panel_coupler(
             // inward, mirroring automatically for top and bottom placement.
             if(seam_wedge_height_value > 0 && seam_wedge_width_value > 0 && seam_wedge_length_value > 0) {
                 inward_sign = direction == "top" ? -1 : 1;
-                wedge_center_z = inward_sign * (seam_wedge_length_value/2 - screw_row_to_panel_edge);
+                wedge_center_z = nominal_edge_z + inward_sign * seam_wedge_length_value/2;
                 translate([0, 0, wedge_center_z])
                     tapered_seam_wedge(
                         length=seam_wedge_length_value,
