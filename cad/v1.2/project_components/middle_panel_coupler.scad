@@ -5,13 +5,15 @@
 // Raised-guide end transitions are softened, and a dedicated fit-check view
 // overlays the real HUB75 rib keep-out without using transparency.
 
+include <../config/project_config.scad>
+
 /* [Base plate] */
-base_thickness = coupler_base_thickness_default();
-overall_width = coupler_profile_size_default();
-overall_height = coupler_profile_size_default();
+base_thickness = project_coupler_base_thickness();
+overall_width = project_coupler_profile_size();
+overall_height = project_coupler_profile_size();
 // Standalone defaults follow the exact same rule as the project assembly:
 // real HUB75 rib width + equal printed material on both sides.
-wall_thickness = coupler_wall_thickness_default();
+wall_thickness = project_coupler_wall_thickness();
 fit_clearance = coupler_fit_clearance_default();
 profile_side_material = wall_thickness + fit_clearance;
 horizontal_arm_height = hub75_rear_middle_rib_width() + 2*profile_side_material;
@@ -20,7 +22,7 @@ inside_corner_radius = coupler_profile_inside_radius_default();
 outer_corner_radius = coupler_profile_outside_radius_default();
 
 /* [Raised rib guides] */
-reinforcement_height = coupler_guide_height_default();
+reinforcement_height = project_coupler_guide_height();
 rib_clearance = coupler_fit_clearance_default();
 guide_end_rounding = coupler_guide_end_rounding_default();
 
@@ -210,7 +212,7 @@ module reference_perforations_2d(
     spacing,
     edge_margin,
     centre_keepout,
-    reference_steps = coupler_reference_pocket_steps_default(),
+    reference_steps = project_coupler_reference_steps(),
     reference_pitch = coupler_reference_pocket_pitch_default(),
     reference_lane_offset = coupler_reference_pocket_lane_offset_default()
 ) {
@@ -224,19 +226,25 @@ module reference_perforations_2d(
         ? coupler_reference_lane_offset_for_arm(v_arm_width)
         : reference_lane_offset;
 
-    x_lane_signs = coupler_reference_lane_signs_for_arm(h_arm_height);
-    z_lane_signs = coupler_reference_lane_signs_for_arm(v_arm_width);
+    // The middle coupler is a symmetric PLUS family member.  Use one shared
+    // lane count for both axes so a small profile change cannot make one arm
+    // two-lane while the perpendicular arm becomes one-lane.  Two lanes are
+    // used only when they geometrically fit in BOTH arm thicknesses.
+    shared_two_lane =
+        coupler_reference_two_lanes_fit(h_arm_height, hole_d) &&
+        coupler_reference_two_lanes_fit(v_arm_width, hole_d);
+    shared_lane_signs = shared_two_lane ? [-1,1] : [0];
 
     for (sx=[-1,1])
         coupler_reference_pocket_strip_2d(
-            axis="x", direction_sign=sx, lane_signs=x_lane_signs,
+            axis="x", direction_sign=sx, lane_signs=shared_lane_signs,
             steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
             lane_offset=x_arm_lane
         );
 
     for (sz=[-1,1])
         coupler_reference_pocket_strip_2d(
-            axis="z", direction_sign=sz, lane_signs=z_lane_signs,
+            axis="z", direction_sign=sz, lane_signs=shared_lane_signs,
             steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
             lane_offset=z_arm_lane
         );
@@ -282,7 +290,7 @@ module middle_panel_coupler(
     perforation_edge_margin_value = perforation_edge_margin,
     perforation_centre_keepout_value = perforation_centre_keepout,
     perforation_depth_value = perforation_depth,
-    reference_pocket_steps_value = coupler_reference_pocket_steps_default(),
+    reference_pocket_steps_value = project_coupler_reference_steps(),
     reference_pocket_pitch_value = coupler_reference_pocket_pitch_default(),
     reference_pocket_lane_offset_value = coupler_reference_pocket_lane_offset_default(),
     show_center_marks_value = show_center_marks,

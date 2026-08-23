@@ -15,21 +15,23 @@ use <../components/hub75_panel.scad>
 use <_lib/coupler_profile.scad>
 use <_lib/coupler_dimensions.scad>
 
+include <../config/project_config.scad>
+
 /* [T body] */
-overall_width = coupler_profile_size_default();
-inboard_reach = coupler_profile_size_default()/2;
+overall_width = project_coupler_profile_size();
+inboard_reach = project_coupler_profile_size()/2;
 max_outside_projection = 19.5;
-overall_height = coupler_profile_size_default();
+overall_height = project_coupler_profile_size();
 // Standalone defaults follow the exact same rule as the project assembly:
 // real HUB75 rib width + equal printed material on both sides.
-wall_thickness = coupler_wall_thickness_default();
+wall_thickness = project_coupler_wall_thickness();
 rib_clearance = coupler_fit_clearance_default();
 profile_side_material = coupler_project_side_material();
 horizontal_arm_height = coupler_project_horizontal_arm_height();
 vertical_arm_width = coupler_project_edge_vertical_arm_width();
 inside_corner_radius = coupler_profile_inside_radius_default();
 outer_corner_radius = coupler_profile_outside_radius_default();
-base_thickness = coupler_base_thickness_default();
+base_thickness = project_coupler_base_thickness();
 
 /* [Mounting holes] */
 left_hole_x = hub75_panel_hole_x_right() - hub75_panel_nominal_width();
@@ -41,7 +43,7 @@ screw_row_to_panel_edge = hub75_panel_hole_z_bottom();
 
 
 /* [Panel fit] */
-guide_height = coupler_guide_height_default();
+guide_height = project_coupler_guide_height();
 guide_end_rounding = coupler_guide_end_rounding_default();
 
 /* [Seam wedge] */
@@ -403,31 +405,57 @@ module t_reference_perforations_2d(
     spacing,
     edge_margin,
     centre_keepout,
-    reference_steps = coupler_reference_pocket_steps_default(),
+    horizontal_center_offset_z,
+    reference_steps = project_coupler_reference_steps(),
     reference_pitch = coupler_reference_pocket_pitch_default(),
     reference_lane_offset = coupler_reference_pocket_lane_offset_default()
 ) {
-    // Same shared adaptive rule as the middle coupler. Longitudinal stations
-    // are 20/30/40 mm. Wide arms use two transverse lanes; narrow arms use
-    // one centred lane so the pattern does not get forced into a thin strip.
+    // Build the pocket raster from a SYMMETRIC virtual cross first.
+    //
+    // This module is called in coordinates centred on the nominal panel edge.
+    // The real horizontal arm is asymmetric around that reference because it
+    // follows the physical HUB75 end rail.  That asymmetry must not determine
+    // a special one-row pocket coordinate.
+    //
+    // Instead we derive one common hole-centre-to-arm-edge inset from the
+    // symmetric vertical stem.  We mirror the real inboard half of the
+    // horizontal arm around the nominal edge to make a virtual symmetric arm,
+    // place TWO rows on that virtual arm using the same edge inset, and let the
+    // actual T silhouette remove the unsupported outside row.
+    //
+    // Result: the remaining horizontal row and the vertical rows have exactly
+    // the same centre-to-edge distance, for default, lightweight and custom
+    // dimensions, without profile-specific correction constants.
     inward = direction == "top" ? -1 : 1;
-    x_arm_lane = is_undef(reference_lane_offset)
-        ? coupler_reference_lane_offset_for_arm(bar_height)
-        : reference_lane_offset;
+
     z_arm_lane = is_undef(reference_lane_offset)
         ? coupler_reference_lane_offset_for_arm(stem_width)
         : reference_lane_offset;
 
-    x_lane_signs = coupler_reference_lane_signs_for_arm(bar_height);
-    z_lane_signs = coupler_reference_lane_signs_for_arm(stem_width);
+    // Reference design quantity shared by both perpendicular arms.
+    shared_edge_inset = stem_width/2 - z_arm_lane;
 
+    // In this local coordinate system Z=0 is the nominal panel edge.
+    // Mirror the REAL inboard edge to obtain the symmetric virtual arm.
+    real_inboard_edge_z = horizontal_center_offset_z + inward*bar_height/2;
+    virtual_horizontal_half = abs(real_inboard_edge_z);
+    x_arm_lane = max(0, virtual_horizontal_half - shared_edge_inset);
+
+    z_lane_signs = coupler_reference_two_lanes_fit(stem_width, hole_d)
+        ? [-1,1]
+        : [0];
+
+    // Always generate the horizontal raster symmetrically. The intersection
+    // with the actual edge profile in the caller removes the row that lies in
+    // the missing/asymmetric part of the T.
     for (sx=[-1,1])
         coupler_reference_pocket_strip_2d(
-            axis="x", direction_sign=sx, lane_signs=x_lane_signs,
+            axis="x", direction_sign=sx, lane_signs=[-1,1],
             steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
             lane_offset=x_arm_lane
         );
 
+    // The vertical stem is already symmetric and supplies the reference inset.
     coupler_reference_pocket_strip_2d(
         axis="z", direction_sign=inward, lane_signs=z_lane_signs,
         steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
@@ -460,7 +488,7 @@ module horizontal_edge_panel_coupler(
     perforation_spacing_value = perforation_spacing,
     perforation_edge_margin_value = perforation_edge_margin,
     perforation_centre_keepout_value = perforation_centre_keepout,
-    reference_pocket_steps_value = coupler_reference_pocket_steps_default(),
+    reference_pocket_steps_value = project_coupler_reference_steps(),
     reference_pocket_pitch_value = coupler_reference_pocket_pitch_default(),
     reference_pocket_lane_offset_value = coupler_reference_pocket_lane_offset_default(),
     show_center_marks_value = show_center_marks,
@@ -554,6 +582,7 @@ module horizontal_edge_panel_coupler(
                                         perforation_spacing_value,
                                         perforation_edge_margin_value,
                                         perforation_centre_keepout_value,
+                                        horizontal_center_z - nominal_edge_z,
                                         reference_pocket_steps_value,
                                         reference_pocket_pitch_value,
                                         reference_pocket_lane_offset_value

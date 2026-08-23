@@ -6,10 +6,11 @@
 // functions so wall thickness and plate proportions cannot drift apart.
 
 use <../../components/hub75_panel.scad>
+include <../../config/project_config.scad>
 use <coupler_profile.scad>
 
 function coupler_project_side_material() =
-    coupler_wall_thickness_default() + coupler_fit_clearance_default();
+    project_coupler_wall_thickness() + coupler_fit_clearance_default();
 
 function coupler_project_panel_seam_gap() =
     max(0, hub75_panel_nominal_width() - hub75_panel_width());

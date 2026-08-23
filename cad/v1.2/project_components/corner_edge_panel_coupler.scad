@@ -11,16 +11,18 @@ use <../components/hub75_panel.scad>
 use <_lib/coupler_profile.scad>
 use <_lib/coupler_dimensions.scad>
 
+include <../config/project_config.scad>
+
 /* [Profile] */
-profile_size = coupler_profile_size_default();
-wall_thickness = coupler_wall_thickness_default();
+profile_size = project_coupler_profile_size();
+wall_thickness = project_coupler_wall_thickness();
 fit_clearance = coupler_fit_clearance_default();
 profile_side_material = coupler_project_side_material();
 horizontal_arm_height = coupler_project_horizontal_arm_height();
 vertical_arm_width = coupler_project_corner_vertical_arm_width();
 inside_corner_radius = coupler_profile_inside_radius_default();
 outside_corner_radius = coupler_profile_outside_radius_default();
-base_thickness = coupler_base_thickness_default();
+base_thickness = project_coupler_base_thickness();
 max_outside_projection = 19.5;
 
 /* [Mounting] */
@@ -32,7 +34,7 @@ screw_to_horizontal_edge = hub75_panel_hole_z_bottom();
 
 /* [Panel fit] */
 rib_clearance = coupler_fit_clearance_default();
-guide_height = coupler_guide_height_default();
+guide_height = project_coupler_guide_height();
 guide_end_rounding = coupler_guide_end_rounding_default();
 bushing_clearance = coupler_bushing_clearance_default();
 locator_pin_clearance = coupler_locator_pin_clearance_default();
@@ -224,35 +226,67 @@ module corner_inside_panel_2d(side, direction, total_size) {
 module corner_reference_perforations_2d(
     side, direction, hole_d, spacing,
     horizontal_height, vertical_width,
-    reference_steps = coupler_reference_pocket_steps_default(),
+    horizontal_center_offset_z, vertical_center_offset_x,
+    reference_steps = project_coupler_reference_steps(),
     reference_pitch = coupler_reference_pocket_pitch_default(),
     reference_lane_offset = coupler_reference_pocket_lane_offset_default()
 ) {
-    // A corner exposes one inward X arm and one inward Z arm. Use the same
-    // 20/30/40 mm stations as the other couplers. Wide arms use two lanes;
-    // narrow arms use one centred lane.
+    // Build the corner pocket raster from a FULL SYMMETRIC virtual cross first.
+    //
+    // Local [0,0] is the nominal panel corner.  The real horizontal and
+    // vertical arms are offset because they follow the physical HUB75 rear
+    // rails.  Those offsets must not be used to invent special one-sided hole
+    // coordinates.  Instead:
+    //   1. mirror each real INBOARD arm edge across the nominal panel edge;
+    //   2. obtain two symmetric virtual arms;
+    //   3. derive one shared hole-centre-to-arm-edge inset;
+    //   4. generate the complete +/-X and +/-Z raster;
+    //   5. let the actual corner silhouette remove every unsupported pocket.
+    //
+    // This is the same design principle as the horizontal-edge coupler, but at
+    // a corner it is applied in both axes.  The missing outside quadrant is a
+    // crop of the symmetric construction, never a special-case hole pattern.
     inward_x = side == "left" ? 1 : -1;
     inward_z = direction == "top" ? -1 : 1;
-    x_arm_lane = is_undef(reference_lane_offset)
-        ? coupler_reference_lane_offset_for_arm(horizontal_height)
-        : reference_lane_offset;
-    z_arm_lane = is_undef(reference_lane_offset)
-        ? coupler_reference_lane_offset_for_arm(vertical_width)
-        : reference_lane_offset;
 
-    x_lane_signs = coupler_reference_lane_signs_for_arm(horizontal_height);
-    z_lane_signs = coupler_reference_lane_signs_for_arm(vertical_width);
+    real_horizontal_inboard_edge_z =
+        horizontal_center_offset_z + inward_z*horizontal_height/2;
+    real_vertical_inboard_edge_x =
+        vertical_center_offset_x + inward_x*vertical_width/2;
 
-    coupler_reference_pocket_strip_2d(
-        axis="x", direction_sign=inward_x, lane_signs=x_lane_signs,
-        steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
-        lane_offset=x_arm_lane
-    );
-    coupler_reference_pocket_strip_2d(
-        axis="z", direction_sign=inward_z, lane_signs=z_lane_signs,
-        steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
-        lane_offset=z_arm_lane
-    );
+    virtual_horizontal_half = abs(real_horizontal_inboard_edge_z);
+    virtual_vertical_half = abs(real_vertical_inboard_edge_x);
+
+    // Use the smaller virtual arm as the common symmetric design section.  It
+    // determines a single edge inset that is guaranteed to fit both arms.
+    // The wider virtual arm then places its lane farther from the nominal edge
+    // so both remaining rows have exactly the same centre-to-edge distance.
+    common_virtual_half = min(virtual_horizontal_half, virtual_vertical_half);
+    common_virtual_thickness = 2*common_virtual_half;
+    common_lane_offset = is_undef(reference_lane_offset)
+        ? coupler_reference_lane_offset_for_arm(common_virtual_thickness)
+        : min(reference_lane_offset, common_virtual_half);
+    shared_edge_inset = common_virtual_half - common_lane_offset;
+
+    x_arm_lane = max(0, virtual_horizontal_half - shared_edge_inset);
+    z_arm_lane = max(0, virtual_vertical_half - shared_edge_inset);
+
+    // Always generate the complete symmetric cross.  The caller intersects it
+    // with the real corner profile, so outward stations and outward lanes that
+    // have no material simply disappear.
+    for (sx=[-1,1])
+        coupler_reference_pocket_strip_2d(
+            axis="x", direction_sign=sx, lane_signs=[-1,1],
+            steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
+            lane_offset=x_arm_lane
+        );
+
+    for (sz=[-1,1])
+        coupler_reference_pocket_strip_2d(
+            axis="z", direction_sign=sz, lane_signs=[-1,1],
+            steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
+            lane_offset=z_arm_lane
+        );
 }
 
 module corner_fitted_guides_2d(
@@ -480,7 +514,7 @@ module corner_edge_panel_coupler(
     show_perforation_holes_value=show_perforation_holes,
     perforation_hole_diameter_value=perforation_hole_diameter,
     perforation_depth_value=perforation_depth,
-    reference_pocket_steps_value=coupler_reference_pocket_steps_default(),
+    reference_pocket_steps_value=project_coupler_reference_steps(),
     reference_pocket_pitch_value=coupler_reference_pocket_pitch_default(),
     reference_pocket_lane_offset_value=coupler_reference_pocket_lane_offset_default(),
     show_center_marks_value=show_center_marks,
@@ -595,6 +629,8 @@ module corner_edge_panel_coupler(
                                             perforation_spacing,
                                             horizontal_height,
                                             vertical_width,
+                                            corner_end_rail_center_z(direction) - corner_reference_z,
+                                            corner_side_rail_center_x(side) - corner_reference_x,
                                             reference_pocket_steps_value,
                                             reference_pocket_pitch_value,
                                             reference_pocket_lane_offset_value

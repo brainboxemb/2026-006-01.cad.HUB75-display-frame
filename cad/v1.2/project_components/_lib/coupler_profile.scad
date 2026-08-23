@@ -83,6 +83,22 @@ function coupler_reference_lane_offset_for_arm(
     fraction=coupler_reference_pocket_lane_fraction_default()
 ) = max(grid, round((arm_thickness*fraction)/grid)*grid);
 
+// Geometric fit test for two decorative pocket lanes.  Unlike the legacy
+// 30 mm threshold, this checks the actual lane position, pocket radius and
+// a minimum material margin at the arm edge.  Components can use this when
+// symmetry between related arms matters.
+function coupler_reference_two_lane_edge_margin_default() = 4.0;
+function coupler_reference_two_lanes_fit(
+    arm_thickness,
+    hole_d=coupler_reference_pocket_diameter_default(),
+    edge_margin=coupler_reference_two_lane_edge_margin_default(),
+    grid=coupler_reference_pocket_lane_grid_default(),
+    fraction=coupler_reference_pocket_lane_fraction_default()
+) = let(
+    lane_offset=coupler_reference_lane_offset_for_arm(arm_thickness, grid, fraction),
+    remaining=arm_thickness/2 - lane_offset - hole_d/2
+) remaining >= edge_margin;
+
 module coupler_plus_profile_2d(
     width = coupler_profile_size_default(),
     height = coupler_profile_size_default(),
