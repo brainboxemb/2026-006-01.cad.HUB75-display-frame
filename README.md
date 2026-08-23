@@ -4,10 +4,10 @@
 
 This repository contains the OpenSCAD development of a frame for five HUB75 LED matrix panels.
 
-The design uses a modular OpenSCAD structure with separate components and assemblies. Individual parts can be opened, rendered and tuned independently, while the complete construction can be viewed from `main.scad`.
+The design uses a modular OpenSCAD structure with reusable physical components, project-specific derived components and assemblies. Individual parts can be opened, rendered and tuned independently, while the complete construction can be viewed from `main.scad`.
 
 > **Project status:** Concept development  
-> V1.0 explored a frame based on 20 × 20 mm aluminium extrusion and is mainly retained as a reference concept. V1.1 explored a modular 3D-printed frame combined with two continuous aluminium tubes. Active development has moved to V1.2, which deliberately reduces the printed structure to simple direct panel-to-panel couplers so the mechanical strength can be tested before adding more complexity.
+> V1.0 explored a frame based on 20 × 20 mm aluminium extrusion and is mainly retained as a reference concept. V1.1 explored a modular 3D-printed frame combined with two continuous aluminium tubes. Active development has moved to V1.2, which deliberately reduces the printed structure to direct panel-to-panel couplers so the mechanical strength can be tested before adding more complexity.
 
 ## V1.0
 
@@ -49,8 +49,6 @@ Reference renders generated from the V1.0 OpenSCAD model are stored in:
 ```text
 out/v1.0/png/
 ```
-
-The straight views provide a technical reference, while the angled and exploded views make the frame depth and the relationship between the aluminium frame, panels and rear mounting hardware easier to inspect.
 
 #### Front view
 
@@ -107,10 +105,6 @@ cad/v1.0/
 
 Open `cad/v1.0/main.scad` to view and configure the complete model.
 
-Files in `components/` can be opened directly in OpenSCAD to render and tune individual parts without loading the complete assembly.
-
-Files in `assemblies/` combine these components into functional parts of the complete construction and can also be viewed independently.
-
 ## V1.1
 
 ### Inspiration
@@ -159,8 +153,6 @@ Reference renders generated from the current V1.1 OpenSCAD model are stored in:
 ```text
 out/v1.1/png/
 ```
-
-The straight views are useful as technical references, while the angled views make the depth, module connections and tube clamps easier to inspect.
 
 #### Front view
 
@@ -217,80 +209,101 @@ cad/v1.1/
 
 Open `cad/v1.1/main.scad` to view the complete concept.
 
-The model also provides separate views for individual components and subassemblies, together with exploded views to inspect how the panels, printed frame modules, joiners and aluminium tubes fit together.
-
 ## V1.2
 
 ### Concept
 
 V1.2 is a deliberately simpler continuation of V1.1.
 
-Instead of building a complete 160 × 160 mm printed frame grid first, V1.2 connects the HUB75 panels directly at their existing mounting points. The goal is to manufacture and test a compact structure and determine how much stiffness can be obtained from the direct panel couplers and the two continuous aluminium tubes before adding more printed structure.
+Instead of building a complete 160 × 160 mm printed frame grid first, V1.2 connects the HUB75 panels directly at their existing screw positions. The purpose of this version is to manufacture and test the simplest useful structure and determine how much stiffness the direct panel connections and aluminium tubes already provide.
 
 The current V1.2 concept includes:
 
 - five HUB75 panels in the same nominal 800 × 320 mm arrangement;
 - no 160 × 160 mm printed frame modules;
-- two continuous Ø10 × 1 mm aluminium stiffening tubes, each 800 mm long;
-- four **middle panel couplers** at the vertical seams;
-- four upper and four lower **horizontal edge panel couplers** at the vertical seams;
-- separate left and right **corner edge panel couplers**, used at the four outer display corners;
-- a shared coupler profile library so the middle, horizontal-edge and corner parts use the same basic design rules;
-- a nominal **100 mm coupler profile envelope** where applicable;
-- a shared **5 mm wall-thickness rule** around the real HUB75 rear-frame geometry, with additional fit clearance;
-- rib-following raised guides derived from the modelled HUB75 rear housing instead of independent decorative geometry;
-- small Ø3 mm blind pockets, inspired by similar details visible in the STEP/reference brackets;
-- two 16 mm-wide snap clips on each horizontal edge panel coupler;
-- one 16 mm-wide snap clip on each corner edge panel coupler;
-- local clearances for the rear mounting bosses and reinforcement features of the HUB75 panels;
-- diagnostic section views for checking the fit between the printed parts and the panel ribs.
+- no puzzle or dovetail interlocks;
+- four `middle_panel_coupler` parts at the internal panel seams;
+- upper and lower `horizontal_edge_panel_coupler` parts at each internal seam;
+- separate mirrored `corner_edge_panel_coupler` variants at the four outside corners;
+- two continuous Ø10 × 1 mm aluminium tubes;
+- dedicated fit-section views for checking the coupler-to-panel interfaces.
 
-With five panels there are four vertical seams. The current structure therefore uses four middle panel couplers, eight horizontal edge panel couplers and four corner edge panel couplers.
-
-V1.2 remains an active mechanical concept. The current coupler shapes are intended to be printable and testable, but the exact wall transitions, clip geometry, local clearances and material usage are still being tuned before the first complete physical build.
-
-The OpenSCAD model is stored in:
-
-```text
-cad/v1.2/
-```
+The printed couplers follow the actual rear-panel rib geometry and use the existing screw locations, locator features and reinforcement-bushing geometry as alignment references.
 
 ### Panel dimensional basis
 
-For V1.2, the panel's basic mechanical dimensions and mounting-hole pattern are
-taken from the supplied **2277 P5 320 × 160 mm 64 × 32 pixel** drawing.
+For V1.2, the panel's mechanical dimensions and mounting pattern are modelled in `components/hub75_panel.scad`. This component is deliberately project-independent and is the authoritative source for the physical panel geometry.
 
-In the portrait coordinate system used by the OpenSCAD project, the base values
-are:
+Current principal dimensions are:
 
 ```text
-Panel width      159.70 mm
-Panel height     319.71 mm
-Panel depth       13.00 mm
-
-Hole X             7.85 / 151.85 mm
-Hole Z             7.855 / 159.855 / 311.855 mm
-Hole diameter      3.00 mm
+Panel width       159.70 mm
+Panel height      319.71 mm
+Panel depth        14.50 mm
 ```
 
-The datasheet dimensions remain the mechanical authority for the panel
-envelope and mounting-hole pattern. The current OpenSCAD model also contains a
-more detailed approximation of the rear housing, including the side rails,
-top/bottom rails, middle crossbars, mounting bosses and connector features.
+The panel component also owns the rear rib geometry, mounting-hole pattern, IDC connector geometry, locator pins and reinforcement-bushing dimensions.
 
-Those rear-housing details are used by the V1.2 couplers to derive their fit
-geometry. STEP-derived dimensions are treated as reference geometry only where
-the supplied 2D drawing does not provide the required detail, and should still
-be checked against a physical panel before the design is considered final.
+### Aluminium tube layout
+
+V1.2 now defines the aluminium-tube placement as an explicit **project-level relationship**, rather than deriving it indirectly from the clip geometry.
+
+The current reference envelope is:
+
+```text
+Overall project envelope       840 × 360 mm
+Tube centre-to-centre spacing  340 mm
+Tube outer diameter             10 mm
+Tube centre from panel rear      7 mm
+```
+
+The 840 × 360 mm envelope is centred around the nominal five-panel display. The two tube centres are positioned symmetrically at ±170 mm from the vertical display centre, giving a 340 mm centre-to-centre distance.
+
+The Y position is defined from the **rear mounting plane of the HUB75 panel toward the front face**. With a 14.5 mm thick panel and a Ø10 mm tube, a 7 mm centre offset leaves approximately:
+
+- 2.0 mm between the rear panel plane and the rear side of the tube;
+- 2.5 mm between the front side of the tube and the front panel face.
+
+This relationship is stored in `config/project_config.scad` as:
+
+```scad
+display_envelope_width = 840.0;
+display_envelope_height = 360.0;
+tube_center_spacing = 340.0;
+tube_center_from_panel_rear = 7.0;
+```
+
+The physical tube dimensions remain in `components/aluminium_tube.scad`.
+
+### Configuration architecture
+
+V1.2 deliberately separates **reusable physical components** from **project-derived printable parts**.
+
+`components/` contains parts whose physical definition is independent of this specific five-panel assembly. Examples include:
+
+- `hub75_panel.scad` — authoritative HUB75 panel geometry;
+- `aluminium_tube.scad` — physical tube diameter and wall thickness;
+- `tube_clip.scad` — reusable snap-clip geometry;
+- `_lib/reference_grid.scad` — generic inspection helper.
+
+`project_components/` contains printable parts whose geometry is deliberately derived from both reusable component dimensions and `project_config.scad`. The V1.2 couplers belong here because their clip positions, display-edge relationships and assembly clearances are specific to this project configuration.
+
+This means it is expected and intentional that a file in `project_components/` can depend on project settings. A generic component under `components/` should not.
+
+### Panel chain order
+
+Panel order is defined **from the rear of the display**. By default, **panel 1 is the rear-left panel and its HUB75 input is at the top**. Every following panel is rotated 180 degrees so the data path snakes across the rear of the display.
+
+The start side and the first input position are explicit project parameters:
+
+```text
+rear_chain_start_side = "left"
+first_panel_input_side = "top"
+```
 
 ### Bracket inspiration
 
-The following Printables projects are useful references for further refinement
-of the printed panel couplers and brackets. In particular, they show how the
-printed parts can follow the actual HUB75 panel housing more closely.
-
-A more accurate model of the physical panel is needed before these details can
-be adapted reliably to V1.2.
+The following Printables projects are useful references for refining the printed panel couplers and brackets.
 
 #### Brackets for joining HUB75 LED panels
 
@@ -298,18 +311,11 @@ be adapted reliably to V1.2.
 
 *Source: [Printables — Brackets for joining HUB75 LED panels](https://www.printables.com/model/1294572-brackets-for-joining-hub75-led-panels).*
 
-This project is a useful reference for compact printed brackets that join
-adjacent HUB75 panels.
-
 #### HUB75 5mm Pitch 4 Panel Bracket
 
 [![HUB75 5mm Pitch 4 Panel Bracket](_images/printables_hub75-5mm-pitch-4-panel-bracket_w320.webp)](https://www.printables.com/model/578204-hub75-5mm-pitch-4-panel-bracket)
 
 *Source: [Printables — HUB75 5mm Pitch 4 Panel Bracket](https://www.printables.com/model/578204-hub75-5mm-pitch-4-panel-bracket).*
-
-This project is a useful reference for a more developed bracket geometry that
-follows the panel housing and mounting points.
-
 
 ### Renders
 
@@ -320,9 +326,6 @@ out/v1.2/png/
 ```
 
 #### Panel reference
-
-The individual panel is also rendered in a light-grey inspection colour to
-make the rear housing geometry easier to distinguish.
 
 ![HUB75 panel V1.2 - rear reference](out/v1.2/png/hub75-display-frame-panel.png)
 
@@ -348,20 +351,19 @@ make the rear housing geometry easier to distinguish.
 
 #### Rear wiring / panel order
 
-This view shows the HUB75 panel chain as seen from the rear. Panel 1 is the
-first module in the chain, with its input positioned at the top. The alternating
-panel orientation makes the intended IN/OUT routing across the five panels
-easier to verify.
+This view shows the HUB75 panel chain as seen from the rear. Panel 1 is the first module in the chain, with its input positioned at the top. The alternating panel orientation makes the intended IN/OUT routing across the five panels easier to verify.
 
 ![HUB75 display frame V1.2 - rear wiring and panel order](out/v1.2/png/hub75-display-frame-rear-wiring.png)
 
 #### Rear fit section
 
-This diagnostic render shows a section through the complete rear assembly,
-5 mm into the panel structure. It is intended to make the fit between the
-printed couplers and the HUB75 rear ribs visible across all panel seams at once.
+This diagnostic render shows a section through the complete rear assembly, 5 mm into the panel structure. It is intended to make the fit between the printed couplers and the HUB75 rear ribs visible across all panel seams at once.
 
 ![HUB75 display frame V1.2 - rear fit section](out/v1.2/png/hub75-display-frame-rear-fit-section.png)
+
+#### Middle panel coupler fit section
+
+![HUB75 display frame V1.2 - middle panel coupler fit section](out/v1.2/png/hub75-display-frame-middle-panel-fit-section.png)
 
 #### Exploded rear view
 
@@ -373,9 +375,6 @@ printed couplers and the HUB75 rear ribs visible across all panel seams at once.
 
 ### CAD structure
 
-V1.2 keeps the modular OpenSCAD project structure, but the printed structure is
-now organised around a small family of direct panel couplers.
-
 ```text
 cad/v1.2/
 ├── main.scad
@@ -383,11 +382,14 @@ cad/v1.2/
 │   └── project_config.scad
 ├── components/
 │   ├── hub75_panel.scad
+│   ├── aluminium_tube.scad
+│   ├── tube_clip.scad
+│   └── _lib/
+│       └── reference_grid.scad
+├── project_components/
 │   ├── middle_panel_coupler.scad
 │   ├── horizontal_edge_panel_coupler.scad
 │   ├── corner_edge_panel_coupler.scad
-│   ├── tube_clip.scad
-│   ├── aluminium_tube.scad
 │   └── _lib/
 │       └── coupler_profile.scad
 ├── assemblies/
@@ -404,7 +406,6 @@ cad/v1.2/
 │   ├── corner_edge_panel_coupler_left.scad
 │   └── corner_edge_panel_coupler_right.scad
 └── renders/
-    ├── .render.conf
     ├── front.scad
     ├── front_angled.scad
     ├── panel.scad
@@ -418,53 +419,27 @@ cad/v1.2/
     └── exploded_rear_angled.scad
 ```
 
-Open `cad/v1.2/main.scad` to view the complete concept. The `view_mode`
-Customizer option can also be used to inspect the middle panel coupler,
-horizontal edge panel coupler, left/right corner edge panel couplers and the
-diagnostic fit sections separately.
+Open `cad/v1.2/main.scad` to view the complete concept.
 
-The files in `exports/` are fixed STL entry points. Top and bottom horizontal
-edge couplers use the same printable component and are oriented by the
-assembly. The corner couplers have separate left and right export entry points
-because their local fit geometry is asymmetric.
+## Automatic renders and exports
 
-## Automatic renders and STL exports
+The official PNG views and printable STL exports are generated through the shared reusable workflow in the `brainboxemb/brainboxemb.github.actions` repository.
 
-The official PNG views and STL exports are generated through the shared
-reusable OpenSCAD workflow in the `brainboxemb/brainboxemb.github.actions`
-repository.
-
-The HUB75 repository only keeps the small caller workflow:
+The HUB75 repository keeps the small caller workflow:
 
 ```text
 .github/workflows/render-openscad.yml
 ```
 
-Each CAD version keeps fixed camera definitions in `renders/*.scad`. The shared
-renderer processes these entry points and updates the corresponding PNG output
-directories:
+Each CAD version keeps its fixed camera definitions in `renders/*.scad`. V1.2 also keeps canonical printable entry points in `exports/*.scad`, including the complete assembled display and the individual coupler variants.
+
+Generated render output is stored under:
 
 ```text
 out/v1.0/png/
 out/v1.1/png/
 out/v1.2/png/
 ```
-
-V1.2 also provides explicit printable/exportable entry points in:
-
-```text
-cad/v1.2/exports/
-```
-
-These include the individual coupler variants and a `display.scad` entry point
-for exporting the complete assembled display. Keeping STL entry points separate
-from the render views allows the shared workflow to build printable components
-without coupling export behaviour to the documentation cameras.
-
-Render resolution is controlled by the per-version `renders/.render.conf`.
-The two panel-reference views use the smaller portrait-oriented output, while
-the normal assembly, exploded and diagnostic views use the larger default
-render size.
 
 ## Repository structure
 
@@ -473,7 +448,7 @@ render size.
 ├── README.md
 ├── _images/
 │   ├── instructables_simple-extruded-aluminum-frame_w320.webp
-│   ├── youtube_97l0Tzk7k6Y_modular-mft_w320.webp
+│   ├── youtube_97l0Tzk7k6Y_modular-mft_w320.jpg
 │   ├── printables_brackets-for-joining-hub75-led-panels_w320.webp
 │   └── printables_hub75-5mm-pitch-4-panel-bracket_w320.webp
 ├── .github/
@@ -481,19 +456,10 @@ render size.
 │       └── render-openscad.yml
 ├── cad/
 │   ├── v1.0/
-│   │   └── ...
 │   ├── v1.1/
-│   │   └── ...
 │   └── v1.2/
-│       └── ...
 └── out/
     ├── v1.0/
-    │   └── png/
-    │       └── ...
     ├── v1.1/
-    │   └── png/
-    │       └── ...
     └── v1.2/
-        └── png/
-            └── ...
 ```

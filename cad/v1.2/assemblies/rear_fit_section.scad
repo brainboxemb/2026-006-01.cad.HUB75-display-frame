@@ -5,6 +5,7 @@
 // between the real HUB75 rear ribs and every printed coupler simultaneously.
 
 include <../config/project_config.scad>
+use <../components/hub75_panel.scad>
 use <panels_assembly.scad>
 use <couplers_assembly.scad>
 
@@ -13,17 +14,17 @@ rear_fit_section_depth = 5.0;
 rear_fit_section_margin = 18.0;
 
 module rear_section_keep_volume(depth=rear_fit_section_depth, margin=rear_fit_section_margin) {
-    section_y = coupler_y - depth;
+    section_y = coupler_mounting_y() - depth;
 
     translate([
-        -margin,
-        -1.0,
-        -margin
+        -display_envelope_width/2 - margin,
+        panel_front_y() - 1.0,
+        -display_envelope_height/2 - margin
     ])
         cube([
-            display_nominal_width + 2*margin,
-            section_y + 1.0,
-            display_nominal_height + 2*margin
+            display_envelope_width + 2*margin,
+            section_y - (panel_front_y() - 1.0),
+            display_envelope_height + 2*margin
         ]);
 }
 
@@ -55,6 +56,6 @@ module rear_fit_section(
 
 rear_fit_section();
 
-$vpt = [display_nominal_width/2, coupler_y-rear_fit_section_depth, display_nominal_height/2];
+$vpt = [0, coupler_mounting_y()-rear_fit_section_depth, 0];
 $vpr = [90, 0, 180];
 $vpd = 1200;

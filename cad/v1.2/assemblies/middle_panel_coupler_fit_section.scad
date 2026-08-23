@@ -5,6 +5,7 @@
 // leaving a true exposed 3D section through the rib/coupler interface.
 
 include <../config/project_config.scad>
+use <../components/hub75_panel.scad>
 use <panels_assembly.scad>
 use <couplers_assembly.scad>
 
@@ -16,8 +17,8 @@ fit_section_crop_height = 115.0;
 module left_fit_panel() {
     translate([
         panel_center_x(0) - seam_x(0),
-        panel_front_y,
-        panel_center_z() - panel_hole_z[1]
+        panel_front_y(),
+        -panel_hole_z_middle()
     ])
         project_hub75_panel(
             orientation_visible=false,
@@ -28,8 +29,8 @@ module left_fit_panel() {
 module right_fit_panel() {
     translate([
         panel_center_x(1) - seam_x(0),
-        panel_front_y,
-        panel_center_z() - panel_hole_z[1]
+        panel_front_y(),
+        -panel_hole_z_middle()
     ])
         rotate([0,180,0])
             project_hub75_panel(
@@ -39,18 +40,18 @@ module right_fit_panel() {
 }
 
 module section_keep_volume(depth, crop_width, crop_height) {
-    section_y = coupler_y - depth;
+    section_y = coupler_mounting_y() - depth;
 
     // Keep the front side up to the section plane and crop around the local
     // middle-coupler area. The cut face itself lies at Y=section_y.
     translate([
         -crop_width/2,
-        -1.0,
+        panel_front_y() - 1.0,
         -crop_height/2
     ])
         cube([
             crop_width,
-            section_y + 1.0,
+            section_y - (panel_front_y() - 1.0),
             crop_height
         ]);
 }
@@ -71,7 +72,7 @@ module middle_panel_coupler_fit_section(
 
     color(color_middle_panel_coupler)
         intersection() {
-            translate([0, coupler_y, 0])
+            translate([0, coupler_mounting_y(), 0])
                 project_middle_panel_coupler();
             section_keep_volume(depth, crop_width, crop_height);
         }
@@ -79,6 +80,6 @@ module middle_panel_coupler_fit_section(
 
 middle_panel_coupler_fit_section();
 
-$vpt = [0, coupler_y-fit_section_depth, 0];
+$vpt = [0, coupler_mounting_y()-fit_section_depth, 0];
 $vpr = [72, 0, 180];
 $vpd = 190;

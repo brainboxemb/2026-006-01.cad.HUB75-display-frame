@@ -1,4 +1,4 @@
-// HUB75 Display Frame - V1.2 / coupler refinement V71
+// HUB75 Display Frame - V1.2 / project coordinates and envelope V82
 //
 // Simplified proof-of-concept based directly on V1.1:
 // - V1.1 HUB75 panel reference retained unchanged;
@@ -14,12 +14,14 @@ use <assemblies/display_assembly.scad>
 use <assemblies/panels_assembly.scad>
 use <assemblies/couplers_assembly.scad>
 use <assemblies/tubes_assembly.scad>
-use <components/middle_panel_coupler.scad>
-use <components/horizontal_edge_panel_coupler.scad>
-use <components/corner_edge_panel_coupler.scad>
+use <project_components/middle_panel_coupler.scad>
+use <project_components/horizontal_edge_panel_coupler.scad>
+use <project_components/corner_edge_panel_coupler.scad>
 use <assemblies/middle_panel_coupler_fit_section.scad>
 use <assemblies/rear_fit_section.scad>
 use <components/_lib/reference_grid.scad>
+use <components/_lib/reference_box.scad>
+use <components/hub75_panel.scad>
 
 /* [View] */
 view_mode = "assembly"; // [assembly, exploded, panels, single_panel, couplers, tubes, middle_panel_coupler, horizontal_edge_panel_coupler, middle_panel_fit_section, rear_fit_section, corner_edge_panel_coupler_left, corner_edge_panel_coupler_right]
@@ -31,8 +33,11 @@ show_stiffening_tubes = true;
 show_orientation = false;
 show_panel_numbers = false;
 show_in_out_labels = false;
+show_project_envelope = false;
 
-/* [Reference grid (if supported)] */
+/* [Panel settings] */
+// Reference grid is currently supported by the single_panel inspection view.
+// The geometry itself remains generic so other inspection views can reuse it later.
 show_reference_grid = true;
 reference_grid_spacing = 10; // [5:5:20]
 reference_grid_half_step = true;
@@ -81,9 +86,9 @@ if(view_mode == "single_panel") {
 
     if(show_reference_grid)
         reference_grid_xz(
-            width=panel_width,
-            height=panel_height,
-            y=panel_mounting_plane_y + 3.6,
+            width=hub75_panel_width(),
+            height=hub75_panel_height(),
+            y=hub75_panel_mounting_plane_y() + 3.6,
             major=reference_grid_spacing,
             show_half=reference_grid_half_step
         );
@@ -116,10 +121,25 @@ if(view_mode == "rear_fit_section")
 // Top and bottom are the same printable component.  The assembly mirrors/
 // orients it as required, so one canonical component view is sufficient.
 if(view_mode == "horizontal_edge_panel_coupler")
-    project_horizontal_edge_panel_coupler(direction="top", screw_row_z=panel_hole_z[2]);
+    project_horizontal_edge_panel_coupler(direction="top", screw_row_z=panel_hole_z_top());
 
 if(view_mode == "corner_edge_panel_coupler_left")
-    project_corner_edge_panel_coupler(side="left", direction="top", screw_row_z=panel_hole_z[2]);
+    project_corner_edge_panel_coupler(side="left", direction="top", screw_row_z=panel_hole_z_top());
 
 if(view_mode == "corner_edge_panel_coupler_right")
-    project_corner_edge_panel_coupler(side="right", direction="top", screw_row_z=panel_hole_z[2]);
+    project_corner_edge_panel_coupler(side="right", direction="top", screw_row_z=panel_hole_z_top());
+
+
+// Optional project-level dimensional check. The 840 x 360 rectangle is
+// centred on X=0 / Z=0. Four Y-direction corner lines make the current design
+// depth explicit from the panel front face to the Y=0 rear mounting plane.
+if(show_project_envelope)
+    reference_box_wireframe(
+        x_min=display_envelope_x_min(),
+        x_max=display_envelope_x_max(),
+        y_min=display_envelope_y_min(),
+        y_max=display_envelope_y_max(),
+        z_min=display_envelope_z_min(),
+        z_max=display_envelope_z_max(),
+        line_thickness=0.6
+    );

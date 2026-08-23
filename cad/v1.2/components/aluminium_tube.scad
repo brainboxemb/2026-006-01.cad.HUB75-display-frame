@@ -15,6 +15,11 @@ preview_color = [0.72, 0.74, 0.76, 1];
 $fn = 64;
 
 
+function aluminium_tube_default_length() = tube_length;
+function aluminium_tube_outer_diameter() = tube_outer_diameter;
+function aluminium_tube_wall_thickness() = tube_wall_thickness;
+function aluminium_tube_inner_diameter() = tube_outer_diameter - 2*tube_wall_thickness;
+
 module aluminium_stiffening_tube(
     length = tube_length,
     outer_diameter = tube_outer_diameter,

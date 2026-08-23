@@ -1,8 +1,8 @@
 // HUB75 display frame - V1.2 panel array
 //
-// Panel orientation and numbering are explicitly defined from the REAR.
-// By default panel 1 is rear-left with its HUB75 input at the top. The chain
-// then snakes across the display, rotating every second panel by 180 degrees.
+// Physical panel geometry comes exclusively from hub75_panel.scad.
+// This assembly only decides how many panels exist, where they are placed and
+// how the rear data chain is ordered.
 
 include <../config/project_config.scad>
 use <../components/hub75_panel.scad>
@@ -12,40 +12,10 @@ module project_hub75_panel(
     show_connectors=true
 ) {
     hub75_panel(
-        width=panel_width,
-        height=panel_height,
-
-        reference_width_value=panel_reference_nominal_width,
-        reference_height_value=panel_reference_nominal_height,
-
-        front_mask_depth_value=panel_front_mask_depth,
-        pcb_thickness_value=panel_pcb_thickness,
-        mounting_plane_y_value=panel_mounting_plane_y,
-        max_depth_value=panel_max_depth,
-
-        hole_x_left_value=panel_hole_x[0],
-        hole_x_right_value=panel_hole_x[1],
-        hole_z_bottom_value=panel_hole_z[0],
-        hole_z_middle_value=panel_hole_z[1],
-        hole_z_top_value=panel_hole_z[2],
-        hole_diameter_value=panel_hole_diameter,
-
-        // Pass the project connector values explicitly. hub75_panel() accepts
-        // these in STEP/reference coordinates and scales them to the physical
-        // panel dimensions internally.
-        data_connector_x_ref=data_connector_x * panel_reference_nominal_width / panel_width,
-        data_connector_z_bottom_ref=data_connector_z_bottom * panel_reference_nominal_height / panel_height,
-        data_connector_z_top_ref=data_connector_z_top * panel_reference_nominal_height / panel_height,
-        data_connector_width_ref=data_connector_width * panel_reference_nominal_width / panel_width,
-        data_connector_height_ref=data_connector_height * panel_reference_nominal_height / panel_height,
-        data_connector_depth_value=data_connector_depth,
-        data_connector_front_y_value=data_connector_front_y,
-
         show_orientation=orientation_visible,
         show_connectors=show_connectors,
         show_rear_recess=true,
         show_pdf_verification_grid=false,
-
         body_color=color_panel,
         web_color=[0.62, 0.62, 0.62, 1],
         front_color=[0.52, 0.52, 0.52, 1],
@@ -56,7 +26,7 @@ module project_hub75_panel(
 
 module rear_text_label(label, x, z, size=10, label_color=[0.05,0.05,0.05,1]) {
     color(label_color)
-        translate([x, panel_mounting_plane_y + 0.35, z])
+        translate([x, project_panel_rear_y + 0.35, z])
             rotate([90,0,180])
                 linear_extrude(height=0.35)
                     text(label, size=size, halign="center", valign="center");
@@ -74,14 +44,14 @@ module panel_chain_annotations(global_index, show_number=true, show_io=true) {
         rear_text_label(
             chain_no == 1 ? "1  IN" : "IN",
             cx,
-            input_top ? data_connector_z_top : data_connector_z_bottom,
+            input_top ? hub75_panel_data_connector_z_top() : hub75_panel_data_connector_z_bottom(),
             8,
             [0.0,0.35,0.0,1]
         );
         rear_text_label(
             "OUT",
             cx,
-            input_top ? data_connector_z_bottom : data_connector_z_top,
+            input_top ? hub75_panel_data_connector_z_bottom() : hub75_panel_data_connector_z_top(),
             8,
             [0.35,0.0,0.0,1]
         );
@@ -98,7 +68,7 @@ module panels_assembly(
     for(i=[0:panel_count-1]) {
         translate([
             panel_center_x(i),
-            panel_front_y + yshift,
+            panel_front_y() + yshift,
             panel_center_z()
         ])
             if(panel_rotated(i))

@@ -4,7 +4,7 @@
 include <../config/project_config.scad>
 use <../assemblies/display_assembly.scad>
 
-$vpt = [display_nominal_width/2, 0, display_nominal_height/2];
+$vpt = [0, 0, 0];
 $vpr = [85, 0, 40];
 $vpd = 1050;
 

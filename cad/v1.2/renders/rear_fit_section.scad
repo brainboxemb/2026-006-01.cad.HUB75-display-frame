@@ -9,6 +9,6 @@ rear_fit_section(
     show_io_labels=false
 );
 
-$vpt = [400, 9.5, 160];
+$vpt = [0, -5, 0];
 $vpr = [90, 0, 180];
 $vpd = 1200;

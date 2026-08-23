@@ -6,40 +6,40 @@
 // The body follows the real HUB75 side/end rails and uses short local tube
 // clips so each snap requires less force.
 
-use <tube_clip.scad>
-use <hub75_panel.scad>
+use <../components/tube_clip.scad>
+use <../components/hub75_panel.scad>
 use <_lib/coupler_profile.scad>
 
 /* [Profile] */
-profile_size = 100.0;
-wall_thickness = 5.0;
-fit_clearance = 0.50;
+profile_size = coupler_profile_size_default();
+wall_thickness = coupler_wall_thickness_default();
+fit_clearance = coupler_fit_clearance_default();
 profile_side_material = wall_thickness + fit_clearance;
 horizontal_arm_height = hub75_rear_end_rail_width() + 2*profile_side_material;
 vertical_arm_width = hub75_rear_side_rail_width() + 2*profile_side_material;
-inside_corner_radius = 10.0;
-outside_corner_radius = 6.0;
-base_thickness = 4.0;
+inside_corner_radius = coupler_profile_inside_radius_default();
+outside_corner_radius = coupler_profile_outside_radius_default();
+base_thickness = coupler_base_thickness_default();
 max_outside_projection = 19.5;
 
 /* [Mounting] */
-hole_diameter = 3.4;
+hole_diameter = coupler_screw_hole_diameter_default();
 screw_relief_depth = coupler_screw_relief_depth_default();
 screw_relief_radial = coupler_screw_relief_radial_default();
-screw_to_side_edge = 7.85;
-screw_to_horizontal_edge = 7.855;
+screw_to_side_edge = hub75_panel_hole_x_left();
+screw_to_horizontal_edge = hub75_panel_hole_z_bottom();
 
 /* [Panel fit] */
-rib_clearance = 0.50;
-guide_height = 10.0;
-guide_end_rounding = 1.5;
-bushing_clearance = 0.45;
-locator_pin_clearance = 0.40;
+rib_clearance = coupler_fit_clearance_default();
+guide_height = coupler_guide_height_default();
+guide_end_rounding = coupler_guide_end_rounding_default();
+bushing_clearance = coupler_bushing_clearance_default();
+locator_pin_clearance = coupler_locator_pin_clearance_default();
 
 /* [Decorative pockets] */
 show_perforation_holes = true;
-perforation_hole_diameter = 3.0;
-perforation_depth = 2.5;
+perforation_hole_diameter = coupler_reference_pocket_diameter_default();
+perforation_depth = coupler_reference_pocket_depth_default();
 
 /* [Centre reference marks] */
 show_center_marks = true;
@@ -54,9 +54,9 @@ perforation_spacing = 10.0;
 /* [Tube clips] */
 clip_inboard_positions = [20.0];
 clip_length = 16.0;
-clip_wall = 2.6;
-clip_inner_diameter = 10.4;
-clip_opening = 8.2;
+clip_wall = tube_clip_wall();
+clip_inner_diameter = tube_clip_inner_diameter();
+clip_opening = tube_clip_opening();
 clip_root_height = 6.0;
 clip_root_depth = 7.0;
 
@@ -560,6 +560,16 @@ module corner_edge_panel_coupler(
                                 );
                         }
 
+            // Positive locator for the single reinforcement bushing at this
+            // panel corner. The surrounding guide already has the Ø14 wall
+            // relief; the pad and pin use the panel recess/hole dimensions.
+            translate([0, 0, iz*hub75_reinforcement_bushing_offset()])
+                coupler_reinforcement_locator_y(
+                    recess_diameter=hub75_reinforcement_bushing_recess_diameter(),
+                    recess_depth=hub75_reinforcement_bushing_recess_depth(),
+                    hole_diameter=hub75_reinforcement_bushing_hole_diameter()
+                );
+
             if(outer_ridge_height_value > 0)
                 difference() {
                     tapered_corner_outer_ridge_3d(
@@ -612,17 +622,18 @@ module corner_edge_panel_coupler(
             if(corner_has_locator_pin(side,direction))
                 translate([
                     corner_locator_pin_x(side),
-                    thickness + 2,
+                    0,
                     corner_locator_pin_z(direction)
                 ])
-                    rotate([90,0,0])
-                        cylinder(
-                            d=hub75_locator_pin_diameter()
-                              + 2*locator_pin_clearance_value,
-                            h=thickness + guide_height_value
-                              + outer_ridge_height_value + 4,
-                            $fn=48
-                        );
+                    coupler_through_hole_y_with_relief(
+                        hole_diameter=hub75_locator_pin_diameter()
+                          + 2*locator_pin_clearance_value,
+                        y_max=thickness,
+                        y_min=-(guide_height_value + outer_ridge_height_value + 2),
+                        relief_depth=screw_relief_depth_value,
+                        relief_radial=screw_relief_radial_value,
+                        fn=48
+                    );
         }
 
     // Clip geometry intentionally sits outside the clipped corner-body

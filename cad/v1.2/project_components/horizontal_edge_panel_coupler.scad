@@ -10,42 +10,42 @@
 // Raised guide material sits beside the real HUB75 rear ribs,
 // leaving a fitted T-shaped channel for the panel housing.
 
-use <tube_clip.scad>
-use <hub75_panel.scad>
+use <../components/tube_clip.scad>
+use <../components/hub75_panel.scad>
 use <_lib/coupler_profile.scad>
 
 /* [T body] */
-overall_width = 100.0;
-inboard_reach = 50.0;
+overall_width = coupler_profile_size_default();
+inboard_reach = coupler_profile_size_default()/2;
 max_outside_projection = 19.5;
-overall_height = 100.0;
+overall_height = coupler_profile_size_default();
 // Standalone defaults follow the exact same rule as the project assembly:
 // real HUB75 rib width + equal printed material on both sides.
-wall_thickness = 5.0;
-rib_clearance = 0.50;
+wall_thickness = coupler_wall_thickness_default();
+rib_clearance = coupler_fit_clearance_default();
 profile_side_material = wall_thickness + rib_clearance;
 horizontal_arm_height = hub75_rear_end_rail_width() + 2*profile_side_material;
-vertical_arm_width = 2*12.5 + 2*profile_side_material;
-inside_corner_radius = 10.0;
-outer_corner_radius = 6.0;
-base_thickness = 4.0;
+vertical_arm_width = 2*hub75_rear_side_rail_width() + 2*profile_side_material;
+inside_corner_radius = coupler_profile_inside_radius_default();
+outer_corner_radius = coupler_profile_outside_radius_default();
+base_thickness = coupler_base_thickness_default();
 
 /* [Mounting holes] */
-left_hole_x = -8.15;
-right_hole_x = 7.85;
-hole_diameter = 3.4;
+left_hole_x = hub75_panel_hole_x_right() - hub75_panel_nominal_width();
+right_hole_x = hub75_panel_hole_x_left();
+hole_diameter = coupler_screw_hole_diameter_default();
 screw_relief_depth = coupler_screw_relief_depth_default();
 screw_relief_radial = coupler_screw_relief_radial_default();
-screw_row_to_panel_edge = 7.855;
+screw_row_to_panel_edge = hub75_panel_hole_z_bottom();
 
 
 /* [Panel fit] */
-guide_height = 10.0;
-guide_end_rounding = 1.5;
+guide_height = coupler_guide_height_default();
+guide_end_rounding = coupler_guide_end_rounding_default();
 
 /* [Seam wedge] */
-seam_wedge_width = 3.0;
-seam_wedge_height = 4.0;
+seam_wedge_width = coupler_seam_wedge_width_default();
+seam_wedge_height = coupler_seam_wedge_height_default();
 seam_wedge_length = inboard_reach + screw_row_to_panel_edge;
 seam_wedge_end_radius = 1.2;
 
@@ -55,19 +55,19 @@ outer_ridge_height = seam_wedge_height;
 outer_ridge_taper_inset = seam_wedge_width * (1.0 - 0.73) / 2;
 
 /* [Reinforcement bushing relief] */
-reinforcement_bushing_clearance = 0.45;
+reinforcement_bushing_clearance = coupler_bushing_clearance_default();
 reinforcement_bushing_relief_extra_depth = 0.20;
 
 /* [Locator-pin clearance] */
 // The physical panel has a Ø3 x 3 mm locating pin close to each relevant
 // horizontal edge coupler.  This is a true through-clearance in the 4 mm
 // base plate, not a shallow pocket.
-locator_pin_clearance = 0.40;
+locator_pin_clearance = coupler_locator_pin_clearance_default();
 
 /* [Decorative pockets] */
 show_perforation_holes = true;
-perforation_hole_diameter = 3.0;
-perforation_depth = 2.5;
+perforation_hole_diameter = coupler_reference_pocket_diameter_default();
+perforation_depth = coupler_reference_pocket_depth_default();
 
 /* [Centre reference marks] */
 show_center_marks = true;
@@ -86,10 +86,10 @@ clip_x_positions = [-25.0, 25.0];
 
 /* [Tube clip] */
 clip_length = 16.0;
-clip_wall = 2.6;
-clip_inner_diameter = 10.4;
-clip_opening = 8.2;
-clip_vertical_overlap = 2.0;
+clip_wall = tube_clip_wall();
+clip_inner_diameter = tube_clip_inner_diameter();
+clip_opening = tube_clip_opening();
+clip_vertical_overlap = tube_clip_vertical_overlap();
 clip_root_height = 6.0;
 clip_root_depth = 5.0;
 clip_ridge_clearance = 2.5;
@@ -486,15 +486,17 @@ module horizontal_edge_panel_coupler(
                 // bears on the locating pin.
                 translate([
                     edge_locator_pin_x(direction,left_hole_x_value,right_hole_x_value),
-                    thickness + 0.25,
+                    0,
                     edge_locator_pin_z(direction)
                 ])
-                    rotate([90,0,0])
-                        cylinder(
-                            d=hub75_locator_pin_diameter() + 2*locator_pin_clearance_value,
-                            h=thickness + 0.5,
-                            $fn=48
-                        );
+                    coupler_through_hole_y_with_relief(
+                        hole_diameter=hub75_locator_pin_diameter() + 2*locator_pin_clearance_value,
+                        y_max=thickness,
+                        y_min=0,
+                        relief_depth=screw_relief_depth_value,
+                        relief_radial=screw_relief_radial_value,
+                        fn=48
+                    );
 
                 // STEP-inspired blind pockets, matching the middle coupler.
                 if(show_perforation_holes_value && perforation_depth_value > 0)
@@ -592,6 +594,19 @@ module horizontal_edge_panel_coupler(
                                     $fn=64
                                 );
                 }
+
+            // Positive locating features for the two panel reinforcement
+            // bushings at this edge seam. They occupy the circular recesses
+            // that are already cleared from the 10 mm guide wall.
+            bushing_offset = hub75_reinforcement_bushing_offset();
+            bushing_z = direction == "top" ? -bushing_offset : bushing_offset;
+            for(x=[left_hole_x_value,right_hole_x_value])
+                translate([x, 0, bushing_z])
+                    coupler_reinforcement_locator_y(
+                        recess_diameter=hub75_reinforcement_bushing_recess_diameter(),
+                        recess_depth=hub75_reinforcement_bushing_recess_depth(),
+                        hole_diameter=hub75_reinforcement_bushing_hole_diameter()
+                    );
 
             // Low outer display-edge ridge: three separate X segments so both
             // snap clips stay completely free.  Its height equals the centre

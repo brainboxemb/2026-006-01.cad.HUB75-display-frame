@@ -33,6 +33,15 @@ preview_color = [0.86, 0.08, 0.05, 1];
 $fn = 48;
 
 
+function tube_clip_default_length() = clip_length;
+function tube_clip_wall() = clip_wall;
+function tube_clip_inner_diameter() = clip_inner_diameter;
+function tube_clip_opening() = clip_opening;
+function tube_clip_plate_overlap() = clip_plate_overlap;
+function tube_clip_vertical_overlap() = clip_vertical_overlap;
+function tube_clip_outer_diameter_default() = clip_inner_diameter + 2*clip_wall;
+function tube_clip_outer_radius_default() = tube_clip_outer_diameter_default()/2;
+
 function clip_outer_diameter(
     inner_diameter,
     wall

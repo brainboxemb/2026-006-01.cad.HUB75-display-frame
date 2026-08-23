@@ -6,7 +6,7 @@ use <../assemblies/display_assembly.scad>
 
 exploded_render_distance = 40;
 
-$vpt = [display_nominal_width/2, 0, display_nominal_height/2];
+$vpt = [0, 0, 0];
 $vpr = [265, 0, 320];
 $vpd = 1050;
 

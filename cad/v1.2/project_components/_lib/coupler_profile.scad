@@ -4,11 +4,59 @@
 // and, where necessary, arm position are supplied by the caller from the
 // actual HUB75 rib geometry.
 
+// Shared design specification for the V1.2 project coupler family.
+// These are component-family properties, not project/assembly configuration.
+function coupler_base_thickness_default() = 4.0;
+function coupler_wall_thickness_default() = 5.0;
+function coupler_fit_clearance_default() = 0.50;
 function coupler_profile_size_default() = 100.0;
-function coupler_profile_horizontal_arm_height_default() = 36.0;
-function coupler_profile_vertical_arm_width_default() = 38.0;
 function coupler_profile_inside_radius_default() = 10.0;
 function coupler_profile_outside_radius_default() = 6.0;
+function coupler_guide_height_default() = 10.0;
+function coupler_guide_end_rounding_default() = 1.5;
+function coupler_screw_hole_diameter_default() = 3.4;
+function coupler_reference_pocket_diameter_default() = 3.0;
+function coupler_reference_pocket_depth_default() = 2.5;
+function coupler_bushing_clearance_default() = 0.45;
+function coupler_locator_pin_clearance_default() = 0.40;
+function coupler_seam_wedge_width_default() = 3.0;
+function coupler_seam_wedge_height_default() = 4.0;
+function coupler_profile_side_material_default() = coupler_wall_thickness_default() + coupler_fit_clearance_default();
+
+// Male locating interface for the panel's flush reinforcement bushing.
+// The circular pad enters the recessed pocket and the centre pin enters the
+// small blind hole.  These clearances are printable coupler choices; the
+// mating dimensions themselves remain authoritative in hub75_panel.scad.
+function coupler_reinforcement_pad_radial_clearance_default() = 0.30;
+function coupler_reinforcement_pad_axial_clearance_default() = 0.10;
+function coupler_reinforcement_pin_radial_clearance_default() = 0.20;
+function coupler_reinforcement_pin_length_default() = 2.0;
+
+module coupler_reinforcement_locator_y(
+    recess_diameter,
+    recess_depth,
+    hole_diameter,
+    pad_radial_clearance=coupler_reinforcement_pad_radial_clearance_default(),
+    pad_axial_clearance=coupler_reinforcement_pad_axial_clearance_default(),
+    pin_radial_clearance=coupler_reinforcement_pin_radial_clearance_default(),
+    pin_length=coupler_reinforcement_pin_length_default(),
+    fn=64
+) {
+    pad_d = max(0.2, recess_diameter - 2*pad_radial_clearance);
+    pad_h = max(0.2, recess_depth - pad_axial_clearance);
+    pin_d = max(0.2, hole_diameter - 2*pin_radial_clearance);
+
+    // Local mounting plane is Y=0. Negative Y points into the panel.
+    rotate([90,0,0])
+        cylinder(d=pad_d, h=pad_h, $fn=fn);
+
+    translate([0,-pad_h,0])
+        rotate([90,0,0])
+            cylinder(d=pin_d, h=pin_length, $fn=fn);
+}
+
+function coupler_profile_horizontal_arm_height_default() = 36.0;
+function coupler_profile_vertical_arm_width_default() = 38.0;
 
 // Shared decorative pocket raster defaults.  Keep these in the library so
 // components opened standalone do not depend on project_config.scad scope.
@@ -248,6 +296,42 @@ module coupler_screw_hole_y(
                     d=relief_d,
                     $fn=fn
                 );
+    }
+}
+
+
+// Shared through-hole cutter with the same shallow anti-elephant-foot relief
+// used for screw holes.  y_max/y_min define the two physical faces of the
+// material being pierced; the widened relief is only one shallow print layer
+// deep at each face.
+module coupler_through_hole_y_with_relief(
+    hole_diameter,
+    y_max,
+    y_min,
+    relief_depth=coupler_screw_relief_depth_default(),
+    relief_radial=coupler_screw_relief_radial_default(),
+    fn=48
+) {
+    eps = 0.05;
+    span = y_max - y_min;
+    relief_d = hole_diameter + 2*relief_radial;
+    rd = min(relief_depth, max(0, span/2 - eps));
+
+    // Main bore, with a tiny overshoot so boolean subtraction is robust.
+    translate([0, y_max + eps, 0])
+        rotate([90,0,0])
+            cylinder(d=hole_diameter, h=span + 2*eps, $fn=fn);
+
+    if (rd > 0 && relief_radial > 0) {
+        // Relief at the y_max face.
+        translate([0, y_max + eps, 0])
+            rotate([90,0,0])
+                cylinder(d=relief_d, h=rd + eps, $fn=fn);
+
+        // Relief at the y_min face.
+        translate([0, y_min + rd, 0])
+            rotate([90,0,0])
+                cylinder(d=relief_d, h=rd + eps, $fn=fn);
     }
 }
 

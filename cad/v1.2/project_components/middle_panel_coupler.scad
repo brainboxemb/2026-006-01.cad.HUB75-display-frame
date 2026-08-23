@@ -6,38 +6,38 @@
 // overlays the real HUB75 rib keep-out without using transparency.
 
 /* [Base plate] */
-base_thickness = 4.0;
-overall_width = 100.0;
-overall_height = 100.0;
+base_thickness = coupler_base_thickness_default();
+overall_width = coupler_profile_size_default();
+overall_height = coupler_profile_size_default();
 // Standalone defaults follow the exact same rule as the project assembly:
 // real HUB75 rib width + equal printed material on both sides.
-wall_thickness = 5.0;
-fit_clearance = 0.50;
+wall_thickness = coupler_wall_thickness_default();
+fit_clearance = coupler_fit_clearance_default();
 profile_side_material = wall_thickness + fit_clearance;
-horizontal_arm_height = 20.0 + 2*profile_side_material;
-vertical_arm_width = 2*12.5 + 2*profile_side_material;
-inside_corner_radius = 10.0;
-outer_corner_radius = 6.0;
+horizontal_arm_height = hub75_rear_middle_rib_width() + 2*profile_side_material;
+vertical_arm_width = 2*hub75_rear_side_rail_width() + 2*profile_side_material;
+inside_corner_radius = coupler_profile_inside_radius_default();
+outer_corner_radius = coupler_profile_outside_radius_default();
 
 /* [Raised rib guides] */
-reinforcement_height = 10.0;
-rib_clearance = 0.50;
-guide_end_rounding = 1.5;
+reinforcement_height = coupler_guide_height_default();
+rib_clearance = coupler_fit_clearance_default();
+guide_end_rounding = coupler_guide_end_rounding_default();
 
 /* [Mounting screws] */
-left_screw_x = -8.15;
-right_screw_x = 7.85;
-screw_hole_diameter = 3.4;
+left_screw_x = hub75_panel_hole_x_right() - hub75_panel_nominal_width();
+right_screw_x = hub75_panel_hole_x_left();
+screw_hole_diameter = coupler_screw_hole_diameter_default();
 screw_relief_depth = coupler_screw_relief_depth_default();
 screw_relief_radial = coupler_screw_relief_radial_default();
 
 /* [Reference-style perforation pattern] */
 show_perforation_holes = true;
-perforation_hole_diameter = 3.0;
+perforation_hole_diameter = coupler_reference_pocket_diameter_default();
 perforation_spacing = 10.0;
 perforation_edge_margin = 8.0;
 perforation_centre_keepout = 22.0;
-perforation_depth = 2.5;
+perforation_depth = coupler_reference_pocket_depth_default();
 
 /* [Centre reference marks] */
 show_center_marks = true;
@@ -49,8 +49,8 @@ center_mark_cross_length = coupler_center_mark_cross_length_default();
 center_mark_edge_margin = coupler_center_mark_edge_margin_default();
 
 /* [Small protruding mounting tubes] */
-mounting_tube_outer_diameter = 8.50;
-mounting_tube_clearance = 0.45;
+mounting_tube_outer_diameter = hub75_panel_mounting_tube_outer_diameter();
+mounting_tube_clearance = coupler_bushing_clearance_default();
 mounting_tube_pocket_depth = 0.90;
 
 /* [Centre seam rib] */
@@ -64,7 +64,7 @@ centre_seam_rib_base_width = 3.0;
 centre_seam_rib_tip_width = 2.2;
 centre_seam_rib_height = 4.0;
 centre_seam_rib_end_radius = 1.0;
-reinforcement_bushing_clearance = 0.45;
+reinforcement_bushing_clearance = coupler_bushing_clearance_default();
 reinforcement_bushing_relief_extra_depth = 0.20;
 
 /* [Preview] */
@@ -74,7 +74,7 @@ show_print_orientation = false;
 /* [Resolution] */
 $fn = 96;
 
-use <hub75_panel.scad>
+use <../components/hub75_panel.scad>
 use <_lib/coupler_profile.scad>
 
 
@@ -269,9 +269,9 @@ module middle_panel_coupler(
     guide_wall_thickness_value = rib_clearance,
     guide_wall_height_value = reinforcement_height,
     guide_wall_straight_value = 0,
-    centre_rib_width_value = 0,
-    centre_rib_height_value = 0,
-    centre_rib_length_value = 0,
+    centre_rib_width_value = centre_seam_rib_base_width,
+    centre_rib_height_value = centre_seam_rib_height,
+    centre_rib_length_value = centre_seam_rib_length,
     reinforcement_pad_depth_value = 0,
     reinforcement_pad_length_value = 0,
     reinforcement_pad_height_value = 0,
@@ -424,6 +424,22 @@ module middle_panel_coupler(
                                     h=bushing_relief_depth + 0.30
                                 );
                 }
+
+            // Positive locating features matching the panel reinforcement
+            // bushings. The guide wall is already relieved around the Ø14
+            // boss; this Ø9.4 pad enters the panel recess and the Ø2.1 pin
+            // locates in its small blind centre hole.
+            bushing_offset = hub75_reinforcement_bushing_offset();
+            for (p=[
+                [left_hole_x_value, -bushing_offset],
+                [right_hole_x_value, bushing_offset]
+            ])
+                translate([p[0], 0, p[1]])
+                    coupler_reinforcement_locator_y(
+                        recess_diameter=hub75_reinforcement_bushing_recess_diameter(),
+                        recess_depth=hub75_reinforcement_bushing_recess_depth(),
+                        hole_diameter=hub75_reinforcement_bushing_hole_diameter()
+                    );
 
             // Replace the old single locator pin with a larger tapered rib
             // that enters the narrow seam between the two adjacent displays.

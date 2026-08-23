@@ -102,17 +102,25 @@ mounting_tube_relief_depth = 0.80;
 // These are NOT concentric with the Ø3 / Ø8.5 mounting tubes.
 // They sit beside each mounting point along the long side rails.
 //
-// Geometry is modelled as a small stepped bushing:
-//   1. Ø14 outer body / rim, standing 0.50 mm proud of the rear plane
-//   2. a shallow recessed centre inside that rim
-//   3. a Ø2.50 hole through the centre
+// Geometry is modelled as a flush circular reinforcement feature:
+//   1. Ø14 outer face remains flush with the nominal rear mounting plane
+//   2. the Ø14 cylindrical bushing continues inward into the panel/bay
+//   3. the Ø10 centre is recessed 2.50 mm below the outside plane
+//   4. a Ø2.50 hole continues 10 mm inward from the recess floor
 //
 // The Ø14 and Ø2.5 values are based on the current physical estimate.
 reinforcement_bushing_outer_diameter = 14.0;
 reinforcement_bushing_inner_diameter = 10.0;
-reinforcement_bushing_protrusion = 0.50;
-reinforcement_bushing_inner_recess = 0.30;
+reinforcement_bushing_protrusion = 0.00;
+reinforcement_bushing_inner_recess = 2.50;
 reinforcement_bushing_hole_diameter = 2.50;
+reinforcement_bushing_hole_depth = 10.00;
+// The Ø14 bushing is flush on the rear/outside face, but continues inward
+// through the rear housing.  Its inner depth is derived from the recess +
+// hole depth so the cylindrical boss remains present inside the bay instead
+// of being clipped by the bay opening.
+reinforcement_bushing_inner_depth =
+    reinforcement_bushing_inner_recess + reinforcement_bushing_hole_depth;
 reinforcement_disc_offset = 11.0;
 
 
@@ -257,12 +265,45 @@ function preview_front_color(scheme) =
 // -----------------------------------------------------------------------------
 // Keep couplers and other printed parts tied to the actual HUB75 panel model
 // instead of duplicating these dimensions in their own source files.
+// Public component specification API.
+// Assemblies and other components must use these functions instead of
+// duplicating physical HUB75 dimensions in project_config.scad.
+function hub75_panel_width() = panel_width;
+function hub75_panel_height() = panel_height;
+function hub75_panel_depth() = panel_depth;
+function hub75_panel_nominal_width() = reference_width;
+function hub75_panel_nominal_height() = reference_height;
+function hub75_panel_mounting_plane_y() = mounting_plane_y;
+function hub75_panel_hole_diameter() = hole_diameter;
+function hub75_panel_hole_x_left() = hole_x_left;
+function hub75_panel_hole_x_right() = hole_x_right;
+function hub75_panel_hole_z_bottom() = hole_z_bottom;
+function hub75_panel_hole_z_middle() = hole_z_middle;
+function hub75_panel_hole_z_top() = hole_z_top;
+function hub75_panel_hole_x_positions() = [hole_x_left, hole_x_right];
+function hub75_panel_hole_z_positions() = [hole_z_bottom, hole_z_middle, hole_z_top];
+function hub75_panel_mounting_tube_outer_diameter() = mounting_tube_outer_diameter;
+function hub75_panel_data_connector_x() = panel_width/2;
+function hub75_panel_data_connector_center_offset() = 113.5;
+function hub75_panel_data_connector_z_bottom() = panel_height/2 - hub75_panel_data_connector_center_offset();
+function hub75_panel_data_connector_z_top() = panel_height/2 + hub75_panel_data_connector_center_offset();
+function hub75_panel_data_connector_width() = 27.90;
+function hub75_panel_data_connector_height() = 9.50;
+function hub75_panel_data_connector_depth() = data_connector_depth;
+function hub75_panel_data_connector_front_y() = data_connector_front_y;
+function hub75_panel_boss_outer_diameter() = reinforcement_bushing_outer_diameter;
+
 function hub75_rear_side_rail_width() = rear_frame_side_width_reference;
 function hub75_rear_end_rail_width() = rear_frame_end_width_reference;
 function hub75_rear_middle_rib_width() = rear_frame_crossbar_width_reference;
 function hub75_rear_opening_corner_radius() = rear_opening_corner_radius_reference;
 function hub75_reinforcement_bushing_outer_diameter() = reinforcement_bushing_outer_diameter;
+function hub75_reinforcement_bushing_recess_diameter() = reinforcement_bushing_inner_diameter;
+function hub75_reinforcement_bushing_hole_diameter() = reinforcement_bushing_hole_diameter;
 function hub75_reinforcement_bushing_protrusion() = reinforcement_bushing_protrusion;
+function hub75_reinforcement_bushing_recess_depth() = reinforcement_bushing_inner_recess;
+function hub75_reinforcement_bushing_hole_depth() = reinforcement_bushing_hole_depth;
+function hub75_reinforcement_bushing_inner_depth() = reinforcement_bushing_inner_depth;
 function hub75_reinforcement_bushing_offset() = reinforcement_disc_offset;
 
 // Locator-pin dimensions exposed for couplers that must clear the two
@@ -309,6 +350,7 @@ module hub75_panel(
     reinforcement_bushing_protrusion_value = reinforcement_bushing_protrusion,
     reinforcement_bushing_inner_recess_value = reinforcement_bushing_inner_recess,
     reinforcement_bushing_hole_diameter_value = reinforcement_bushing_hole_diameter,
+    reinforcement_bushing_hole_depth_value = reinforcement_bushing_hole_depth,
     reinforcement_disc_offset_value = reinforcement_disc_offset,
 
     locator_pin_diameter_value = locator_pin_diameter,
@@ -847,76 +889,59 @@ module hub75_panel(
     }
 
 
-    module reinforcement_bushing(x, z) {
-        // The order is intentional:
-        // 1) create the complete Ø14 cylindrical body up to the proud rim;
-        // 2) recess only the centre, leaving the outer annular rim higher;
-        // 3) drill the Ø2.50 centre hole through the complete bushing.
-        //
-        // This keeps the feature separate from the Ø8.50 mounting tube.
-        difference() {
-            // The bushing may overlap the outer perimeter internally, but it
-            // must never extend beyond the rear outside contour in X/Z.
-            // Clip the cylindrical body at that perimeter while retaining the
-            // requested 0.5 mm protrusion in Y.
-            color(body_color)
-                intersection() {
-                    translate([
-                        x,
-                        rear_frame_start_y,
-                        z
-                    ])
-                        rotate([-90, 0, 0])
-                            cylinder(
-                                h=
-                                    mounting_plane_y_value
-                                    - rear_frame_start_y
-                                    + reinforcement_bushing_protrusion_value,
-                                d=reinforcement_bushing_outer_diameter_value,
-                                $fn=64
-                            );
-
-                    translate([
-                        rear_outer_inset_actual,
-                        rear_frame_start_y - 0.1,
-                        rear_outer_inset_actual
-                    ])
-                        cube([
-                            width - 2*rear_outer_inset_actual,
-                            mounting_plane_y_value
-                                - rear_frame_start_y
-                                + reinforcement_bushing_protrusion_value
-                                + 0.2,
-                            height - 2*rear_outer_inset_actual
-                        ]);
-                }
-
-            // Shallow pocket inside the rim. Its floor remains slightly proud
-            // of the nominal rear plane.
+    module reinforcement_bushing_solids() {
+        // True Ø14 cylindrical bushings.  Their rear/outside face ends exactly
+        // at the nominal mounting plane, while the cylinder continues inward
+        // into the panel.  Adding these before the recess/hole cuts prevents
+        // the bay-opening subtraction from clipping away the inner half of the
+        // bushing.
+        for(pos=reinforcement_bushing_positions)
             translate([
-                x,
-                mounting_plane_y_value
-                    + reinforcement_bushing_protrusion_value
-                    - reinforcement_bushing_inner_recess_value,
-                z
+                pos[0],
+                mounting_plane_y_value - reinforcement_bushing_inner_depth,
+                pos[1]
             ])
                 rotate([-90, 0, 0])
                     cylinder(
-                        h=reinforcement_bushing_inner_recess_value + 0.2,
+                        h=reinforcement_bushing_inner_depth,
+                        d=reinforcement_bushing_outer_diameter_value,
+                        $fn=64
+                    );
+    }
+
+
+    module reinforcement_bushing_cuts() {
+        // The Ø14 reinforcement feature is NOT an added boss. The rear rail
+        // itself remains flush at the nominal mounting plane because its Ø14
+        // footprint is excluded from rear_recess_2d(). Only the inner recess
+        // and blind hole are cut from that retained rail material here.
+        for(pos=reinforcement_bushing_positions) {
+            // Ø10 recess, 2.5 mm deep from the rear mounting plane.
+            translate([
+                pos[0],
+                mounting_plane_y_value - reinforcement_bushing_inner_recess_value,
+                pos[1]
+            ])
+                rotate([-90, 0, 0])
+                    cylinder(
+                        h=reinforcement_bushing_inner_recess_value + 0.02,
                         d=reinforcement_bushing_inner_diameter_value,
                         $fn=64
                     );
 
-            // Small central hole through the complete reinforcement bushing.
-            translate([x, -0.2, z])
+            // Ø2.5 blind hole, 10 mm deeper from the recess floor.
+            translate([
+                pos[0],
+                mounting_plane_y_value
+                    - reinforcement_bushing_inner_recess_value
+                    - reinforcement_bushing_hole_depth_value,
+                pos[1]
+            ])
                 rotate([-90, 0, 0])
                     cylinder(
-                        h=
-                            mounting_plane_y_value
-                            + reinforcement_bushing_protrusion_value
-                            + 0.5,
+                        h=reinforcement_bushing_hole_depth_value + 0.02,
                         d=reinforcement_bushing_hole_diameter_value,
-                        $fn=40
+                        $fn=48
                     );
         }
     }
@@ -983,7 +1008,10 @@ module hub75_panel(
         // true cylinder.
         color(body_color)
             difference() {
-                rear_frame_core_3d();
+                union() {
+                    rear_frame_core_3d();
+                    reinforcement_bushing_solids();
+                }
 
                 if(show_rear_recess && rear_recess_depth_actual > 0)
                     rear_extrude_from_to(
@@ -1008,6 +1036,9 @@ module hub75_panel(
                                             + 2*mounting_tube_relief_clearance_value,
                                         $fn=64
                                     );
+
+                // Recess and blind-hole cuts for the flush reinforcement rings.
+                reinforcement_bushing_cuts();
             }
 
         // Add the Ø8.50 mm cylindrical tubes back after the relief cut. Their
@@ -1016,11 +1047,6 @@ module hub75_panel(
         for(x=hole_x_positions)
             for(z=hole_z_positions)
                 mounting_tube(x, z);
-
-        // Add the separate reinforcement bushings only after the rail recess
-        // has been cut. This preserves their stepped rim / inner-floor order.
-        for(pos=reinforcement_bushing_positions)
-            reinforcement_bushing(pos[0], pos[1]);
 
         // Two PDF-dimensioned locating pins are added last so they remain
         // fully proud of the recessed rail surface.
