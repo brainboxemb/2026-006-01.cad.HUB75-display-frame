@@ -23,6 +23,8 @@ module project_middle_panel_coupler() {
         left_hole_x_value=seam_left_screw_x,
         right_hole_x_value=seam_right_screw_x,
         hole_diameter_value=coupler_screw_hole_diameter,
+        screw_relief_depth_value=coupler_screw_relief_depth,
+        screw_relief_radial_value=coupler_screw_relief_radial,
 
         mounting_tube_outer_diameter_value=
             middle_mounting_tube_outer_diameter,
@@ -40,6 +42,16 @@ module project_middle_panel_coupler() {
         guide_wall_height_value=middle_guide_wall_height,
         guide_wall_straight_value=middle_guide_wall_straight,
         guide_end_rounding_value=middle_guide_end_rounding,
+        show_center_marks_value=coupler_center_marks_enabled,
+        center_mark_depth_value=coupler_center_mark_depth,
+        center_mark_pitch_value=coupler_center_mark_pitch,
+        center_mark_dash_length_value=coupler_center_mark_dash_length,
+        center_mark_dash_width_value=coupler_center_mark_dash_width,
+        center_mark_cross_length_value=coupler_center_mark_cross_length,
+        center_mark_edge_margin_value=coupler_center_mark_edge_margin,
+        reference_pocket_steps_value=coupler_reference_pocket_steps,
+        reference_pocket_pitch_value=coupler_reference_pocket_pitch,
+        reference_pocket_lane_offset_value=coupler_reference_pocket_lane_offset,
 
         centre_rib_width_value=middle_centre_rib_width,
         centre_rib_height_value=middle_centre_rib_height,
@@ -88,6 +100,16 @@ module project_horizontal_edge_panel_coupler(
         perforation_spacing_value=horizontal_edge_panel_coupler_perforation_spacing,
         perforation_edge_margin_value=horizontal_edge_panel_coupler_perforation_edge_margin,
         perforation_centre_keepout_value=horizontal_edge_panel_coupler_perforation_centre_keepout,
+        show_center_marks_value=coupler_center_marks_enabled,
+        center_mark_depth_value=coupler_center_mark_depth,
+        center_mark_pitch_value=coupler_center_mark_pitch,
+        center_mark_dash_length_value=coupler_center_mark_dash_length,
+        center_mark_dash_width_value=coupler_center_mark_dash_width,
+        center_mark_cross_length_value=coupler_center_mark_cross_length,
+        center_mark_edge_margin_value=coupler_center_mark_edge_margin,
+        reference_pocket_steps_value=coupler_reference_pocket_steps,
+        reference_pocket_pitch_value=coupler_reference_pocket_pitch,
+        reference_pocket_lane_offset_value=coupler_reference_pocket_lane_offset,
 
         left_hole_x_value=
             seam_left_screw_x,
@@ -97,6 +119,8 @@ module project_horizontal_edge_panel_coupler(
 
         hole_diameter_value=
             coupler_screw_hole_diameter,
+        screw_relief_depth_value=coupler_screw_relief_depth,
+        screw_relief_radial_value=coupler_screw_relief_radial,
 
         clip_x_positions_value=
             horizontal_edge_clip_x_positions,
@@ -165,6 +189,8 @@ module project_corner_edge_panel_coupler(
         outside_radius=coupler_profile_outer_corner_radius,
         max_outside_projection_value=corner_edge_panel_coupler_max_outside_projection,
         hole_diameter_value=coupler_screw_hole_diameter,
+        screw_relief_depth_value=coupler_screw_relief_depth,
+        screw_relief_radial_value=coupler_screw_relief_radial,
         rib_clearance_value=corner_edge_panel_coupler_guide_clearance,
         guide_height_value=corner_edge_panel_coupler_guide_height,
         guide_end_rounding_value=corner_edge_panel_coupler_guide_end_rounding,
@@ -173,6 +199,16 @@ module project_corner_edge_panel_coupler(
         show_perforation_holes_value=true,
         perforation_hole_diameter_value=corner_edge_panel_coupler_perforation_diameter,
         perforation_depth_value=corner_edge_panel_coupler_perforation_depth,
+        show_center_marks_value=coupler_center_marks_enabled,
+        center_mark_depth_value=coupler_center_mark_depth,
+        center_mark_pitch_value=coupler_center_mark_pitch,
+        center_mark_dash_length_value=coupler_center_mark_dash_length,
+        center_mark_dash_width_value=coupler_center_mark_dash_width,
+        center_mark_cross_length_value=coupler_center_mark_cross_length,
+        center_mark_edge_margin_value=coupler_center_mark_edge_margin,
+        reference_pocket_steps_value=coupler_reference_pocket_steps,
+        reference_pocket_pitch_value=coupler_reference_pocket_pitch,
+        reference_pocket_lane_offset_value=coupler_reference_pocket_lane_offset,
         clip_inboard_positions_value=corner_edge_panel_coupler_clip_inboard_positions,
         local_tube_y=local_tube_y,
         local_tube_z=local_tube_z,

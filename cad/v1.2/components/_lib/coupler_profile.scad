@@ -185,7 +185,8 @@ module coupler_reference_pocket_strip_2d(
     steps=[3,4],
     pitch=10.0,
     hole_d=3.0,
-    lane_offset=undef
+    lane_offset=undef,
+    fn=48
 ) {
     lane_distance = is_undef(lane_offset) ? pitch/2 : lane_offset;
 
@@ -193,10 +194,10 @@ module coupler_reference_pocket_strip_2d(
         for (lane=lane_signs) {
             if (axis == "x")
                 translate([direction_sign*step*pitch, lane*lane_distance])
-                    circle(d=hole_d);
+                    circle(d=hole_d, $fn=fn);
             else
                 translate([lane*lane_distance, direction_sign*step*pitch])
-                    circle(d=hole_d);
+                    circle(d=hole_d, $fn=fn);
         }
 }
 
