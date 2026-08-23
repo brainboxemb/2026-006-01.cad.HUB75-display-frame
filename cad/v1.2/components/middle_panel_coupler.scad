@@ -1,4 +1,4 @@
-// HUB75 display frame - V1.2 middle coupler V36
+// HUB75 display frame - V1.2 middle panel coupler V62
 //
 // V16 keeps the rounded PLUS footprint and 10 mm rib-following guide.
 // Cosmetic Ø3 mm holes are now 2.5 mm deep blind pockets.
@@ -28,14 +28,25 @@ guide_end_rounding = 1.5;
 left_screw_x = -8.15;
 right_screw_x = 7.85;
 screw_hole_diameter = 3.4;
+screw_relief_depth = coupler_screw_relief_depth_default();
+screw_relief_radial = coupler_screw_relief_radial_default();
 
 /* [Reference-style perforation pattern] */
 show_perforation_holes = true;
 perforation_hole_diameter = 3.0;
-perforation_spacing = 9.0;
+perforation_spacing = 10.0;
 perforation_edge_margin = 8.0;
 perforation_centre_keepout = 22.0;
 perforation_depth = 2.5;
+
+/* [Centre reference marks] */
+show_center_marks = true;
+center_mark_depth = coupler_center_mark_depth_default();
+center_mark_pitch = coupler_center_mark_pitch_default();
+center_mark_dash_length = coupler_center_mark_dash_length_default();
+center_mark_dash_width = coupler_center_mark_dash_width_default();
+center_mark_cross_length = coupler_center_mark_cross_length_default();
+center_mark_edge_margin = coupler_center_mark_edge_margin_default();
 
 /* [Small protruding mounting tubes] */
 mounting_tube_outer_diameter = 8.50;
@@ -198,24 +209,37 @@ module reference_perforations_2d(
     hole_d,
     spacing,
     edge_margin,
-    centre_keepout
+    centre_keepout,
+    reference_steps = coupler_reference_pocket_steps_default(),
+    reference_pitch = coupler_reference_pocket_pitch_default(),
+    reference_lane_offset = coupler_reference_pocket_lane_offset_default()
 ) {
-    hw = width/2;
-    hh = height/2;
-    vx = v_arm_width/2;
-    hy = h_arm_height/2;
+    // Shared adaptive layout. The longitudinal stations are 20/30/40 mm.
+    // Wide arms use two lanes at roughly 1/4 and 3/4 of the real thickness;
+    // narrow arms use one centred lane instead of forcing a 2 x 3 pattern.
+    x_arm_lane = is_undef(reference_lane_offset)
+        ? coupler_reference_lane_offset_for_arm(h_arm_height)
+        : reference_lane_offset;
+    z_arm_lane = is_undef(reference_lane_offset)
+        ? coupler_reference_lane_offset_for_arm(v_arm_width)
+        : reference_lane_offset;
 
-    // Horizontal arms: two compact rows on both sides.
+    x_lane_signs = coupler_reference_lane_signs_for_arm(h_arm_height);
+    z_lane_signs = coupler_reference_lane_signs_for_arm(v_arm_width);
+
     for (sx=[-1,1])
-        for (x=[centre_keepout + spacing/2 : spacing : hw-edge_margin])
-            for (z=[-spacing/2, spacing/2])
-                translate([sx*x, z]) circle(d=hole_d);
+        coupler_reference_pocket_strip_2d(
+            axis="x", direction_sign=sx, lane_signs=x_lane_signs,
+            steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
+            lane_offset=x_arm_lane
+        );
 
-    // Vertical arms: two compact columns above and below.
     for (sz=[-1,1])
-        for (z=[centre_keepout + spacing/2 : spacing : hh-edge_margin])
-            for (x=[-spacing/2, spacing/2])
-                translate([x, sz*z]) circle(d=hole_d);
+        coupler_reference_pocket_strip_2d(
+            axis="z", direction_sign=sz, lane_signs=z_lane_signs,
+            steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
+            lane_offset=z_arm_lane
+        );
 }
 
 module middle_panel_coupler(
@@ -230,6 +254,8 @@ module middle_panel_coupler(
     left_hole_x_value = left_screw_x,
     right_hole_x_value = right_screw_x,
     hole_diameter_value = screw_hole_diameter,
+    screw_relief_depth_value = screw_relief_depth,
+    screw_relief_radial_value = screw_relief_radial,
 
     mounting_tube_outer_diameter_value = mounting_tube_outer_diameter,
     mounting_tube_clearance_value = mounting_tube_clearance,
@@ -256,6 +282,16 @@ module middle_panel_coupler(
     perforation_edge_margin_value = perforation_edge_margin,
     perforation_centre_keepout_value = perforation_centre_keepout,
     perforation_depth_value = perforation_depth,
+    reference_pocket_steps_value = coupler_reference_pocket_steps_default(),
+    reference_pocket_pitch_value = coupler_reference_pocket_pitch_default(),
+    reference_pocket_lane_offset_value = coupler_reference_pocket_lane_offset_default(),
+    show_center_marks_value = show_center_marks,
+    center_mark_depth_value = center_mark_depth,
+    center_mark_pitch_value = center_mark_pitch,
+    center_mark_dash_length_value = center_mark_dash_length,
+    center_mark_dash_width_value = center_mark_dash_width,
+    center_mark_cross_length_value = center_mark_cross_length,
+    center_mark_edge_margin_value = center_mark_edge_margin,
     guide_end_rounding_value = guide_end_rounding,
 
     part_color = preview_color
@@ -277,12 +313,14 @@ module middle_panel_coupler(
 
                 // Two screw holes through the base and raised layer.
                 for (x=[left_hole_x_value, right_hole_x_value])
-                    translate([x, thickness + 0.25, 0])
-                        rotate([90,0,0])
-                            cylinder(
-                                d=hole_diameter_value,
-                                h=thickness + guide_wall_height_value + 0.50
-                            );
+                    translate([x, 0, 0])
+                        coupler_screw_hole_y(
+                            hole_diameter=hole_diameter_value,
+                            plate_thickness=thickness,
+                            through_front_extra=guide_wall_height_value,
+                            relief_depth=screw_relief_depth_value,
+                            relief_radial=screw_relief_radial_value
+                        );
 
                 // Shallow pockets for the panel locator tubes.
                 for (x=[left_hole_x_value, right_hole_x_value])
@@ -313,7 +351,36 @@ module middle_panel_coupler(
                                         perforation_hole_diameter_value,
                                         perforation_spacing_value,
                                         perforation_edge_margin_value,
-                                        perforation_centre_keepout_value
+                                        perforation_centre_keepout_value,
+                                        reference_pocket_steps_value,
+                                        reference_pocket_pitch_value,
+                                        reference_pocket_lane_offset_value
+                                    );
+                                }
+
+                // Shallow dashed X/Z centre-reference marks on the visible rear
+                // face.  At only 0.4 mm deep by default they remain printable
+                // even when this face is placed on the bed, while avoiding a
+                // continuous structural groove across the part.
+                if (show_center_marks_value && center_mark_depth_value > 0)
+                    translate([0, thickness + 0.15, 0])
+                        rotate([90,0,0])
+                            linear_extrude(height=min(center_mark_depth_value, thickness-0.2) + 0.15)
+                                intersection() {
+                                    offset(delta=-center_mark_edge_margin_value)
+                                        coupler_plus_profile_2d(
+                                            width, height,
+                                            horizontal_height, vertical_width,
+                                            inside_radius, outside_radius
+                                        );
+                                    coupler_center_marks_2d(
+                                        span_x=width, span_z=height,
+                                        pitch=center_mark_pitch_value,
+                                        dash_length=center_mark_dash_length_value,
+                                        dash_width=center_mark_dash_width_value,
+                                        cross_length=center_mark_cross_length_value,
+                                        keepout_points=[[left_hole_x_value,0],[right_hole_x_value,0]],
+                                        keepout_radius=hole_diameter_value/2 + coupler_center_mark_screw_keepout_default()
                                     );
                                 }
 

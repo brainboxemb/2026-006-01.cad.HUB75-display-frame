@@ -1,4 +1,4 @@
-// HUB75 Display Frame - V1.2 / coupler refinement V32
+// HUB75 Display Frame - V1.2 / coupler refinement V62
 //
 // Simplified proof-of-concept based directly on V1.1:
 // - V1.1 HUB75 panel reference retained unchanged;

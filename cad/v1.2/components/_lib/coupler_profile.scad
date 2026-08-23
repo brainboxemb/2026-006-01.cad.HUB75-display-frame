@@ -10,6 +10,31 @@ function coupler_profile_vertical_arm_width_default() = 38.0;
 function coupler_profile_inside_radius_default() = 10.0;
 function coupler_profile_outside_radius_default() = 6.0;
 
+// Shared decorative pocket raster defaults.  Keep these in the library so
+// components opened standalone do not depend on project_config.scad scope.
+function coupler_reference_pocket_pitch_default() = 10.0;
+// By default the transverse lanes are derived from the actual arm thickness:
+// approximately the 1/4 and 3/4 positions, snapped to a 2.5 mm grid.
+// Supplying a numeric lane_offset still acts as an explicit override.
+function coupler_reference_pocket_lane_offset_default() = undef;
+function coupler_reference_pocket_lane_grid_default() = 2.5;
+function coupler_reference_pocket_lane_fraction_default() = 0.25;
+function coupler_reference_pocket_steps_default() = [2, 3, 4];
+// Arms narrower than this use one centred pocket lane instead of forcing a
+// 2 x 3 pattern into a narrow strip.  Wider arms keep two lanes at roughly
+// the 1/4 and 3/4 positions.
+function coupler_reference_two_lane_min_arm_default() = 30.0;
+function coupler_reference_lane_signs_for_arm(
+    arm_thickness,
+    min_two_lane_arm=coupler_reference_two_lane_min_arm_default()
+) = arm_thickness >= min_two_lane_arm ? [-1,1] : [0];
+
+function coupler_reference_lane_offset_for_arm(
+    arm_thickness,
+    grid=coupler_reference_pocket_lane_grid_default(),
+    fraction=coupler_reference_pocket_lane_fraction_default()
+) = max(grid, round((arm_thickness*fraction)/grid)*grid);
+
 module coupler_plus_profile_2d(
     width = coupler_profile_size_default(),
     height = coupler_profile_size_default(),
@@ -137,5 +162,150 @@ module coupler_corner_profile_2d(
 
         translate([xmin, zmin])
             square([xmax-xmin, zmax-zmin], center=false);
+    }
+}
+
+
+
+
+// Shared STEP-inspired decorative pocket placement. Pocket centres use the
+// same 5/10 mm reference system as the centre marks. The caller supplies the
+// transverse lane offset, allowing each coupler arm to place its two columns
+// at roughly 1/3 and 2/3 of the available arm width instead of using a fixed
+// offset.
+//
+// axis: "x" places a strip along X, "z" along Z.
+// direction_sign selects the arm direction. lane_signs selects one or both
+// parallel lanes. Fractional step values are allowed (e.g. 2.5 = 25 mm on a
+// 10 mm pitch).
+module coupler_reference_pocket_strip_2d(
+    axis="x",
+    direction_sign=1,
+    lane_signs=[-1,1],
+    steps=[3,4],
+    pitch=10.0,
+    hole_d=3.0,
+    lane_offset=undef
+) {
+    lane_distance = is_undef(lane_offset) ? pitch/2 : lane_offset;
+
+    for (step=steps)
+        for (lane=lane_signs) {
+            if (axis == "x")
+                translate([direction_sign*step*pitch, lane*lane_distance])
+                    circle(d=hole_d);
+            else
+                translate([lane*lane_distance, direction_sign*step*pitch])
+                    circle(d=hole_d);
+        }
+}
+
+// Shared screw-hole cutter with a small anti-elephant-foot relief on both
+// faces of the base plate. The through bore remains cylindrical; only one
+// print layer at each face is widened. This is a simple cylindrical relief,
+// not a conical countersink.
+function coupler_screw_relief_depth_default() = 0.20;
+function coupler_screw_relief_radial_default() = 0.40;
+
+module coupler_screw_hole_y(
+    hole_diameter,
+    plate_thickness,
+    through_front_extra=0,
+    relief_depth=coupler_screw_relief_depth_default(),
+    relief_radial=coupler_screw_relief_radial_default(),
+    fn=48
+) {
+    eps = 0.05;
+    relief_d = hole_diameter + 2*relief_radial;
+    rd = min(relief_depth, plate_thickness/2 - 0.05);
+
+    // Main cylindrical bore. Axis runs from the visible rear face (+Y)
+    // through the plate and optionally farther toward the panel (-Y).
+    translate([0, plate_thickness + 0.25, 0])
+        rotate([90,0,0])
+            cylinder(
+                d=hole_diameter,
+                h=plate_thickness + through_front_extra + 0.50,
+                $fn=fn
+            );
+
+    if (rd > 0 && relief_radial > 0) {
+        // Rear/bed-side relief: one shallow cylindrical widened layer.
+        translate([0, plate_thickness + eps, 0])
+            rotate([90,0,0])
+                cylinder(
+                    h=rd + eps,
+                    d=relief_d,
+                    $fn=fn
+                );
+
+        // Panel-side relief: same shallow cylindrical widened layer.
+        translate([0, rd, 0])
+            rotate([90,0,0])
+                cylinder(
+                    h=rd + eps,
+                    d=relief_d,
+                    $fn=fn
+                );
+    }
+}
+
+// Shared shallow centre-reference marks for the visible rear face of couplers.
+// The marks are deliberately dashed rather than continuous so they remain a
+// visual measuring aid without creating a long structural groove.  A shallow
+// recess is also friendly to upside-down printing: it becomes a few small
+// open-to-bed gaps instead of unsupported islands.
+function coupler_center_mark_depth_default() = 0.40;
+// Major marks are every full centimetre. Minor marks are halfway between.
+function coupler_center_mark_pitch_default() = 10.0;
+function coupler_center_mark_dash_length_default() = 4.0;
+function coupler_center_mark_minor_length_default() = 2.2;
+function coupler_center_mark_dash_width_default() = 0.8;
+function coupler_center_mark_cross_length_default() = 6.0;
+function coupler_center_mark_edge_margin_default() = 4.0;
+// Radial material kept completely free of engraving around a screw hole.
+function coupler_center_mark_screw_keepout_default() = 3.0;
+
+module coupler_center_marks_2d(
+    span_x=100,
+    span_z=100,
+    pitch=coupler_center_mark_pitch_default(),
+    dash_length=coupler_center_mark_dash_length_default(),
+    dash_width=coupler_center_mark_dash_width_default(),
+    cross_length=coupler_center_mark_cross_length_default(),
+    minor_length=coupler_center_mark_minor_length_default(),
+    keepout_points=[],
+    keepout_radius=0
+) {
+    difference() {
+        union() {
+            // Small cross at the local X/Z origin.
+            square([cross_length, dash_width], center=true);
+            square([dash_width, cross_length], center=true);
+
+            // X-axis marks. The tick itself is perpendicular to the X axis.
+            // Full centimetres are longer; half-centimetres are shorter.
+            for (x=[pitch/2:pitch/2:span_x/2]) {
+                major = abs((x/pitch) - round(x/pitch)) < 0.001;
+                tick_len = major ? dash_length : minor_length;
+                translate([ x,0]) square([dash_width,tick_len],center=true);
+                translate([-x,0]) square([dash_width,tick_len],center=true);
+            }
+
+            // Z-axis marks, likewise perpendicular to the Z axis.
+            for (z=[pitch/2:pitch/2:span_z/2]) {
+                major = abs((z/pitch) - round(z/pitch)) < 0.001;
+                tick_len = major ? dash_length : minor_length;
+                translate([0, z]) square([tick_len,dash_width],center=true);
+                translate([0,-z]) square([tick_len,dash_width],center=true);
+            }
+        }
+
+        // Do not let a reference mark nick the load-bearing material around
+        // a mounting screw. Callers supply actual screw centres and a radius
+        // based on the real hole diameter plus a material margin.
+        if (keepout_radius > 0)
+            for (p=keepout_points)
+                translate(p) circle(r=keepout_radius, $fn=48);
     }
 }

@@ -34,6 +34,8 @@ base_thickness = 4.0;
 left_hole_x = -8.15;
 right_hole_x = 7.85;
 hole_diameter = 3.4;
+screw_relief_depth = coupler_screw_relief_depth_default();
+screw_relief_radial = coupler_screw_relief_radial_default();
 screw_row_to_panel_edge = 7.855;
 
 
@@ -66,6 +68,15 @@ locator_pin_clearance = 0.40;
 show_perforation_holes = true;
 perforation_hole_diameter = 3.0;
 perforation_depth = 2.5;
+
+/* [Centre reference marks] */
+show_center_marks = true;
+center_mark_depth = coupler_center_mark_depth_default();
+center_mark_pitch = coupler_center_mark_pitch_default();
+center_mark_dash_length = coupler_center_mark_dash_length_default();
+center_mark_dash_width = coupler_center_mark_dash_width_default();
+center_mark_cross_length = coupler_center_mark_cross_length_default();
+center_mark_edge_margin = coupler_center_mark_edge_margin_default();
 perforation_spacing = 10.0;
 perforation_edge_margin = 7.0;
 perforation_centre_keepout = 20.0;
@@ -353,31 +364,38 @@ module t_reference_perforations_2d(
     hole_d,
     spacing,
     edge_margin,
-    centre_keepout
+    centre_keepout,
+    reference_steps = coupler_reference_pocket_steps_default(),
+    reference_pitch = coupler_reference_pocket_pitch_default(),
+    reference_lane_offset = coupler_reference_pocket_lane_offset_default()
 ) {
-    // STEP-inspired blind-pocket pattern.  Keep the pattern tied to the
-    // printable T body rather than to the old seam-specific dimensions.
-    // The final intersection in horizontal_edge_panel_coupler() clips these
-    // points to the actual rounded T silhouette.
-    sign = direction == "top" ? 1 : -1;
-    hh = height/2;
-    hy = bar_height/2;
-
-    // One clean row across the broad horizontal arm: two blind pockets
-    // on each side of the mounting screw pair.
-    row_z = panel_end_rail_center_z(direction) + sign * (hy * 0.22);
-    for (x=[-34,-24,24,34])
-        translate([x, row_z])
-            circle(d=hole_d);
-
-    // Two compact rows in the vertical stem, away from the screw pair.
+    // Same shared adaptive rule as the middle coupler. Longitudinal stations
+    // are 20/30/40 mm. Wide arms use two transverse lanes; narrow arms use
+    // one centred lane so the pattern does not get forced into a thin strip.
     inward = direction == "top" ? -1 : 1;
-    for (zoff=[18, 28])
-        for (x=[-spacing/2, spacing/2])
-            translate([x, inward*zoff])
-                circle(d=hole_d);
-}
+    x_arm_lane = is_undef(reference_lane_offset)
+        ? coupler_reference_lane_offset_for_arm(bar_height)
+        : reference_lane_offset;
+    z_arm_lane = is_undef(reference_lane_offset)
+        ? coupler_reference_lane_offset_for_arm(stem_width)
+        : reference_lane_offset;
 
+    x_lane_signs = coupler_reference_lane_signs_for_arm(bar_height);
+    z_lane_signs = coupler_reference_lane_signs_for_arm(stem_width);
+
+    for (sx=[-1,1])
+        coupler_reference_pocket_strip_2d(
+            axis="x", direction_sign=sx, lane_signs=x_lane_signs,
+            steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
+            lane_offset=x_arm_lane
+        );
+
+    coupler_reference_pocket_strip_2d(
+        axis="z", direction_sign=inward, lane_signs=z_lane_signs,
+        steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
+        lane_offset=z_arm_lane
+    );
+}
 
 module horizontal_edge_panel_coupler(
     direction = "top",
@@ -393,6 +411,8 @@ module horizontal_edge_panel_coupler(
     left_hole_x_value = left_hole_x,
     right_hole_x_value = right_hole_x,
     hole_diameter_value = hole_diameter,
+    screw_relief_depth_value = screw_relief_depth,
+    screw_relief_radial_value = screw_relief_radial,
     rib_clearance_value = rib_clearance,
     guide_height_value = guide_height,
     guide_end_rounding_value = guide_end_rounding,
@@ -402,6 +422,16 @@ module horizontal_edge_panel_coupler(
     perforation_spacing_value = perforation_spacing,
     perforation_edge_margin_value = perforation_edge_margin,
     perforation_centre_keepout_value = perforation_centre_keepout,
+    reference_pocket_steps_value = coupler_reference_pocket_steps_default(),
+    reference_pocket_pitch_value = coupler_reference_pocket_pitch_default(),
+    reference_pocket_lane_offset_value = coupler_reference_pocket_lane_offset_default(),
+    show_center_marks_value = show_center_marks,
+    center_mark_depth_value = center_mark_depth,
+    center_mark_pitch_value = center_mark_pitch,
+    center_mark_dash_length_value = center_mark_dash_length,
+    center_mark_dash_width_value = center_mark_dash_width,
+    center_mark_cross_length_value = center_mark_cross_length,
+    center_mark_edge_margin_value = center_mark_edge_margin,
     clip_x_positions_value = clip_x_positions,
     seam_wedge_width_value = seam_wedge_width,
     seam_wedge_height_value = seam_wedge_height,
@@ -441,9 +471,14 @@ module horizontal_edge_panel_coupler(
 
                 // Existing pair of mounting screws at the panel seam.
                 for(x=[left_hole_x_value,right_hole_x_value])
-                    translate([x, thickness+0.25, 0])
-                        rotate([90,0,0])
-                            cylinder(d=hole_diameter_value,h=thickness+0.5,$fn=36);
+                    translate([x,0,0])
+                        coupler_screw_hole_y(
+                            hole_diameter=hole_diameter_value,
+                            plate_thickness=thickness,
+                            relief_depth=screw_relief_depth_value,
+                            relief_radial=screw_relief_radial_value,
+                            fn=48
+                        );
 
                 // Full through-clearance for the physical Ø3 x 3 mm locator
                 // pin.  Unlike the decorative Ø3 pockets below, this cut runs
@@ -481,7 +516,33 @@ module horizontal_edge_panel_coupler(
                                         perforation_hole_diameter_value,
                                         perforation_spacing_value,
                                         perforation_edge_margin_value,
-                                        perforation_centre_keepout_value
+                                        perforation_centre_keepout_value,
+                                        reference_pocket_steps_value,
+                                        reference_pocket_pitch_value,
+                                        reference_pocket_lane_offset_value
+                                    );
+                                }
+
+                if(show_center_marks_value && center_mark_depth_value > 0)
+                    translate([0, thickness+0.15, 0])
+                        rotate([90,0,0])
+                            linear_extrude(height=min(center_mark_depth_value, thickness-0.2)+0.15)
+                                intersection() {
+                                    offset(delta=-center_mark_edge_margin_value)
+                                        coupler_t_profile_2d(
+                                            direction=direction, width=width, height=height,
+                                            horizontal_arm_height=horizontal_height, vertical_arm_width=vertical_width,
+                                            inside_radius=inside_radius, outside_radius=outside_radius,
+                                            horizontal_arm_center_z=horizontal_center_z
+                                        );
+                                    coupler_center_marks_2d(
+                                        span_x=width, span_z=height,
+                                        pitch=center_mark_pitch_value,
+                                        dash_length=center_mark_dash_length_value,
+                                        dash_width=center_mark_dash_width_value,
+                                        cross_length=center_mark_cross_length_value,
+                                        keepout_points=[[left_hole_x_value,0],[right_hole_x_value,0]],
+                                        keepout_radius=hole_diameter_value/2 + coupler_center_mark_screw_keepout_default()
                                     );
                                 }
             }

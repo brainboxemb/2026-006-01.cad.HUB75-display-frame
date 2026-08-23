@@ -161,6 +161,10 @@ seam_right_screw_x = panel_hole_x[0];                      // +7.85 mm
 
 coupler_thickness = 4.0;
 coupler_screw_hole_diameter = 3.4;
+// Small bilateral chamfer/relief at every coupler screw hole.
+// This prevents first-layer elephant foot from reducing the usable bore.
+coupler_screw_relief_depth = 0.20;
+coupler_screw_relief_radial = 0.40;
 coupler_corner_radius = 3.0;
 coupler_y = panel_mounting_plane_y;
 
@@ -198,6 +202,28 @@ horizontal_edge_panel_coupler_profile_vertical_arm_width =
 // This is safe to share: it only rounds the printed guide termination; the
 // actual rib keep-outs remain derived independently from hub75_panel.scad.
 coupler_guide_end_rounding = 1.5;
+
+// Shared shallow centre-reference pattern on the visible rear face.
+// Dashed X/Z axes make the local origin and offsets easy to read without
+// weakening the plate with a continuous groove.
+coupler_center_marks_enabled = true;
+coupler_center_mark_depth = 0.40;
+coupler_center_mark_pitch = 10.0;
+coupler_center_mark_dash_length = 4.0; // full-centimetre tick length
+coupler_center_mark_minor_length = 2.2; // half-centimetre tick length (shared-library default)
+coupler_center_mark_dash_width = 0.8;
+coupler_center_mark_screw_keepout = 3.0; // radial material margin outside screw hole
+coupler_center_mark_cross_length = 6.0;
+coupler_center_mark_edge_margin = 4.0;
+
+// Shared decorative Ø3 mm pocket raster. Longitudinal stations stay on the
+// common 10 mm grid. Transverse lanes are derived from each arm thickness at
+// roughly the 1/4 and 3/4 positions and snapped to the 2.5 mm reference grid.
+coupler_reference_pocket_pitch = 10.0;
+// Leave lane offset undefined so each arm derives its own 1/4 / 3/4 lanes
+// from the real arm thickness, snapped to the 2.5 mm reference grid.
+coupler_reference_pocket_lane_offset = undef;
+coupler_reference_pocket_steps = [2, 3, 4];
 
 middle_panel_coupler_width = coupler_profile_size;
 middle_panel_coupler_height = coupler_profile_size;
@@ -245,7 +271,8 @@ horizontal_edge_panel_coupler_guide_clearance = coupler_fit_clearance;
 horizontal_edge_panel_coupler_guide_height = 10.0;
 horizontal_edge_panel_coupler_guide_end_rounding = coupler_guide_end_rounding;
 
-// STEP-inspired blind Ø3 mm pockets on the visible rear face.
+// STEP-inspired blind Ø3 mm pockets on the visible rear face.  Their centres
+// use the same 10 mm grid as the centre-reference ruler on every coupler.
 horizontal_edge_panel_coupler_perforation_diameter = 3.0;
 horizontal_edge_panel_coupler_perforation_depth = 2.5;
 horizontal_edge_panel_coupler_perforation_spacing = 10.0;

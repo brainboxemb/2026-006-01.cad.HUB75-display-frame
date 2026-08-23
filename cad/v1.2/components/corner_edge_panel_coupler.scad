@@ -24,6 +24,8 @@ max_outside_projection = 19.5;
 
 /* [Mounting] */
 hole_diameter = 3.4;
+screw_relief_depth = coupler_screw_relief_depth_default();
+screw_relief_radial = coupler_screw_relief_radial_default();
 screw_to_side_edge = 7.85;
 screw_to_horizontal_edge = 7.855;
 
@@ -38,6 +40,15 @@ locator_pin_clearance = 0.40;
 show_perforation_holes = true;
 perforation_hole_diameter = 3.0;
 perforation_depth = 2.5;
+
+/* [Centre reference marks] */
+show_center_marks = true;
+center_mark_depth = coupler_center_mark_depth_default();
+center_mark_pitch = coupler_center_mark_pitch_default();
+center_mark_dash_length = coupler_center_mark_dash_length_default();
+center_mark_dash_width = coupler_center_mark_dash_width_default();
+center_mark_cross_length = coupler_center_mark_cross_length_default();
+center_mark_edge_margin = coupler_center_mark_edge_margin_default();
 perforation_spacing = 10.0;
 
 /* [Tube clips] */
@@ -117,18 +128,39 @@ module corner_inside_panel_2d(side, direction, total_size) {
     translate([xmin,zmin]) square([xmax-xmin,zmax-zmin], center=false);
 }
 
-module corner_reference_perforations_2d(side, direction, hole_d, spacing) {
-    ix = side == "left" ? 1 : -1;
-    iz = direction == "top" ? -1 : 1;
+module corner_reference_perforations_2d(
+    side, direction, hole_d, spacing,
+    horizontal_height, vertical_width,
+    reference_steps = coupler_reference_pocket_steps_default(),
+    reference_pitch = coupler_reference_pocket_pitch_default(),
+    reference_lane_offset = coupler_reference_pocket_lane_offset_default()
+) {
+    // A corner exposes one inward X arm and one inward Z arm. Use the same
+    // 20/30/40 mm stations as the other couplers. Wide arms use two lanes;
+    // narrow arms use one centred lane.
+    inward_x = side == "left" ? 1 : -1;
+    inward_z = direction == "top" ? -1 : 1;
+    x_arm_lane = is_undef(reference_lane_offset)
+        ? coupler_reference_lane_offset_for_arm(horizontal_height)
+        : reference_lane_offset;
+    z_arm_lane = is_undef(reference_lane_offset)
+        ? coupler_reference_lane_offset_for_arm(vertical_width)
+        : reference_lane_offset;
 
-    // Same 10 mm rhythm as the other couplers, but only where the corner body
-    // has useful material. Two pockets in each inward arm.
-    for (d=[22,32])
-        translate([ix*d, 0]) circle(d=hole_d);
-    for (d=[22,32])
-        translate([0, iz*d]) circle(d=hole_d);
+    x_lane_signs = coupler_reference_lane_signs_for_arm(horizontal_height);
+    z_lane_signs = coupler_reference_lane_signs_for_arm(vertical_width);
+
+    coupler_reference_pocket_strip_2d(
+        axis="x", direction_sign=inward_x, lane_signs=x_lane_signs,
+        steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
+        lane_offset=x_arm_lane
+    );
+    coupler_reference_pocket_strip_2d(
+        axis="z", direction_sign=inward_z, lane_signs=z_lane_signs,
+        steps=reference_steps, pitch=reference_pitch, hole_d=hole_d,
+        lane_offset=z_arm_lane
+    );
 }
-
 
 module corner_fitted_guides_2d(
     side, direction, size,
@@ -341,6 +373,8 @@ module corner_edge_panel_coupler(
     outside_radius=outside_corner_radius,
     max_outside_projection_value=max_outside_projection,
     hole_diameter_value=hole_diameter,
+    screw_relief_depth_value=screw_relief_depth,
+    screw_relief_radial_value=screw_relief_radial,
     rib_clearance_value=rib_clearance,
     guide_height_value=guide_height,
     guide_end_rounding_value=guide_end_rounding,
@@ -349,6 +383,16 @@ module corner_edge_panel_coupler(
     show_perforation_holes_value=show_perforation_holes,
     perforation_hole_diameter_value=perforation_hole_diameter,
     perforation_depth_value=perforation_depth,
+    reference_pocket_steps_value=coupler_reference_pocket_steps_default(),
+    reference_pocket_pitch_value=coupler_reference_pocket_pitch_default(),
+    reference_pocket_lane_offset_value=coupler_reference_pocket_lane_offset_default(),
+    show_center_marks_value=show_center_marks,
+    center_mark_depth_value=center_mark_depth,
+    center_mark_pitch_value=center_mark_pitch,
+    center_mark_dash_length_value=center_mark_dash_length,
+    center_mark_dash_width_value=center_mark_dash_width,
+    center_mark_cross_length_value=center_mark_cross_length,
+    center_mark_edge_margin_value=center_mark_edge_margin,
     clip_inboard_positions_value=clip_inboard_positions,
     local_tube_y=preview_tube_y,
     local_tube_z=preview_tube_z,
@@ -412,9 +456,13 @@ module corner_edge_panel_coupler(
                                 outward_z=outward_z
                             );
 
-                translate([0, thickness+0.25, 0])
-                    rotate([90,0,0])
-                        cylinder(d=hole_diameter_value, h=thickness+0.5, $fn=36);
+                coupler_screw_hole_y(
+                    hole_diameter=hole_diameter_value,
+                    plate_thickness=thickness,
+                    relief_depth=screw_relief_depth_value,
+                    relief_radial=screw_relief_radial_value,
+                    fn=48
+                );
 
                 if(show_perforation_holes_value && perforation_depth_value > 0)
                     translate([0, thickness+0.15, 0])
@@ -435,7 +483,39 @@ module corner_edge_panel_coupler(
                                     corner_reference_perforations_2d(
                                         side,direction,
                                         perforation_hole_diameter_value,
-                                        perforation_spacing
+                                        perforation_spacing,
+                                        horizontal_height,
+                                        vertical_width,
+                                        reference_pocket_steps_value,
+                                        reference_pocket_pitch_value,
+                                        reference_pocket_lane_offset_value
+                                    );
+                                }
+
+                if(show_center_marks_value && center_mark_depth_value > 0)
+                    translate([0, thickness+0.15, 0])
+                        rotate([90,0,0])
+                            linear_extrude(height=min(center_mark_depth_value,thickness-0.2)+0.15)
+                                intersection() {
+                                    offset(delta=-center_mark_edge_margin_value)
+                                        coupler_corner_profile_2d(
+                                            side=side,direction=direction,
+                                            width=size,height=size,
+                                            horizontal_arm_height=horizontal_height,
+                                            vertical_arm_width=vertical_width,
+                                            inside_radius=inside_radius,
+                                            outside_radius=outside_radius,
+                                            outward_x=outward_x,
+                                            outward_z=outward_z
+                                        );
+                                    coupler_center_marks_2d(
+                                        span_x=size, span_z=size,
+                                        pitch=center_mark_pitch_value,
+                                        dash_length=center_mark_dash_length_value,
+                                        dash_width=center_mark_dash_width_value,
+                                        cross_length=center_mark_cross_length_value,
+                                        keepout_points=[[0,0]],
+                                        keepout_radius=hole_diameter_value/2 + coupler_center_mark_screw_keepout_default()
                                     );
                                 }
             }
