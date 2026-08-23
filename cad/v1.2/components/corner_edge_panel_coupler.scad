@@ -101,15 +101,30 @@ module corner_panel_keepout_2d(side, direction, total_size) {
     side_w = hub75_rear_side_rail_width();
     end_w = hub75_rear_end_rail_width();
     corner_r = hub75_rear_opening_corner_radius();
+    span = total_size + 30;
 
-    // Rounded union of the real outer side rail and top/bottom end rail.
-    offset(r=corner_r)
-        offset(delta=-corner_r)
-            union() {
-                translate([edge_x + ix*side_w/2, 0])
-                    square([side_w, total_size+20], center=true);
-                translate([0, edge_z + iz*end_w/2])
-                    square([total_size+20, end_w], center=true);
+    // Build the actual panel material at the outside corner as the panel
+    // quadrant minus its rounded rear opening.  The earlier implementation
+    // rounded an L-shaped union of the side/end rails; that did not reproduce
+    // the small radius in the *opening* corner and therefore left the corner
+    // coupler too square in the rear fit section.
+    //
+    // Work in local +X/+Z coordinates pointing inward from the physical panel
+    // corner, then mirror that same geometry for the other three corners.
+    translate([edge_x, edge_z])
+        scale([ix, iz])
+            difference() {
+                square([span, span], center=false);
+
+                // Rear opening starts after the real side/end rails.  Rounding
+                // this rectangle gives the same corner radius as hub75_panel.
+                offset(r=corner_r)
+                    offset(delta=-corner_r)
+                        translate([side_w, end_w])
+                            square([
+                                span - side_w + corner_r,
+                                span - end_w + corner_r
+                            ], center=false);
             }
 }
 

@@ -91,12 +91,14 @@ panel_hole_diameter = 3.00;
 // Keep the STEP-derived value as a visual approximation until measured.
 panel_boss_outer_diameter = 14.0;
 
-// STEP-derived HUB75 connector geometry remains a visual reference only.
-data_connector_x = panel_ref_x(80.0135);
-data_connector_z_bottom = panel_ref_z(44.10);
-data_connector_z_top = panel_ref_z(264.60);
-data_connector_width = panel_ref_x(27.94);
-data_connector_height = panel_ref_z(9.50);
+// HUB75 IDC connector geometry.  Position is defined symmetrically from the
+// physical panel centre so top and bottom stay paired while tuning.
+data_connector_center_offset = 113.5;
+data_connector_x = panel_width / 2;
+data_connector_z_bottom = panel_height / 2 - data_connector_center_offset;
+data_connector_z_top = panel_height / 2 + data_connector_center_offset;
+data_connector_width = 27.90;
+data_connector_height = 9.50;
 data_connector_depth = 10.64;
 data_connector_front_y = 2.63;
 
@@ -254,7 +256,7 @@ middle_guide_end_rounding = coupler_guide_end_rounding;
 // Tapered centre rib enters the small gap between adjacent panels.
 middle_centre_rib_width = 3.0;
 middle_centre_rib_height = 4.0;
-middle_centre_rib_length = 30.0;
+middle_centre_rib_length = middle_panel_coupler_height;
 
 // Horizontal edge panel couplers use the same profile generator as the
 // middle PLUS, but their arm thickness follows the actual end-rail width.
@@ -288,7 +290,7 @@ horizontal_edge_panel_coupler_clip_root_depth = 5.0;
 // Tapered locating wedge in the vertical gap between adjacent panels.
 horizontal_edge_panel_coupler_wedge_width = 3.0;
 horizontal_edge_panel_coupler_wedge_height = 4.0;
-horizontal_edge_panel_coupler_wedge_length = 30.0;
+horizontal_edge_panel_coupler_wedge_length = horizontal_edge_panel_coupler_inboard_reach + panel_hole_z[0];
 
 // Outer display-edge ridge follows the same low tapered build-up as the
 // centre seam wedge, rather than the full 10 mm panel-fit guide height.

@@ -46,7 +46,7 @@ guide_end_rounding = 1.5;
 /* [Seam wedge] */
 seam_wedge_width = 3.0;
 seam_wedge_height = 4.0;
-seam_wedge_length = 30.0;
+seam_wedge_length = inboard_reach + screw_row_to_panel_edge;
 seam_wedge_end_radius = 1.2;
 
 /* [Outer display-edge ridge] */

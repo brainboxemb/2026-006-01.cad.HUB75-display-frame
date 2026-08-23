@@ -30,6 +30,17 @@ module project_hub75_panel(
         hole_z_top_value=panel_hole_z[2],
         hole_diameter_value=panel_hole_diameter,
 
+        // Pass the project connector values explicitly. hub75_panel() accepts
+        // these in STEP/reference coordinates and scales them to the physical
+        // panel dimensions internally.
+        data_connector_x_ref=data_connector_x * panel_reference_nominal_width / panel_width,
+        data_connector_z_bottom_ref=data_connector_z_bottom * panel_reference_nominal_height / panel_height,
+        data_connector_z_top_ref=data_connector_z_top * panel_reference_nominal_height / panel_height,
+        data_connector_width_ref=data_connector_width * panel_reference_nominal_width / panel_width,
+        data_connector_height_ref=data_connector_height * panel_reference_nominal_height / panel_height,
+        data_connector_depth_value=data_connector_depth,
+        data_connector_front_y_value=data_connector_front_y,
+
         show_orientation=orientation_visible,
         show_connectors=show_connectors,
         show_rear_recess=true,

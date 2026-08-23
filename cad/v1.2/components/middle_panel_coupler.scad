@@ -59,7 +59,7 @@ centre_locator_z = 0.0;
 // Kept as legacy parameters for assembly compatibility; V12 uses a tapered rib.
 centre_locator_diameter = 2.10;
 centre_locator_height = 2.0;
-centre_seam_rib_length = 30.0;
+centre_seam_rib_length = overall_height;
 centre_seam_rib_base_width = 3.0;
 centre_seam_rib_tip_width = 2.2;
 centre_seam_rib_height = 4.0;

@@ -1,4 +1,4 @@
-// HUB75 Display Frame - V1.2 / coupler refinement V62
+// HUB75 Display Frame - V1.2 / coupler refinement V71
 //
 // Simplified proof-of-concept based directly on V1.1:
 // - V1.1 HUB75 panel reference retained unchanged;
@@ -19,9 +19,10 @@ use <components/horizontal_edge_panel_coupler.scad>
 use <components/corner_edge_panel_coupler.scad>
 use <assemblies/middle_panel_coupler_fit_section.scad>
 use <assemblies/rear_fit_section.scad>
+use <components/_lib/reference_grid.scad>
 
 /* [View] */
-view_mode = "assembly"; // [assembly, exploded, panels, couplers, tubes, middle_panel_coupler, horizontal_edge_panel_coupler, middle_panel_fit_section, rear_fit_section, corner_edge_panel_coupler_left, corner_edge_panel_coupler_right]
+view_mode = "assembly"; // [assembly, exploded, panels, single_panel, couplers, tubes, middle_panel_coupler, horizontal_edge_panel_coupler, middle_panel_fit_section, rear_fit_section, corner_edge_panel_coupler_left, corner_edge_panel_coupler_right]
 
 /* [Visibility] */
 show_panels = true;
@@ -30,6 +31,11 @@ show_stiffening_tubes = true;
 show_orientation = false;
 show_panel_numbers = false;
 show_in_out_labels = false;
+
+/* [Reference grid (if supported)] */
+show_reference_grid = true;
+reference_grid_spacing = 10; // [5:5:20]
+reference_grid_half_step = true;
 
 /* [Exploded view] */
 exploded_distance = 40; // [10:5:80]
@@ -61,6 +67,27 @@ if(view_mode == "panels")
         panel_numbers_visible=show_panel_numbers,
         in_out_labels_visible=show_in_out_labels
     );
+
+// Generic reference-grid geometry lives in components/_lib/reference_grid.scad.
+// Each supported view supplies its own extents and plane position.
+
+// Single physical HUB75 panel, centred at the local component origin.
+// This view is intended for tuning panel details such as the IDC connector.
+if(view_mode == "single_panel") {
+    project_hub75_panel(
+        orientation_visible=show_orientation,
+        show_connectors=true
+    );
+
+    if(show_reference_grid)
+        reference_grid_xz(
+            width=panel_width,
+            height=panel_height,
+            y=panel_mounting_plane_y + 3.6,
+            major=reference_grid_spacing,
+            show_half=reference_grid_half_step
+        );
+}
 
 if(view_mode == "couplers")
     couplers_assembly();

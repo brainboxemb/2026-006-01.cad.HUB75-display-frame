@@ -169,14 +169,16 @@ rear_recess_corner_radius_reference = 0.8;
 
 /* [HUB75 connectors] */
 
-// Connector positions are retained from the existing STEP-based reference.
-data_connector_x_reference = 80.0135;
+// IDC connector centres are defined symmetrically from the physical panel
+// centre.  The reference-space offset below is chosen so the default
+// 319.71 mm panel resolves to exactly +/-113.5 mm from its centre.
+data_connector_x_reference = reference_width / 2;
+data_connector_center_offset_reference = 113.5 * reference_height / panel_height;
+data_connector_z_bottom_reference = reference_height/2 - data_connector_center_offset_reference;
+data_connector_z_top_reference = reference_height/2 + data_connector_center_offset_reference;
 
-data_connector_z_bottom_reference = 44.10;
-data_connector_z_top_reference = 264.60;
-
-data_connector_width_reference = 27.94;
-data_connector_height_reference = 9.50;
+data_connector_width_reference = 27.90 * reference_width / panel_width;
+data_connector_height_reference = 9.50 * reference_height / panel_height;
 
 data_connector_depth = 10.64;
 data_connector_front_y = 2.63;
