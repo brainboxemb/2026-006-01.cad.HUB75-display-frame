@@ -24,7 +24,14 @@ module project_hub75_panel(
     );
 }
 
-module rear_text_label(label, x, z, size=10, label_color=[0.05,0.05,0.05,1]) {
+// Rear-view annotation styling.  These are deliberately high-contrast against
+// both the grey panel body and the red couplers used in documentation renders.
+rear_panel_number_color = [0.25, 0.90, 1.00, 1];
+rear_input_label_color = [0.20, 1.00, 0.35, 1];
+rear_output_label_color = [0.25, 0.90, 1.00, 1];
+rear_io_label_visual_offset = 28;
+
+module rear_text_label(label, x, z, size=10, label_color=rear_panel_number_color) {
     color(label_color)
         translate([x, project_panel_rear_y + 0.35, z])
             rotate([90,0,180])
@@ -32,28 +39,52 @@ module rear_text_label(label, x, z, size=10, label_color=[0.05,0.05,0.05,1]) {
                     text(label, size=size, halign="center", valign="center");
 }
 
+// Annotation coordinates must follow the centred component coordinate system.
+// hub75_panel_data_connector_z_*() intentionally expose drawing coordinates
+// measured from the lower panel edge; panel_drawing_z() converts them to the
+// project coordinates used after hub75_panel() centres itself on Z=0.
+function panel_data_connector_z_top() =
+    panel_drawing_z(hub75_panel_data_connector_z_top());
+function panel_data_connector_z_bottom() =
+    panel_drawing_z(hub75_panel_data_connector_z_bottom());
+
+// The documentation camera looks at the rear with X visually mirrored.  Keep
+// this detail here so annotation placement is expressed in visual left/right
+// terms rather than by trial-and-error world-coordinate offsets.
+function rear_visual_x(panel_x, visual_offset) = panel_x - visual_offset;
+
 module panel_chain_annotations(global_index, show_number=true, show_io=true) {
     chain_no = panel_chain_number(global_index);
     input_top = panel_input_is_top(global_index);
     cx = panel_center_x(global_index);
+    input_z = input_top ? panel_data_connector_z_top() : panel_data_connector_z_bottom();
+    output_z = input_top ? panel_data_connector_z_bottom() : panel_data_connector_z_top();
 
     if(show_number)
-        rear_text_label(str(chain_no), cx, panel_center_z(), 15, [0.15,0.15,0.15,1]);
+        rear_text_label(
+            str(chain_no),
+            cx,
+            panel_center_z(),
+            15,
+            rear_panel_number_color
+        );
 
     if(show_io) {
+        // Put IN to the visual right and OUT to the visual left of their real
+        // HUB75 connector centre so the text no longer sits on top of it.
         rear_text_label(
-            chain_no == 1 ? "1  IN" : "IN",
-            cx,
-            input_top ? hub75_panel_data_connector_z_top() : hub75_panel_data_connector_z_bottom(),
+            "IN",
+            rear_visual_x(cx, rear_io_label_visual_offset),
+            input_z,
             8,
-            [0.0,0.35,0.0,1]
+            rear_input_label_color
         );
         rear_text_label(
             "OUT",
-            cx,
-            input_top ? hub75_panel_data_connector_z_bottom() : hub75_panel_data_connector_z_top(),
+            rear_visual_x(cx, -rear_io_label_visual_offset),
+            output_z,
             8,
-            [0.35,0.0,0.0,1]
+            rear_output_label_color
         );
     }
 }
