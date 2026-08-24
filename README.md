@@ -414,9 +414,9 @@ The decorative Ø3 mm blind-pocket raster adapts automatically to the effective 
 
 Each profile has a single Markdown gallery so all of its coupler renders can be reviewed without opening the PNG files one by one:
 
-- [Small coupler profile](docs/coupler-profiles/small.md)
-- [Medium coupler profile](docs/coupler-profiles/medium.md) — canonical V1.2 profile
-- [Large coupler profile](docs/coupler-profiles/large.md)
+- [Small coupler profile](doc/v1.2/small.md)
+- [Medium coupler profile](doc/v1.2/medium.md) — canonical V1.2 profile
+- [Large coupler profile](doc/v1.2/large.md)
 
 
 ### CAD structure
@@ -510,8 +510,11 @@ out/v1.2/png/
 │   ├── youtube_97l0Tzk7k6Y_modular-mft_w320.jpg
 │   ├── printables_brackets-for-joining-hub75-led-panels_w320.webp
 │   └── printables_hub75-5mm-pitch-4-panel-bracket_w320.webp
-├── docs/
-│   └── coupler-profiles/
+├── doc/
+│   ├── v1.0/
+│   ├── v1.1/
+│   └── v1.2/
+│       ├── README.md
 │       ├── small.md
 │       ├── medium.md
 │       └── large.md
