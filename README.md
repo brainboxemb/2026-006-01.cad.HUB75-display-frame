@@ -7,7 +7,7 @@ This repository contains the OpenSCAD development of a frame for five HUB75 LED 
 The design uses a modular OpenSCAD structure with reusable physical components, project-specific derived components and assemblies. Individual parts can be opened, rendered and tuned independently, while the complete construction can be viewed from `main.scad`.
 
 > **Project status:** Concept development  
-> V1.0 explored a frame based on 20 × 20 mm aluminium extrusion and is mainly retained as a reference concept. V1.1 explored a modular 3D-printed frame combined with two continuous aluminium tubes. Active development has moved to V1.2, which deliberately reduces the printed structure to direct panel-to-panel couplers so the mechanical strength can be tested before adding more complexity.
+> V1.0 explored a frame based on 20 × 20 mm aluminium extrusion and is mainly retained as a reference concept. V1.1 explored a modular 3D-printed frame combined with two continuous aluminium tubes. Active development has moved to V1.2, which deliberately reduces the printed structure to direct panel-to-panel couplers so the mechanical strength can be tested before adding more complexity. The V1.2 couplers now use four profile modes: `large`, `medium`, `small` and `custom`; the three named presets are fixed, while `custom` activates individually editable dimensions.
 
 ## V1.0
 
@@ -288,7 +288,7 @@ V1.2 deliberately separates **reusable physical components** from **project-deri
 - `tube_clip.scad` — reusable snap-clip geometry;
 - `_lib/reference_grid.scad` — generic inspection helper.
 
-`project_components/` contains printable parts whose geometry is deliberately derived from both reusable component dimensions and `project_config.scad`. The V1.2 couplers belong here because their clip positions, display-edge relationships and assembly clearances are specific to this project configuration. Shared coupler rules such as the nominal 5 mm material wall, rail-following fit and profile dimensions are kept in `project_components/_lib/` so edge and corner variants do not duplicate those calculations.
+`project_components/` contains printable parts whose geometry is deliberately derived from both reusable component dimensions and `project_config.scad`. The V1.2 couplers belong here because their clip positions, display-edge relationships and assembly clearances are specific to this project configuration. Shared coupler rules such as rail-following fit and profile dimensions are kept in `project_components/_lib/` so edge and corner variants do not duplicate those calculations. The material wall and guide height are selected through the project-wide coupler design profile.
 
 This means it is expected and intentional that a file in `project_components/` can depend on project settings. A generic component under `components/` should not.
 
@@ -395,6 +395,30 @@ between the shared profile rules of the middle, edge and corner variants.
 
 ![HUB75 display frame V1.2 - exploded rear angled view](out/v1.2/png/hub75-display-frame-exploded-rear-angled.png)
 
+### Coupler design profiles
+
+V1.2 provides three fixed project-wide coupler presets plus a custom mode. The profile can be selected from the OpenSCAD Customizer when `cad/v1.2/main.scad` is open.
+
+```text
+small        60 ×  60 mm profile envelope, 2 mm wall,  4 mm guide height, 2 mm base plate
+medium       80 ×  80 mm profile envelope, 4 mm wall,  6 mm guide height, 3 mm base plate
+large       100 × 100 mm profile envelope, 6 mm wall, 10 mm guide height, 4 mm base plate
+custom       user-entered profile size, wall thickness, guide height and base-plate thickness
+```
+
+The three named presets are fixed and reproducible. **Medium is the canonical V1.2 profile** and is used by the normal full-display documentation renders and the complete display STL. The numeric fields under **Custom coupler dimensions** are ignored while `large`, `medium` or `small` is selected. Selecting `custom` activates those four values directly; no separate enable checkbox and no magic `0` override values are used. The custom fields start with the medium dimensions as a practical baseline.
+
+The decorative Ø3 mm blind-pocket raster adapts automatically to the effective profile size, including custom sizes. Individual printable couplers are rendered and exported as STL for all three named profiles. Reusable objects such as the HUB75 panel and aluminium tube remain independent of these project-specific choices.
+
+#### Profile render galleries
+
+Each profile has a single Markdown gallery so all of its coupler renders can be reviewed without opening the PNG files one by one:
+
+- [Small coupler profile](docs/coupler-profiles/small.md)
+- [Medium coupler profile](docs/coupler-profiles/medium.md) — canonical V1.2 profile
+- [Large coupler profile](docs/coupler-profiles/large.md)
+
+
 ### CAD structure
 
 ```text
@@ -425,11 +449,11 @@ cad/v1.2/
 │   ├── coupler_comparison_assembly.scad
 │   └── display_assembly.scad
 ├── exports/
-│   ├── display.scad
-│   ├── middle_panel_coupler.scad
-│   ├── horizontal_edge_panel_coupler.scad
-│   ├── corner_edge_panel_coupler_left.scad
-│   └── corner_edge_panel_coupler_right.scad
+│   ├── display.scad                         # canonical MEDIUM complete display
+│   ├── middle_panel_coupler_{small,medium,large}.scad
+│   ├── horizontal_edge_panel_coupler_{small,medium,large}.scad
+│   ├── corner_edge_panel_coupler_left_{small,medium,large}.scad
+│   └── corner_edge_panel_coupler_right_{small,medium,large}.scad
 └── renders/
     ├── front.scad
     ├── front_angled.scad
@@ -440,8 +464,14 @@ cad/v1.2/
     ├── rear_wiring.scad
     ├── middle_panel_fit_section.scad
     ├── rear_fit_section.scad
-    ├── couplers_side_by_side.scad
-    ├── couplers_stacked.scad
+    ├── couplers_side_by_side.scad          # canonical MEDIUM comparison
+    ├── couplers_stacked.scad                # canonical MEDIUM comparison
+    ├── couplers_{small,medium,large}_side_by_side.scad
+    ├── couplers_{small,medium,large}_stacked.scad
+    ├── couplers_{small,medium,large}_middle.scad
+    ├── couplers_{small,medium,large}_horizontal_edge.scad
+    ├── couplers_{small,medium,large}_corner_left.scad
+    ├── couplers_{small,medium,large}_corner_right.scad
     ├── exploded_rear.scad
     └── exploded_rear_angled.scad
 ```
@@ -460,7 +490,7 @@ The HUB75 repository keeps the small caller workflow:
 .github/workflows/render-openscad.yml
 ```
 
-Each CAD version keeps its fixed camera definitions in `renders/*.scad`. V1.2 also keeps canonical printable entry points in `exports/*.scad`, including the complete assembled display and the individual coupler variants.
+Each CAD version keeps its fixed camera definitions in `renders/*.scad`. For V1.2 the normal display renders are fixed to the canonical `medium` profile. Additional coupler-only render entry points generate `small`, `medium` and `large` comparison/detail images. V1.2 also keeps printable entry points in `exports/*.scad`: the complete assembled display is exported once in `medium`, while each individual coupler variant is exported separately for `small`, `medium` and `large`.
 
 Generated render output is stored under:
 
@@ -480,6 +510,11 @@ out/v1.2/png/
 │   ├── youtube_97l0Tzk7k6Y_modular-mft_w320.jpg
 │   ├── printables_brackets-for-joining-hub75-led-panels_w320.webp
 │   └── printables_hub75-5mm-pitch-4-panel-bracket_w320.webp
+├── docs/
+│   └── coupler-profiles/
+│       ├── small.md
+│       ├── medium.md
+│       └── large.md
 ├── .github/
 │   └── workflows/
 │       └── render-openscad.yml

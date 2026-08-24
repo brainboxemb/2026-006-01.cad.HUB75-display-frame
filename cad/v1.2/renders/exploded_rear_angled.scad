@@ -2,6 +2,8 @@
 // Uses exactly the same camera as rear_angled.scad so the normal and exploded views compare directly.
 
 include <../config/project_config.scad>
+
+$coupler_design_profile = "medium"; // Canonical V1.2 documentation profile.
 use <../assemblies/display_assembly.scad>
 
 exploded_render_distance = 40;

@@ -1,11 +1,14 @@
 // HUB75 Display Frame - V1.2
 // STL export entry point: complete display assembly.
 //
-// The GitHub export action can export every *.scad file in exports/ without
-// needing to know assembly internals. This entry point exports the assembled
-// five-panel display including couplers and aluminium stiffening tubes.
+// The complete display is intentionally exported only in the canonical
+// MEDIUM coupler profile. Individual printable couplers are exported for
+// SMALL, MEDIUM and LARGE through their profile-specific entry points.
 
+include <../config/project_config.scad>
 use <../assemblies/display_assembly.scad>
+
+$coupler_design_profile = "medium";
 
 display_assembly(
     panels_visible=true,

@@ -2,6 +2,8 @@
 // This view keeps all exploded offsets easy to compare against the normal rear view.
 
 include <../config/project_config.scad>
+
+$coupler_design_profile = "medium"; // Canonical V1.2 documentation profile.
 use <../assemblies/display_assembly.scad>
 
 exploded_render_distance = 40;

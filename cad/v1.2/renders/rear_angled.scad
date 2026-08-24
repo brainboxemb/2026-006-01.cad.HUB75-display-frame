@@ -2,6 +2,8 @@
 // Exact mirrored counterpart of front_angled.scad.
 
 include <../config/project_config.scad>
+
+$coupler_design_profile = "medium"; // Canonical V1.2 documentation profile.
 use <../assemblies/display_assembly.scad>
 
 $vpt = [0, 0, 0];

@@ -1,4 +1,4 @@
-// HUB75 display frame - V1.2 coupler comparison assembly V105
+// HUB75 display frame - V1.2 coupler comparison assembly V108
 //
 // Diagnostic assembly for comparing all four printable coupler variants from
 // the same geometric reference point. The individual components remain fully
@@ -10,19 +10,19 @@ use <../components/hub75_panel.scad>
 use <../components/_lib/reference_grid.scad>
 
 /* [Coupler profile] */
-coupler_design_profile = "default"; // [default,lightweight]
-use_custom_coupler_dimensions = false;
-coupler_custom_profile_size = 100;
-coupler_custom_wall_thickness = 6;
-coupler_custom_guide_height = 10;
-coupler_custom_base_thickness = 4;
+coupler_design_profile = "medium"; // [small,medium,large,custom]
+
+/* [Custom coupler dimensions] */
+profile_size = 80;
+wall_thickness = 4;
+guide_height = 6;
+base_thickness = 3;
 
 $coupler_design_profile = coupler_design_profile;
-$coupler_use_custom_dimensions = use_custom_coupler_dimensions;
-$coupler_custom_profile_size = coupler_custom_profile_size;
-$coupler_custom_wall_thickness = coupler_custom_wall_thickness;
-$coupler_custom_guide_height = coupler_custom_guide_height;
-$coupler_custom_base_thickness = coupler_custom_base_thickness;
+$coupler_custom_profile_size = profile_size;
+$coupler_custom_wall_thickness = wall_thickness;
+$coupler_custom_guide_height = guide_height;
+$coupler_custom_base_thickness = base_thickness;
 
 // Comparison spacing is derived from the active nominal profile size.  It is
 // intentionally independent of the actual asymmetric edge/corner outlines:

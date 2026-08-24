@@ -1,0 +1,7 @@
+// STL export entry - V1.2 SMALL horizontal edge panel coupler.
+include <../config/project_config.scad>
+use <../components/hub75_panel.scad>
+use <../assemblies/couplers_assembly.scad>
+
+$coupler_design_profile = "small";
+project_horizontal_edge_panel_coupler(direction="top", screw_row_z=panel_hole_z_top());

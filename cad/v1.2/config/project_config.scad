@@ -87,53 +87,65 @@ function stiffening_tube_y() = project_panel_rear_y - tube_center_from_panel_rea
 function stiffening_tube_bottom_z() = -tube_center_spacing/2;
 function stiffening_tube_top_z() =  tube_center_spacing/2;
 
-// Coupler design profiles are project-level presets. User-facing controls
-// live in main.scad and standalone comparison views. A separate custom-mode
-// flag avoids magic 0 values: presets are always exact, while custom values
-// are applied only when explicitly enabled.
+// Coupler design profiles are project-level presets. The selected profile is
+// the single source of truth for all effective coupler dimensions. Three
+// named presets are fixed and reproducible; selecting "custom" switches the
+// model to the four user-entered custom dimensions.
+//
+//   small  =  60 mm, 2 mm wall,  4 mm guide, 2 mm base
+//   medium =  80 mm, 4 mm wall,  6 mm guide, 3 mm base
+//   large  = 100 mm, 6 mm wall, 10 mm guide, 4 mm base
 function coupler_profile_size_for(name) =
-    name == "lightweight" ? 88.0 : 100.0;
+    name == "small" ?  60.0 :
+    name == "large" ? 100.0 :
+                       80.0;
 function coupler_wall_thickness_for(name) =
-    name == "lightweight" ? 4.0 : 6.0;
+    name == "small" ? 2.0 :
+    name == "large" ? 6.0 :
+                      4.0;
 function coupler_guide_height_for(name) =
-    name == "lightweight" ? 6.0 : 10.0;
+    name == "small" ?  4.0 :
+    name == "large" ? 10.0 :
+                       6.0;
 function coupler_base_thickness_for(name) =
-    name == "lightweight" ? 3.0 : 4.0;
+    name == "small" ? 2.0 :
+    name == "large" ? 4.0 :
+                      3.0;
 
 function project_coupler_design_profile() =
-    is_undef($coupler_design_profile) ? "default" : $coupler_design_profile;
-function project_coupler_use_custom_dimensions() =
-    is_undef($coupler_use_custom_dimensions) ? false : $coupler_use_custom_dimensions;
+    is_undef($coupler_design_profile) ? "medium" : $coupler_design_profile;
 
+// Custom fields default to the medium preset.  They are deliberately ignored
+// unless the profile itself is set to "custom"; no extra enable checkbox and
+// no magic sentinel values are required.
 function project_coupler_custom_profile_size() =
-    is_undef($coupler_custom_profile_size) ? coupler_profile_size_for(project_coupler_design_profile()) : $coupler_custom_profile_size;
+    is_undef($coupler_custom_profile_size) ? coupler_profile_size_for("medium") : $coupler_custom_profile_size;
 function project_coupler_custom_wall_thickness() =
-    is_undef($coupler_custom_wall_thickness) ? coupler_wall_thickness_for(project_coupler_design_profile()) : $coupler_custom_wall_thickness;
+    is_undef($coupler_custom_wall_thickness) ? coupler_wall_thickness_for("medium") : $coupler_custom_wall_thickness;
 function project_coupler_custom_guide_height() =
-    is_undef($coupler_custom_guide_height) ? coupler_guide_height_for(project_coupler_design_profile()) : $coupler_custom_guide_height;
+    is_undef($coupler_custom_guide_height) ? coupler_guide_height_for("medium") : $coupler_custom_guide_height;
 function project_coupler_custom_base_thickness() =
-    is_undef($coupler_custom_base_thickness) ? coupler_base_thickness_for(project_coupler_design_profile()) : $coupler_custom_base_thickness;
+    is_undef($coupler_custom_base_thickness) ? coupler_base_thickness_for("medium") : $coupler_custom_base_thickness;
 
 function project_coupler_profile_size() =
-    project_coupler_use_custom_dimensions()
+    project_coupler_design_profile() == "custom"
         ? project_coupler_custom_profile_size()
         : coupler_profile_size_for(project_coupler_design_profile());
 function project_coupler_wall_thickness() =
-    project_coupler_use_custom_dimensions()
+    project_coupler_design_profile() == "custom"
         ? project_coupler_custom_wall_thickness()
         : coupler_wall_thickness_for(project_coupler_design_profile());
 function project_coupler_guide_height() =
-    project_coupler_use_custom_dimensions()
+    project_coupler_design_profile() == "custom"
         ? project_coupler_custom_guide_height()
         : coupler_guide_height_for(project_coupler_design_profile());
 function project_coupler_base_thickness() =
-    project_coupler_use_custom_dimensions()
+    project_coupler_design_profile() == "custom"
         ? project_coupler_custom_base_thickness()
         : coupler_base_thickness_for(project_coupler_design_profile());
 
 // Decorative Ø3 pockets scale with the selected/overridden profile size.
-// A 100 mm profile has stations at ±20/±30/±40 mm = 6 stations x 2 lanes.
-// An 88 mm profile drops the ±40 mm stations = 4 stations x 2 lanes.
+// The available decorative stations scale automatically with the active profile size.
 function project_coupler_reference_max_step() =
     max(2, floor((project_coupler_profile_size()/2 - 10.0) / 10.0));
 function project_coupler_reference_steps() =

@@ -424,7 +424,7 @@ module t_reference_perforations_2d(
     // actual T silhouette remove the unsupported outside row.
     //
     // Result: the remaining horizontal row and the vertical rows have exactly
-    // the same centre-to-edge distance, for default, lightweight and custom
+    // the same centre-to-edge distance, for all named profiles and custom mode
     // dimensions, without profile-specific correction constants.
     inward = direction == "top" ? -1 : 1;
 

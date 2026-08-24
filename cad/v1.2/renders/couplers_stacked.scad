@@ -2,6 +2,8 @@
 // One real mounting screw of every part is aligned on X = 0.
 // The standard 10 mm / half-step reference grid is enabled for fixed renders.
 include <../config/project_config.scad>
+
+$coupler_design_profile = "medium"; // Canonical V1.2 documentation profile.
 use <../assemblies/coupler_comparison_assembly.scad>
 
 $vpt = [0, 0, 0];
