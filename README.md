@@ -39,7 +39,7 @@ V1.0 is a concept drawing and is primarily retained as a reference for this cons
 The OpenSCAD model is stored in:
 
 ```text
-cad/v1.0/
+v1.0/cad/
 ```
 
 ### Renders
@@ -47,39 +47,39 @@ cad/v1.0/
 Reference renders generated from the V1.0 OpenSCAD model are stored in:
 
 ```text
-out/v1.0/png/
+v1.0/out/png/
 ```
 
 #### Front view
 
-![HUB75 display frame V1.0 - front view](out/v1.0/png/hub75-display-frame-front.png)
+![HUB75 display frame V1.0 - front view](v1.0/out/png/hub75-display-frame-front.png)
 
 #### Front angled view
 
-![HUB75 display frame V1.0 - front angled view](out/v1.0/png/hub75-display-frame-front-angled.png)
+![HUB75 display frame V1.0 - front angled view](v1.0/out/png/hub75-display-frame-front-angled.png)
 
 #### Rear view
 
-![HUB75 display frame V1.0 - rear view](out/v1.0/png/hub75-display-frame-rear.png)
+![HUB75 display frame V1.0 - rear view](v1.0/out/png/hub75-display-frame-rear.png)
 
 #### Rear angled view
 
-![HUB75 display frame V1.0 - rear angled view](out/v1.0/png/hub75-display-frame-rear-angled.png)
+![HUB75 display frame V1.0 - rear angled view](v1.0/out/png/hub75-display-frame-rear-angled.png)
 
 #### Exploded rear view
 
-![HUB75 display frame V1.0 - exploded rear view](out/v1.0/png/hub75-display-frame-exploded-rear.png)
+![HUB75 display frame V1.0 - exploded rear view](v1.0/out/png/hub75-display-frame-exploded-rear.png)
 
 #### Exploded rear angled view
 
-![HUB75 display frame V1.0 - exploded rear angled view](out/v1.0/png/hub75-display-frame-exploded-rear-angled.png)
+![HUB75 display frame V1.0 - exploded rear angled view](v1.0/out/png/hub75-display-frame-exploded-rear-angled.png)
 
 ### CAD structure
 
 The V1.0 OpenSCAD model is divided into configuration, individual components and assemblies. Fixed render definitions are included so documentation images can be reproduced locally or by the shared GitHub Actions renderer.
 
 ```text
-cad/v1.0/
+v1.0/cad/
 ├── main.scad
 ├── config/
 │   └── project_config.scad
@@ -103,7 +103,7 @@ cad/v1.0/
     └── exploded_rear_angled.scad
 ```
 
-Open `cad/v1.0/main.scad` to view and configure the complete model.
+Open `v1.0/cad/main.scad` to view and configure the complete model.
 
 ## V1.1
 
@@ -143,7 +143,7 @@ V1.1 is retained as the more elaborate modular printed-frame concept. V1.2 inten
 The OpenSCAD model is stored in:
 
 ```text
-cad/v1.1/
+v1.1/cad/
 ```
 
 ### Renders
@@ -151,39 +151,39 @@ cad/v1.1/
 Reference renders generated from the current V1.1 OpenSCAD model are stored in:
 
 ```text
-out/v1.1/png/
+v1.1/out/png/
 ```
 
 #### Front view
 
-![HUB75 display frame V1.1 - front view](out/v1.1/png/hub75-display-frame-front.png)
+![HUB75 display frame V1.1 - front view](v1.1/out/png/hub75-display-frame-front.png)
 
 #### Front angled view
 
-![HUB75 display frame V1.1 - front angled view](out/v1.1/png/hub75-display-frame-front-angled.png)
+![HUB75 display frame V1.1 - front angled view](v1.1/out/png/hub75-display-frame-front-angled.png)
 
 #### Rear view
 
-![HUB75 display frame V1.1 - rear view](out/v1.1/png/hub75-display-frame-rear.png)
+![HUB75 display frame V1.1 - rear view](v1.1/out/png/hub75-display-frame-rear.png)
 
 #### Rear angled view
 
-![HUB75 display frame V1.1 - rear angled view](out/v1.1/png/hub75-display-frame-rear-angled.png)
+![HUB75 display frame V1.1 - rear angled view](v1.1/out/png/hub75-display-frame-rear-angled.png)
 
 #### Exploded rear view
 
-![HUB75 display frame V1.1 - exploded rear view](out/v1.1/png/hub75-display-frame-exploded-rear.png)
+![HUB75 display frame V1.1 - exploded rear view](v1.1/out/png/hub75-display-frame-exploded-rear.png)
 
 #### Exploded rear angled view
 
-![HUB75 display frame V1.1 - exploded rear angled view](out/v1.1/png/hub75-display-frame-exploded-rear-angled.png)
+![HUB75 display frame V1.1 - exploded rear angled view](v1.1/out/png/hub75-display-frame-exploded-rear-angled.png)
 
 ### CAD structure
 
 V1.1 continues to use the modular OpenSCAD structure introduced for the project.
 
 ```text
-cad/v1.1/
+v1.1/cad/
 ├── main.scad
 ├── config/
 │   └── project_config.scad
@@ -207,7 +207,7 @@ cad/v1.1/
     └── exploded_rear_angled.scad
 ```
 
-Open `cad/v1.1/main.scad` to view the complete concept.
+Open `v1.1/cad/main.scad` to view the complete concept.
 
 ## V1.2
 
@@ -324,44 +324,44 @@ The following Printables projects are useful references for refining the printed
 Reference renders generated from the current V1.2 OpenSCAD model are stored in:
 
 ```text
-out/v1.2/png/
+v1.2/out/png/
 ```
 
 #### Panel reference
 
-![HUB75 panel V1.2 - rear reference](out/v1.2/png/hub75-display-frame-panel.png)
+![HUB75 panel V1.2 - rear reference](v1.2/out/png/hub75-display-frame-panel.png)
 
 #### Panel reference — angled
 
-![HUB75 panel V1.2 - angled rear reference](out/v1.2/png/hub75-display-frame-panel-angled.png)
+![HUB75 panel V1.2 - angled rear reference](v1.2/out/png/hub75-display-frame-panel-angled.png)
 
 #### Front view
 
-![HUB75 display frame V1.2 - front view](out/v1.2/png/hub75-display-frame-front.png)
+![HUB75 display frame V1.2 - front view](v1.2/out/png/hub75-display-frame-front.png)
 
 #### Front angled view
 
-![HUB75 display frame V1.2 - front angled view](out/v1.2/png/hub75-display-frame-front-angled.png)
+![HUB75 display frame V1.2 - front angled view](v1.2/out/png/hub75-display-frame-front-angled.png)
 
 #### Rear view
 
-![HUB75 display frame V1.2 - rear view](out/v1.2/png/hub75-display-frame-rear.png)
+![HUB75 display frame V1.2 - rear view](v1.2/out/png/hub75-display-frame-rear.png)
 
 #### Rear angled view
 
-![HUB75 display frame V1.2 - rear angled view](out/v1.2/png/hub75-display-frame-rear-angled.png)
+![HUB75 display frame V1.2 - rear angled view](v1.2/out/png/hub75-display-frame-rear-angled.png)
 
 #### Rear wiring / panel order
 
 This view shows the HUB75 panel chain as seen from the rear. Panel 1 is the first module in the chain, with its input positioned at the top. The alternating panel orientation makes the intended IN/OUT routing across the five panels easier to verify.
 
-![HUB75 display frame V1.2 - rear wiring and panel order](out/v1.2/png/hub75-display-frame-rear-wiring.png)
+![HUB75 display frame V1.2 - rear wiring and panel order](v1.2/out/png/hub75-display-frame-rear-wiring.png)
 
 #### Rear fit section
 
 This diagnostic render shows a section through the complete rear assembly, 5 mm into the panel structure. It is intended to make the fit between the printed couplers and the HUB75 rear ribs visible across all panel seams at once.
 
-![HUB75 display frame V1.2 - rear fit section](out/v1.2/png/hub75-display-frame-rear-fit-section.png)
+![HUB75 display frame V1.2 - rear fit section](v1.2/out/png/hub75-display-frame-rear-fit-section.png)
 
 #### Coupler comparison — side by side
 
@@ -371,7 +371,7 @@ reference. The reference points are placed on grid intersections, making it
 easier to compare the nominal panel-edge references, overall height and profile
 proportions across the coupler family.
 
-![HUB75 display frame V1.2 - couplers side by side](out/v1.2/png/hub75-display-frame-couplers-side-by-side.png)
+![HUB75 display frame V1.2 - couplers side by side](v1.2/out/png/hub75-display-frame-couplers-side-by-side.png)
 
 #### Coupler comparison — stacked
 
@@ -381,23 +381,23 @@ The same four variants are stacked vertically for a second proportional check.
 The view is intended primarily for comparing overall width and the relationship
 between the shared profile rules of the middle, edge and corner variants.
 
-![HUB75 display frame V1.2 - couplers stacked](out/v1.2/png/hub75-display-frame-couplers-stacked.png)
+![HUB75 display frame V1.2 - couplers stacked](v1.2/out/png/hub75-display-frame-couplers-stacked.png)
 
 #### Middle panel coupler fit section
 
-![HUB75 display frame V1.2 - middle panel coupler fit section](out/v1.2/png/hub75-display-frame-middle-panel-fit-section.png)
+![HUB75 display frame V1.2 - middle panel coupler fit section](v1.2/out/png/hub75-display-frame-middle-panel-fit-section.png)
 
 #### Exploded rear view
 
-![HUB75 display frame V1.2 - exploded rear view](out/v1.2/png/hub75-display-frame-exploded-rear.png)
+![HUB75 display frame V1.2 - exploded rear view](v1.2/out/png/hub75-display-frame-exploded-rear.png)
 
 #### Exploded rear angled view
 
-![HUB75 display frame V1.2 - exploded rear angled view](out/v1.2/png/hub75-display-frame-exploded-rear-angled.png)
+![HUB75 display frame V1.2 - exploded rear angled view](v1.2/out/png/hub75-display-frame-exploded-rear-angled.png)
 
 ### Coupler design profiles
 
-V1.2 provides three fixed project-wide coupler presets plus a custom mode. The profile can be selected from the OpenSCAD Customizer when `cad/v1.2/main.scad` is open.
+V1.2 provides three fixed project-wide coupler presets plus a custom mode. The profile can be selected from the OpenSCAD Customizer when `v1.2/cad/main.scad` is open.
 
 ```text
 small        60 ×  60 mm profile envelope, 2 mm wall,  4 mm guide height, 2 mm base plate
@@ -414,15 +414,15 @@ The decorative Ø3 mm blind-pocket raster adapts automatically to the effective 
 
 Each profile has a single Markdown gallery so all of its coupler renders can be reviewed without opening the PNG files one by one:
 
-- [Small coupler profile](doc/v1.2/small.md)
-- [Medium coupler profile](doc/v1.2/medium.md) — canonical V1.2 profile
-- [Large coupler profile](doc/v1.2/large.md)
+- [Small coupler profile](v1.2/doc/small.md)
+- [Medium coupler profile](v1.2/doc/medium.md) — canonical V1.2 profile
+- [Large coupler profile](v1.2/doc/large.md)
 
 
 ### CAD structure
 
 ```text
-cad/v1.2/
+v1.2/cad/
 ├── main.scad
 ├── config/
 │   └── project_config.scad
@@ -476,7 +476,7 @@ cad/v1.2/
     └── exploded_rear_angled.scad
 ```
 
-Open `cad/v1.2/main.scad` to view the complete concept.
+Open `v1.2/cad/main.scad` to view the complete concept.
 
 `assemblies/coupler_comparison_assembly.scad` is also directly openable in OpenSCAD. It provides `side_by_side` and `stacked` comparison modes and can use the same reference-grid settings as the normal inspection views.
 
@@ -495,12 +495,14 @@ Each CAD version keeps its fixed camera definitions in `renders/*.scad`. For V1.
 Generated render output is stored under:
 
 ```text
-out/v1.0/png/
-out/v1.1/png/
-out/v1.2/png/
+v1.0/out/png/
+v1.1/out/png/
+v1.2/out/png/
 ```
 
 ## Repository structure
+
+Each design version is kept as a self-contained package. Its CAD sources, documentation and generated output live together under the version directory.
 
 ```text
 .
@@ -510,23 +512,25 @@ out/v1.2/png/
 │   ├── youtube_97l0Tzk7k6Y_modular-mft_w320.jpg
 │   ├── printables_brackets-for-joining-hub75-led-panels_w320.webp
 │   └── printables_hub75-5mm-pitch-4-panel-bracket_w320.webp
-├── doc/
-│   ├── v1.0/
-│   ├── v1.1/
-│   └── v1.2/
-│       ├── README.md
-│       ├── small.md
-│       ├── medium.md
-│       └── large.md
 ├── .github/
 │   └── workflows/
 │       └── render-openscad.yml
-├── cad/
-│   ├── v1.0/
-│   ├── v1.1/
-│   └── v1.2/
-└── out/
-    ├── v1.0/
-    ├── v1.1/
-    └── v1.2/
+├── v1.0/
+│   ├── cad/
+│   ├── doc/
+│   └── out/
+├── v1.1/
+│   ├── cad/
+│   ├── doc/
+│   └── out/
+└── v1.2/
+    ├── cad/
+    ├── doc/
+    │   ├── README.md
+    │   ├── small.md
+    │   ├── medium.md
+    │   └── large.md
+    └── out/
+        ├── png/
+        └── stl/
 ```
