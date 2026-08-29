@@ -34,14 +34,18 @@ module rear_fit_section(
     show_panel_numbers=false,
     show_io_labels=false
 ) {
-    // Grey: real panel geometry up to the 5 mm section plane.
+    // Grey: rear structural panel frame only. The front pixel face and PCB are hidden
+    // so individual panel rims and seams remain readable in this verification view.
     color([0.68, 0.68, 0.68, 1])
         intersection() {
             panels_assembly(
                 orientation_visible=false,
                 panel_numbers_visible=show_panel_numbers,
                 in_out_labels_visible=show_io_labels,
-                show_connectors=false
+                show_connectors=false,
+                show_front_layers=false,
+                body_color_value=[0.68, 0.68, 0.68, 1],
+                web_color_value=[0.52, 0.52, 0.52, 1]
             );
             rear_section_keep_volume(depth, margin);
         }

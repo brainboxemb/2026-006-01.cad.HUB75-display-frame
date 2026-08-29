@@ -546,3 +546,8 @@ v1.2/out/png/
     ├── v1.1/
     └── v1.2/
 ```
+
+
+### V1.2 fit verification
+
+The rear-fit diagnostic render hides the panel front face/PCB and shows only the rear structural rims, making panel seams and coupler engagement easier to inspect.

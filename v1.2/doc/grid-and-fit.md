@@ -21,3 +21,8 @@ For the current panel model:
 The middle and horizontal-edge couplers use the same shared calculation. The locator is centred exactly on the nominal 160 mm grid seam. It is mostly parallel-sided, with only a short lead-in taper at the insertion tip; the earlier full-height wedge is intentionally avoided.
 
 The selected small/medium/large coupler profile changes plate, wall and guide dimensions, but it does not move the nominal grid or scale the physical print clearance.
+
+
+## Rear fit verification view
+
+The full rear fit verification render deliberately hides the front pixel face and PCB of each HUB75 panel. Only the rear structural panel frame is shown in grey. This makes the individual panel perimeter, nominal seams and coupler engagement visible instead of merging the five panels into one large grey rectangle.

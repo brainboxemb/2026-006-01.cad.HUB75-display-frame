@@ -9,15 +9,19 @@ use <../components/hub75_panel.scad>
 
 module project_hub75_panel(
     orientation_visible=true,
-    show_connectors=true
+    show_connectors=true,
+    show_front_layers=true,
+    body_color_value=color_panel,
+    web_color_value=[0.62, 0.62, 0.62, 1]
 ) {
     hub75_panel(
         show_orientation=orientation_visible,
         show_connectors=show_connectors,
+        show_front_layers=show_front_layers,
         show_rear_recess=true,
         show_pdf_verification_grid=false,
-        body_color=color_panel,
-        web_color=[0.62, 0.62, 0.62, 1],
+        body_color=body_color_value,
+        web_color=web_color_value,
         front_color=[0.52, 0.52, 0.52, 1],
         pcb_color=color_pcb,
         connector_color=[0.06, 0.06, 0.06, 1]
@@ -94,7 +98,10 @@ module panels_assembly(
     orientation_visible=true,
     panel_numbers_visible=true,
     in_out_labels_visible=true,
-    show_connectors=true
+    show_connectors=true,
+    show_front_layers=true,
+    body_color_value=color_panel,
+    web_color_value=[0.62, 0.62, 0.62, 1]
 ) {
     for(i=[0:panel_count-1]) {
         translate([
@@ -106,12 +113,18 @@ module panels_assembly(
                 rotate([0,180,0])
                     project_hub75_panel(
                         orientation_visible=orientation_visible,
-                        show_connectors=show_connectors
+                        show_connectors=show_connectors,
+                        show_front_layers=show_front_layers,
+                        body_color_value=body_color_value,
+                        web_color_value=web_color_value
                     );
             else
                 project_hub75_panel(
                     orientation_visible=orientation_visible,
-                    show_connectors=show_connectors
+                    show_connectors=show_connectors,
+                    show_front_layers=show_front_layers,
+                    body_color_value=body_color_value,
+                    web_color_value=web_color_value
                 );
 
         if(panel_numbers_visible || in_out_labels_visible)

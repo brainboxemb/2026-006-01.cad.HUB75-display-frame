@@ -418,6 +418,7 @@ module hub75_panel(
 
     show_orientation = true,
     show_connectors = true,
+    show_front_layers = true,
     show_rear_recess = true,
     show_pdf_verification_grid = false,
 
@@ -1313,26 +1314,28 @@ module hub75_panel(
     union() {
         difference() {
             union() {
-            // Front pixel housing.
-            color(front_color)
-                cube([
-                    width,
-                    front_mask_depth_value,
-                    height
-                ]);
-
-            // PCB.
-            color(pcb_color)
-                translate([
-                    0,
-                    front_mask_depth_value,
-                    0
-                ])
+            // Front pixel housing and PCB. These can be hidden in diagnostic
+            // fit renders so only the rear structural frame remains visible.
+            if(show_front_layers) {
+                color(front_color)
                     cube([
                         width,
-                        pcb_thickness_value,
+                        front_mask_depth_value,
                         height
                     ]);
+
+                color(pcb_color)
+                    translate([
+                        0,
+                        front_mask_depth_value,
+                        0
+                    ])
+                        cube([
+                            width,
+                            pcb_thickness_value,
+                            height
+                        ]);
+            }
 
             // Rear structural housing.
             rear_frame_structure();
