@@ -56,8 +56,8 @@ module couplers_assembly(yshift=0, exploded=false) {
     }
 
     // Four outside corners.
-    left_x = panel_x(0) + hub75_panel_hole_x_left();
-    right_x = panel_x(panel_count-1) + hub75_panel_hole_x_right();
+    left_x = panel_center_x(0) + hub75_panel_hole_x_left_centered();
+    right_x = panel_center_x(panel_count-1) + hub75_panel_hole_x_right_centered();
 
     for(direction=["bottom","top"]) {
         z = direction == "top" ? panel_hole_z_top() : panel_hole_z_bottom();

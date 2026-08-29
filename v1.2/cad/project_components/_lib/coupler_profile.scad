@@ -8,7 +8,11 @@
 // These are component-family properties, not project/assembly configuration.
 function coupler_base_thickness_default() = 4.0;
 function coupler_wall_thickness_default() = 5.0;
-function coupler_fit_clearance_default() = 0.50;
+// Printable mating clearance PER SIDE around real HUB75 rear-frame geometry.
+// 0.25 mm is intentionally independent of the small/medium/large profile;
+// changing the coupler size must never scale the physical panel fit.
+function coupler_print_fit_clearance_per_side_default() = 0.25;
+function coupler_fit_clearance_default() = coupler_print_fit_clearance_per_side_default();
 function coupler_profile_size_default() = 100.0;
 function coupler_profile_inside_radius_default() = 10.0;
 function coupler_profile_outside_radius_default() = 6.0;
@@ -19,7 +23,9 @@ function coupler_reference_pocket_diameter_default() = 3.0;
 function coupler_reference_pocket_depth_default() = 2.5;
 function coupler_bushing_clearance_default() = 0.45;
 function coupler_locator_pin_clearance_default() = 0.40;
-function coupler_seam_wedge_width_default() = 3.0;
+// Legacy seam wedge width.  Real seam locator width is now derived from the
+// nominal-grid gap minus printable clearance in coupler_dimensions.scad.
+function coupler_seam_wedge_width_default() = 0.0;
 function coupler_seam_wedge_height_default() = 4.0;
 function coupler_profile_side_material_default() = coupler_wall_thickness_default() + coupler_fit_clearance_default();
 

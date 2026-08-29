@@ -12,8 +12,15 @@ use <coupler_profile.scad>
 function coupler_project_side_material() =
     project_coupler_wall_thickness() + coupler_fit_clearance_default();
 
-function coupler_project_panel_seam_gap() =
-    max(0, hub75_panel_nominal_width() - hub75_panel_width());
+function coupler_project_panel_seam_gap() = max(0, hub75_panel_grid_gap_x());
+
+// A positive blade between adjacent panel bodies is only legal when it fits
+// inside the REAL free gap after clearance on both faces.  With the current
+// panel (159.70 mm in a 160.00 mm cell) and 0.25 mm/side print clearance this
+// correctly evaluates to zero: alignment is provided by the rear-rail guides
+// and screw pattern, not by an impossible 3 mm seam wedge.
+function coupler_project_seam_locator_width(clearance=coupler_fit_clearance_default()) =
+    max(0, coupler_project_panel_seam_gap() - 2*clearance);
 
 // Both edge and corner parts sit around the same physical top/bottom rear rail.
 function coupler_project_horizontal_arm_height() =

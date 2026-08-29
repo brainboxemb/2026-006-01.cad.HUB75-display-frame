@@ -103,13 +103,13 @@ function corner_locator_pin_z(direction) =
 // raster tied to the rounded 160 x 320 reference envelope.
 function corner_nominal_reference_x(side) =
     side == "left"
-        ? -hub75_panel_hole_x_left()
-        : hub75_panel_nominal_width() - hub75_panel_hole_x_right();
+        ? -hub75_panel_nominal_width()/2 - hub75_panel_hole_x_left_centered()
+        :  hub75_panel_nominal_width()/2 - hub75_panel_hole_x_right_centered();
 
 function corner_nominal_reference_z(direction) =
     direction == "top"
-        ? hub75_panel_nominal_height() - hub75_panel_hole_z_top()
-        : -hub75_panel_hole_z_bottom();
+        ?  hub75_panel_nominal_height()/2 - hub75_panel_hole_z_top_centered()
+        : -hub75_panel_nominal_height()/2 - hub75_panel_hole_z_bottom_centered();
 
 // Public comparison/inspection anchors.  These are the nominal 160 x 320 mm
 // corner (+) expressed in the screw-centred local component system.

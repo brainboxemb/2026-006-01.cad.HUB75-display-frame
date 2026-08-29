@@ -34,8 +34,8 @@ outer_corner_radius = coupler_profile_outside_radius_default();
 base_thickness = project_coupler_base_thickness();
 
 /* [Mounting holes] */
-left_hole_x = hub75_panel_hole_x_right() - hub75_panel_nominal_width();
-right_hole_x = hub75_panel_hole_x_left();
+left_hole_x = -hub75_panel_nominal_width()/2 + hub75_panel_hole_x_right_centered();
+right_hole_x = hub75_panel_nominal_width()/2 + hub75_panel_hole_x_left_centered();
 hole_diameter = coupler_screw_hole_diameter_default();
 screw_relief_depth = coupler_screw_relief_depth_default();
 screw_relief_radial = coupler_screw_relief_radial_default();
@@ -47,7 +47,7 @@ guide_height = project_coupler_guide_height();
 guide_end_rounding = coupler_guide_end_rounding_default();
 
 /* [Seam wedge] */
-seam_wedge_width = coupler_seam_wedge_width_default();
+seam_wedge_width = coupler_project_seam_locator_width(rib_clearance);
 seam_wedge_height = coupler_seam_wedge_height_default();
 seam_wedge_length = inboard_reach;
 seam_wedge_end_radius = 1.2;
@@ -55,7 +55,9 @@ seam_wedge_end_radius = 1.2;
 /* [Outer display-edge ridge] */
 // Keep this low ridge equal in height and taper to the small seam wedge.
 outer_ridge_height = seam_wedge_height;
-outer_ridge_taper_inset = seam_wedge_width * (1.0 - 0.73) / 2;
+// Outer edge ridge is not a seam blade.  Give its low wall a small printable
+// taper independent of the (currently zero) inter-panel seam locator width.
+outer_ridge_taper_inset = min(0.5, wall_thickness/4);
 
 /* [Reinforcement bushing relief] */
 reinforcement_bushing_clearance = coupler_bushing_clearance_default();

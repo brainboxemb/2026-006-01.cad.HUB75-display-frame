@@ -17,7 +17,7 @@ wall_thickness = project_coupler_wall_thickness();
 fit_clearance = coupler_fit_clearance_default();
 profile_side_material = wall_thickness + fit_clearance;
 horizontal_arm_height = hub75_rear_middle_rib_width() + 2*profile_side_material;
-vertical_arm_width = 2*hub75_rear_side_rail_width() + 2*profile_side_material;
+vertical_arm_width = coupler_project_edge_vertical_arm_width();
 inside_corner_radius = coupler_profile_inside_radius_default();
 outer_corner_radius = coupler_profile_outside_radius_default();
 
@@ -27,8 +27,8 @@ rib_clearance = coupler_fit_clearance_default();
 guide_end_rounding = coupler_guide_end_rounding_default();
 
 /* [Mounting screws] */
-left_screw_x = hub75_panel_hole_x_right() - hub75_panel_nominal_width();
-right_screw_x = hub75_panel_hole_x_left();
+left_screw_x = -hub75_panel_nominal_width()/2 + hub75_panel_hole_x_right_centered();
+right_screw_x = hub75_panel_nominal_width()/2 + hub75_panel_hole_x_left_centered();
 screw_hole_diameter = coupler_screw_hole_diameter_default();
 screw_relief_depth = coupler_screw_relief_depth_default();
 screw_relief_radial = coupler_screw_relief_radial_default();
@@ -62,8 +62,8 @@ centre_locator_z = 0.0;
 centre_locator_diameter = 2.10;
 centre_locator_height = 2.0;
 centre_seam_rib_length = overall_height;
-centre_seam_rib_base_width = 3.0;
-centre_seam_rib_tip_width = 2.2;
+centre_seam_rib_base_width = coupler_project_seam_locator_width(rib_clearance);
+centre_seam_rib_tip_width = centre_seam_rib_base_width;
 centre_seam_rib_height = 4.0;
 centre_seam_rib_end_radius = 1.0;
 reinforcement_bushing_clearance = coupler_bushing_clearance_default();
@@ -78,6 +78,7 @@ $fn = 96;
 
 use <../components/hub75_panel.scad>
 use <_lib/coupler_profile.scad>
+use <_lib/coupler_dimensions.scad>
 
 
 // Shared PLUS/T silhouette is defined in _lib/coupler_profile.scad.
@@ -124,7 +125,7 @@ module rib_side_guides_2d(
     end_rounding=0
 ) {
     horizontal_rib_w = hub75_rear_middle_rib_width();
-    vertical_rib_w = 2 * hub75_rear_side_rail_width();
+    vertical_rib_w = coupler_project_edge_seam_keepout_width();
     opening_corner_r = hub75_rear_opening_corner_radius();
 
     // First form the exact guide around the real rib keep-out, then apply a

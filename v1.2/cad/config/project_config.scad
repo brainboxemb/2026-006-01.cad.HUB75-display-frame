@@ -19,9 +19,14 @@ panel_count = 5;
 rear_chain_start_side = "left"; // [left,right]
 first_panel_input_side = "top"; // [top,bottom]
 
-// Assembly pitch defaults to the nominal panel width. This is an assembly
-// choice rather than a physical property of the panel component.
-panel_pitch = hub75_panel_nominal_width();
+// Exact placement grid.  The supplied panel is nominally 320 x 160 mm in
+// landscape orientation; this project uses it portrait, so X pitch is 160 mm
+// and Z pitch is 320 mm.  The physical body is slightly smaller and is centred
+// inside this nominal cell.  Coupler references MUST follow this grid, never
+// the physical panel edge.
+panel_grid_pitch_x = hub75_panel_nominal_width();
+panel_grid_pitch_z = hub75_panel_nominal_height();
+panel_pitch = panel_grid_pitch_x; // backwards-compatible assembly alias
 
 // Project coordinate system:
 //   X = 0 : centre of the complete physical panel array
@@ -39,23 +44,28 @@ function panel_input_is_top(global_index) =
 
 function panel_rotated(global_index) = !panel_input_is_top(global_index);
 
-function display_nominal_width() = panel_count * panel_pitch;
-function display_nominal_height() = hub75_panel_nominal_height();
-function display_actual_width() = (panel_count - 1) * panel_pitch + hub75_panel_width();
+function display_nominal_width() = panel_count * panel_grid_pitch_x;
+function display_nominal_height() = panel_grid_pitch_z;
+function display_actual_width() = display_nominal_width() - hub75_panel_grid_gap_x();
 function display_actual_height() = hub75_panel_height();
 
-// The first panel's physical left edge is chosen so the complete physical
-// panel array is centred exactly around X=0. The nominal pitch remains 160 mm.
-function panel_x(index) = -display_actual_width()/2 + index * panel_pitch;
-function panel_center_x(index) = panel_x(index) + hub75_panel_width()/2;
+// Nominal grid is authoritative.  Every physical panel is centred in its
+// 160 x 320 mm cell; its 0.30 x 0.29 mm undersize therefore appears as equal
+// margins on both sides instead of shifting seams/couplers by half the gap.
+function panel_nominal_left_x(index) = -display_nominal_width()/2 + index * panel_grid_pitch_x;
+function panel_center_x(index) = panel_nominal_left_x(index) + panel_grid_pitch_x/2;
+function panel_x(index) = panel_center_x(index) - hub75_panel_width()/2;
 function panel_center_z() = 0;
+function panel_nominal_bottom_z() = -panel_grid_pitch_z/2;
+function panel_nominal_top_z() = panel_grid_pitch_z/2;
 function panel_front_y() = project_panel_rear_y - hub75_panel_mounting_plane_y();
 function panel_drawing_z(global_drawing_z) = global_drawing_z - hub75_panel_height()/2;
 function panel_hole_z_bottom() = panel_drawing_z(hub75_panel_hole_z_bottom());
 function panel_hole_z_middle() = panel_drawing_z(hub75_panel_hole_z_middle());
 function panel_hole_z_top() = panel_drawing_z(hub75_panel_hole_z_top());
 function panel_hole_z_positions() = [panel_hole_z_bottom(), panel_hole_z_middle(), panel_hole_z_top()];
-function seam_x(seam_index) = panel_x(seam_index) + panel_pitch;
+// Internal coupler centres sit exactly on the nominal grid boundaries.
+function seam_x(seam_index) = -display_nominal_width()/2 + (seam_index + 1) * panel_grid_pitch_x;
 
 /* [Project envelope and stiffening tubes] */
 // These values describe how otherwise reusable components are combined in

@@ -282,6 +282,24 @@ function hub75_panel_hole_z_middle() = hole_z_middle;
 function hub75_panel_hole_z_top() = hole_z_top;
 function hub75_panel_hole_x_positions() = [hole_x_left, hole_x_right];
 function hub75_panel_hole_z_positions() = [hole_z_bottom, hole_z_middle, hole_z_top];
+
+// Centred physical mounting coordinates.  Use these whenever project geometry
+// is referenced to the nominal 160 x 320 mm placement grid.  The drawing
+// coordinates above are measured from the physical panel edge and therefore
+// must not be mixed directly with nominal-grid coordinates.
+function hub75_panel_hole_x_left_centered() = hole_x_left - panel_width/2;
+function hub75_panel_hole_x_right_centered() = hole_x_right - panel_width/2;
+function hub75_panel_hole_z_bottom_centered() = hole_z_bottom - panel_height/2;
+function hub75_panel_hole_z_middle_centered() = hole_z_middle - panel_height/2;
+function hub75_panel_hole_z_top_centered() = hole_z_top - panel_height/2;
+
+// Physical panel undersize relative to the exact nominal placement cell.
+// In this portrait model the original 320 x 160 landscape grid becomes
+// X = 160 mm and Z = 320 mm.
+function hub75_panel_grid_gap_x() = reference_width - panel_width;
+function hub75_panel_grid_gap_z() = reference_height - panel_height;
+function hub75_panel_grid_margin_x() = hub75_panel_grid_gap_x()/2;
+function hub75_panel_grid_margin_z() = hub75_panel_grid_gap_z()/2;
 function hub75_panel_mounting_tube_outer_diameter() = mounting_tube_outer_diameter;
 function hub75_panel_data_connector_x() = panel_width/2;
 function hub75_panel_data_connector_center_offset() = 113.5;

@@ -230,6 +230,8 @@ The current V1.2 concept includes:
 
 The printed couplers follow the actual rear-panel rib geometry and use the existing screw locations, locator features and reinforcement-bushing geometry as alignment references. The edge and corner families are dimensioned from the nominal 160 × 320 mm panel boundary while their physical fit geometry remains tied to the real panel rails, holes and bosses. This keeps the parts visually and mechanically consistent without moving the real fit features.
 
+The nominal placement grid is authoritative: the original panel is **320 × 160 mm**, and in this portrait assembly each cell is therefore **160 mm in X × 320 mm in Z**. The measured physical panel is 159.70 × 319.71 mm and is centred inside that cell. Internal coupler centres sit exactly on the nominal grid boundaries, while the physical undersize appears only as a small panel-to-panel gap. Panel-fit guides use a fixed **0.25 mm clearance per mating side**, independent of the small/medium/large coupler profile. Because the current X seam gap is only 0.30 mm, no printed seam blade is generated between adjacent panel bodies; a 3 mm locator wedge would be physically impossible there.
+
 ### Panel dimensional basis
 
 For V1.2, the panel's mechanical dimensions and mounting pattern are modelled in `components/hub75_panel.scad`. This component is deliberately project-independent and is the authoritative source for the physical panel geometry.
@@ -502,8 +504,6 @@ v1.2/out/png/
 
 ## Repository structure
 
-Each design version is kept as a self-contained package. Its CAD sources, documentation and generated output live together under the version directory.
-
 ```text
 .
 ├── README.md
@@ -512,25 +512,23 @@ Each design version is kept as a self-contained package. Its CAD sources, docume
 │   ├── youtube_97l0Tzk7k6Y_modular-mft_w320.jpg
 │   ├── printables_brackets-for-joining-hub75-led-panels_w320.webp
 │   └── printables_hub75-5mm-pitch-4-panel-bracket_w320.webp
+├── doc/
+│   ├── v1.0/
+│   ├── v1.1/
+│   └── v1.2/
+│       ├── README.md
+│       ├── small.md
+│       ├── medium.md
+│       └── large.md
 ├── .github/
 │   └── workflows/
 │       └── render-openscad.yml
-├── v1.0/
-│   ├── cad/
-│   ├── doc/
-│   └── out/
-├── v1.1/
-│   ├── cad/
-│   ├── doc/
-│   └── out/
-└── v1.2/
-    ├── cad/
-    ├── doc/
-    │   ├── README.md
-    │   ├── small.md
-    │   ├── medium.md
-    │   └── large.md
-    └── out/
-        ├── png/
-        └── stl/
+├── cad/
+│   ├── v1.0/
+│   ├── v1.1/
+│   └── v1.2/
+└── out/
+    ├── v1.0/
+    ├── v1.1/
+    └── v1.2/
 ```

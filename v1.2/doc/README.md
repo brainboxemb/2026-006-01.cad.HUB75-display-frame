@@ -11,3 +11,7 @@ V1.2 uses **medium** as the canonical/default profile for the complete display r
 | [Large](large.md) | 100 × 100 mm | 6 mm | 10 mm | 4 mm |
 
 Each profile page embeds all coupler renders directly, so the images can be reviewed without opening the generated PNG files one by one.
+## Grid and panel fit
+
+All V1.2 couplers are positioned from the exact nominal panel grid. The supplied 320 × 160 mm panel is used portrait, so the assembly grid is 160 mm in X by 320 mm in Z. The measured 159.70 × 319.71 mm body is centred inside that cell. Rear-rail guides use 0.25 mm print clearance per mating side; the 0.30 mm inter-panel gap is too small for a printable seam blade, so no artificial 3 mm wedge is generated.
+
