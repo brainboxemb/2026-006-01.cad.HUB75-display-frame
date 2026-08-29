@@ -18,7 +18,7 @@ For the current panel model:
 - print clearance: 0.25 mm per mating side
 - locator width: about 2.30 mm
 
-The middle and horizontal-edge couplers use the same shared calculation. The locator is centred exactly on the nominal 160 mm grid seam. It is mostly parallel-sided, with only a short lead-in taper at the insertion tip; the earlier full-height wedge is intentionally avoided.
+The middle and horizontal-edge couplers use the same shared calculation. The locator is centred exactly on the nominal 160 mm grid seam. Its maximum width at the coupler base comes from the physical rear seam minus the fixed print clearance. From that base width the complete locator height tapers symmetrically toward a narrower insertion tip; there is no separate straight body plus short lead-in section.
 
 The selected small/medium/large coupler profile changes plate, wall and guide dimensions, but it does not move the nominal grid or scale the physical print clearance.
 

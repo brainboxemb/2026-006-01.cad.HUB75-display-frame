@@ -376,10 +376,8 @@ module seam_locator_wedge(
     lead_in_per_side=0.2
 ) {
     // The locator is sized from the real REAR seam gap with print clearance
-    // removed on both sides.  Keep the useful locating section parallel; only
-    // taper the last short nose to make assembly easier.
-    nose_depth = min(max(0, lead_in_depth), max(0, height-0.05));
-    body_depth = max(0.02, height - nose_depth);
+    // removed on both sides.  Taper the complete height symmetrically instead
+    // of using a parallel body plus a short insertion nose.
     tip_width = max(0.6, width - 2*lead_in_per_side);
     r0 = min(end_radius, min(width, length)/2 - 0.01);
     r1 = min(end_radius, min(tip_width, length)/2 - 0.01);
@@ -392,21 +390,16 @@ module seam_locator_wedge(
             ], center=true);
     }
 
-    rotate([90,0,0])
-        linear_extrude(height=body_depth)
-            rounded_section(width, r0);
-
-    if(nose_depth > 0)
-        hull() {
-            translate([0,-body_depth+0.01,0])
-                rotate([90,0,0])
-                    linear_extrude(height=0.02)
-                        rounded_section(width, r0);
-            translate([0,-height+0.01,0])
-                rotate([90,0,0])
-                    linear_extrude(height=0.02)
-                        rounded_section(tip_width, r1);
-        }
+    hull() {
+        translate([0,-0.01,0])
+            rotate([90,0,0])
+                linear_extrude(height=0.02)
+                    rounded_section(width, r0);
+        translate([0,-height+0.01,0])
+            rotate([90,0,0])
+                linear_extrude(height=0.02)
+                    rounded_section(tip_width, r1);
+    }
 }
 
 

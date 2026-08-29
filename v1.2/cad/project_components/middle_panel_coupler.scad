@@ -176,10 +176,10 @@ module seam_locator_rib(
     lead_in_depth=0.8,
     lead_in_per_side=0.2
 ) {
-    // Keep the locator essentially straight.  The print clearance is already
-    // included in `width`; only the final short insertion nose is tapered.
-    nose_depth = min(max(0, lead_in_depth), max(0, height-0.05));
-    body_depth = max(0.02, height - nose_depth);
+    // Taper the complete locator height.  `width` is the maximum width at
+    // the coupler base after applying the physical rear-gap print clearance.
+    // The insertion side is narrower by the same amount on both sides, so the
+    // locator remains centred on the nominal panel-grid seam.
     tip_width = max(0.6, width - 2*lead_in_per_side);
     r0 = min(end_radius, min(width, length)/2 - 0.01);
     r1 = min(end_radius, min(tip_width, length)/2 - 0.01);
@@ -192,23 +192,17 @@ module seam_locator_rib(
             ], center=true);
     }
 
-    // Straight locating body from the coupler base toward the panel.
-    rotate([90,0,0])
-        linear_extrude(height=body_depth)
-            rounded_section(width, r0);
-
-    // Short lead-in only at the insertion tip.
-    if(nose_depth > 0)
-        hull() {
-            translate([0,-body_depth+0.01,0])
-                rotate([90,0,0])
-                    linear_extrude(height=0.02)
-                        rounded_section(width, r0);
-            translate([0,-height+0.01,0])
-                rotate([90,0,0])
-                    linear_extrude(height=0.02)
-                        rounded_section(tip_width, r1);
-        }
+    // One continuous symmetric taper from base to insertion tip.
+    hull() {
+        translate([0,-0.01,0])
+            rotate([90,0,0])
+                linear_extrude(height=0.02)
+                    rounded_section(width, r0);
+        translate([0,-height+0.01,0])
+            rotate([90,0,0])
+                linear_extrude(height=0.02)
+                    rounded_section(tip_width, r1);
+    }
 }
 
 
