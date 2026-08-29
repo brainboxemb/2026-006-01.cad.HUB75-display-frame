@@ -1,9 +1,9 @@
-// HUB75 display frame - V1.2 local rear fit sections
+// HUB75 display frame - V1.2 local XY fit cross-sections
 //
-// Rear-facing local sections through the actual panel/coupler interface.
-// These deliberately use the same Y-depth cut as the full rear fit section,
-// but crop the Z window just INBOARD of the red horizontal arm so the seam
-// locator rib is visible instead of being hidden by the outer ridge/arm.
+// Diagnostic slices through the actual panel/coupler interface.  Unlike the
+// older rear-facing crop, these are true XY sections at a fixed Z.  This lets
+// us inspect the physical panel edge, seam gap, locator rib and print clearance
+// in depth without the horizontal coupler arm hiding the fit.
 
 include <../config/project_config.scad>
 use <../components/hub75_panel.scad>
@@ -11,11 +11,12 @@ use <../project_components/_lib/coupler_dimensions.scad>
 use <panels_assembly.scad>
 use <couplers_assembly.scad>
 
-/* [Fit section] */
-fit_section_depth = 5.0;
-fit_section_crop_width = 145.0;
-fit_section_crop_height = 34.0;
-fit_section_inboard_offset = 6.0;
+/* [XY fit section] */
+fit_xy_slice_thickness = 0.40;
+fit_xy_crop_width = 90.0;
+fit_xy_y_margin_front = 1.0;
+fit_xy_y_margin_rear = 12.0;
+fit_xy_inboard_offset = 6.0;
 
 module fit_pair_at_local_seam(screw_row_z=0) {
     translate([
@@ -40,80 +41,76 @@ module fit_pair_at_local_seam(screw_row_z=0) {
             );
 }
 
-module local_rear_section_keep_volume(
-    depth,
-    crop_width,
-    crop_height,
-    crop_center_z
+// Thin horizontal slab: intersection with this volume is an XY section at Z.
+module local_xy_slice_keep_volume(
+    slice_z,
+    thickness=fit_xy_slice_thickness,
+    crop_width=fit_xy_crop_width
 ) {
-    section_y = coupler_mounting_y() - depth;
+    y_min = panel_front_y() - fit_xy_y_margin_front;
+    y_max = coupler_mounting_y() + fit_xy_y_margin_rear;
 
     translate([
         -crop_width/2,
-        panel_front_y() - 1.0,
-        crop_center_z - crop_height/2
+        y_min,
+        slice_z - thickness/2
     ])
         cube([
             crop_width,
-            section_y - (panel_front_y() - 1.0),
-            crop_height
+            y_max - y_min,
+            thickness
         ]);
 }
 
-// The middle PLUS is symmetric.  Put the section window immediately below
-// its horizontal arm, into the vertical stem where the seam locator rib must
-// still be visible.
-function middle_fit_section_center_z() =
-    -coupler_project_horizontal_arm_height()/2
-    - fit_section_inboard_offset
-    - fit_section_crop_height/2 + fit_section_crop_height/2;
+// Middle PLUS: choose a Z station just below the horizontal arm so the section
+// passes through the vertical stem and the full seam locator rib.
+function middle_fit_xy_slice_z() =
+    -coupler_project_horizontal_arm_height()/2 - fit_xy_inboard_offset;
 
-// Horizontal edge local coordinates are centred on the mounting screw row.
-// For the top edge the nominal 320 mm edge is +8 mm from that row.  The real
-// rear end rail is centred lower than that.  Crop just inboard/below the arm.
-function horizontal_edge_fit_section_center_z(direction="top") =
+// Horizontal edge: local Z=0 is the mounting screw row. The nominal panel edge
+// is offset from it. Move inboard far enough to clear the horizontal edge arm,
+// while remaining inside the seam locator wedge/vertical leg.
+function horizontal_edge_fit_xy_slice_z(direction="top") =
     let(
         edge_sign = direction == "top" ? 1 : -1,
-        rail_center_z = edge_sign * (hub75_panel_hole_z_bottom() - hub75_rear_end_rail_width()/2),
+        nominal_edge_z = edge_sign * (panel_grid_pitch_z/2 - abs(direction == "top" ? panel_hole_z_top() : panel_hole_z_bottom())),
         arm_half = coupler_project_horizontal_arm_height()/2
     )
-    rail_center_z - edge_sign*(arm_half + fit_section_inboard_offset);
+    nominal_edge_z - edge_sign*(arm_half + fit_xy_inboard_offset);
 
 module middle_panel_coupler_fit_cross_section(
-    depth=fit_section_depth,
-    crop_width=fit_section_crop_width,
-    crop_height=fit_section_crop_height
+    thickness=fit_xy_slice_thickness,
+    crop_width=fit_xy_crop_width
 ) {
     row_z = panel_hole_z_middle();
-    crop_z = middle_fit_section_center_z();
+    slice_z = middle_fit_xy_slice_z();
 
     color([0.68, 0.68, 0.68, 1])
         intersection() {
             fit_pair_at_local_seam(row_z);
-            local_rear_section_keep_volume(depth, crop_width, crop_height, crop_z);
+            local_xy_slice_keep_volume(slice_z, thickness, crop_width);
         }
 
     color(color_middle_panel_coupler)
         intersection() {
             translate([0, coupler_mounting_y(), 0])
                 project_middle_panel_coupler();
-            local_rear_section_keep_volume(depth, crop_width, crop_height, crop_z);
+            local_xy_slice_keep_volume(slice_z, thickness, crop_width);
         }
 }
 
 module horizontal_edge_panel_coupler_fit_cross_section(
     direction="top",
-    depth=fit_section_depth,
-    crop_width=fit_section_crop_width,
-    crop_height=fit_section_crop_height
+    thickness=fit_xy_slice_thickness,
+    crop_width=fit_xy_crop_width
 ) {
     row_z = direction == "top" ? panel_hole_z_top() : panel_hole_z_bottom();
-    crop_z = horizontal_edge_fit_section_center_z(direction);
+    slice_z = horizontal_edge_fit_xy_slice_z(direction);
 
     color([0.68, 0.68, 0.68, 1])
         intersection() {
             fit_pair_at_local_seam(row_z);
-            local_rear_section_keep_volume(depth, crop_width, crop_height, crop_z);
+            local_xy_slice_keep_volume(slice_z, thickness, crop_width);
         }
 
     color(color_coupler)
@@ -123,6 +120,6 @@ module horizontal_edge_panel_coupler_fit_cross_section(
                     direction=direction,
                     screw_row_z=row_z
                 );
-            local_rear_section_keep_volume(depth, crop_width, crop_height, crop_z);
+            local_xy_slice_keep_volume(slice_z, thickness, crop_width);
         }
 }

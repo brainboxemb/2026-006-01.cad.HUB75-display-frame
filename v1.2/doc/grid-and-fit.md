@@ -26,3 +26,15 @@ The selected small/medium/large coupler profile changes plate, wall and guide di
 ## Rear fit verification view
 
 The full rear fit verification render deliberately hides the front pixel face and PCB of each HUB75 panel. Only the rear structural panel frame is shown in grey. This makes the individual panel perimeter, nominal seams and coupler engagement visible instead of merging the five panels into one large grey rectangle.
+
+
+## Local XY fit cross-sections
+
+The middle and horizontal-edge diagnostic cross-sections are cut with a thin slab **parallel to the XY plane** at a fixed Z coordinate. The Z station is chosen just inboard of the horizontal coupler arm. This exposes the seam locator and panel rear profile instead of showing a vertical XZ/YZ section.
+
+These views are intended to verify:
+
+- the locator centre is exactly on the nominal seam;
+- equal clearance exists to the physical panel geometry on both sides;
+- the locator width follows the rear seam gap rather than the front body gap;
+- guide and cut-out geometry still follows the physical panel after grid-position changes.

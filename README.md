@@ -392,13 +392,13 @@ between the shared profile rules of the middle, edge and corner variants.
 
 ![HUB75 display frame V1.2 - middle panel coupler fit section](v1.2/out/png/hub75-display-frame-middle-panel-fit-section.png)
 
-#### Transverse coupler fit sections
+#### XY coupler fit cross-sections
 
-Two additional diagnostic renders cut **across** the nominal panel seam. They expose the Y/Z profile of the seam locator, rear guide and panel body, making the rib height, lead-in and alignment visible even where the normal rear view is obscured by the edge ridge. Both use the canonical `medium` profile.
+Two additional diagnostic renders are true **XY-plane slices at a fixed Z height**. The slice is placed just inboard of the horizontal coupler arm, so the arm cannot hide the fit. Looking perpendicular to the XY plane shows the physical panel edges, rear seam gap, locator rib and guide geometry in depth. This is the intended check for left/right print clearance and centring on the nominal seam. Both use the canonical `medium` profile.
 
-![HUB75 display frame V1.2 - middle local rear fit section](v1.2/out/png/hub75-display-frame-middle-panel-fit-cross-section.png)
+![HUB75 display frame V1.2 - middle XY fit cross-section](v1.2/out/png/hub75-display-frame-middle-panel-fit-cross-section.png)
 
-![HUB75 display frame V1.2 - horizontal edge local rear fit section](v1.2/out/png/hub75-display-frame-horizontal-edge-fit-cross-section.png)
+![HUB75 display frame V1.2 - horizontal edge XY fit cross-section](v1.2/out/png/hub75-display-frame-horizontal-edge-fit-cross-section.png)
 
 #### Exploded rear view
 
