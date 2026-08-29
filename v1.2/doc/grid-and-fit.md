@@ -1,13 +1,23 @@
-# V1.2 nominal grid and coupler fit
+# Grid and fit rules
 
-The display is built on the panel manufacturer’s nominal 320 × 160 mm grid. Because the panel component is used portrait, this becomes 160 mm in X and 320 mm in Z.
+The V1.2 coupler family uses two different geometric references deliberately:
 
-- Physical panel: 159.70 × 319.71 mm.
-- Nominal cell: 160.00 × 320.00 mm.
-- Physical gap at an internal X seam: 0.30 mm.
-- Physical margin to the nominal edge: 0.15 mm per X side and 0.145 mm per Z side.
-- Coupler centres: exact nominal grid boundaries.
-- Panel-fit clearance: 0.25 mm per mating side.
-- Seam blade: omitted because 0.30 - 2 × 0.25 mm leaves no printable width.
+- **Nominal panel grid:** exactly 160 × 320 mm in this portrait assembly. Panel centres and all coupler reference/seam positions are placed on this grid.
+- **Physical panel geometry:** 159.70 × 319.71 mm plus the STEP-derived rear housing taper. This geometry is used only for local fit, guide and locator dimensions.
 
-Mounting-hole coordinates are converted to centred physical coordinates first and then related to the nominal grid. This gives symmetric seam screw positions of ±8.0 mm and exact nominal corner references of ±8.0 mm. The same rule is used by the middle, horizontal-edge and corner couplers.
+## Rear seam locator
+
+The seam rib/locator does **not** use the 0.30 mm front/body gap. It engages at the rear mounting plane, where the housing has tapered inward by the STEP-derived outer inset. Therefore the usable rear seam is larger.
+
+For the current panel model:
+
+- nominal X pitch: 160.00 mm
+- physical body width: 159.70 mm
+- rear outer inset: about 1.248 mm per side
+- rear seam gap: about 2.80 mm
+- print clearance: 0.25 mm per mating side
+- locator width: about 2.30 mm
+
+The middle and horizontal-edge couplers use the same shared calculation. The locator is centred exactly on the nominal 160 mm grid seam. It is mostly parallel-sided, with only a short lead-in taper at the insertion tip; the earlier full-height wedge is intentionally avoided.
+
+The selected small/medium/large coupler profile changes plate, wall and guide dimensions, but it does not move the nominal grid or scale the physical print clearance.

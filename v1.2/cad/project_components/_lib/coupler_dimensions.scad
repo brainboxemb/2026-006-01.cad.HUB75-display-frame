@@ -12,15 +12,15 @@ use <coupler_profile.scad>
 function coupler_project_side_material() =
     project_coupler_wall_thickness() + coupler_fit_clearance_default();
 
-function coupler_project_panel_seam_gap() = max(0, hub75_panel_grid_gap_x());
+function coupler_project_front_seam_gap() = max(0, hub75_panel_grid_gap_x());
+function coupler_project_rear_seam_gap() = max(0, hub75_panel_rear_grid_gap_x());
 
-// A positive blade between adjacent panel bodies is only legal when it fits
-// inside the REAL free gap after clearance on both faces.  With the current
-// panel (159.70 mm in a 160.00 mm cell) and 0.25 mm/side print clearance this
-// correctly evaluates to zero: alignment is provided by the rear-rail guides
-// and screw pattern, not by an impossible 3 mm seam wedge.
+// The locator engages the gap at the REAR mounting plane, not the front/body
+// envelope.  The rear housing tapers inward, giving about 2.80 mm free space
+// at a nominal 160 mm seam.  Subtract equal print clearance on both mating
+// faces to get the printable locator width.
 function coupler_project_seam_locator_width(clearance=coupler_fit_clearance_default()) =
-    max(0, coupler_project_panel_seam_gap() - 2*clearance);
+    max(0, coupler_project_rear_seam_gap() - 2*clearance);
 
 // Both edge and corner parts sit around the same physical top/bottom rear rail.
 function coupler_project_horizontal_arm_height() =
@@ -31,7 +31,7 @@ function coupler_project_horizontal_arm_height() =
 // material; there is no fictitious wall inserted between the panels.
 function coupler_project_edge_vertical_arm_width() =
     2*hub75_rear_side_rail_width()
-    + coupler_project_panel_seam_gap()
+    + coupler_project_rear_seam_gap()
     + 2*coupler_project_side_material();
 
 // At an outside corner there is only one panel side rail.
@@ -40,4 +40,4 @@ function coupler_project_corner_vertical_arm_width() =
 
 // Matching physical keep-out width at an internal seam.
 function coupler_project_edge_seam_keepout_width() =
-    2*hub75_rear_side_rail_width() + coupler_project_panel_seam_gap();
+    2*hub75_rear_side_rail_width() + coupler_project_rear_seam_gap();

@@ -66,6 +66,8 @@ centre_seam_rib_base_width = coupler_project_seam_locator_width(rib_clearance);
 centre_seam_rib_tip_width = centre_seam_rib_base_width;
 centre_seam_rib_height = 4.0;
 centre_seam_rib_end_radius = 1.0;
+centre_seam_rib_lead_in_depth = 0.8;
+centre_seam_rib_lead_in_per_side = min(0.20, rib_clearance);
 reinforcement_bushing_clearance = coupler_bushing_clearance_default();
 reinforcement_bushing_relief_extra_depth = 0.20;
 
@@ -166,39 +168,49 @@ module rib_side_guides_2d(
 
 // Rib that enters the small gap between adjacent panels.  It is widest at
 // the coupler base and becomes slightly narrower toward the panel side.
-module tapered_seam_rib(
+module seam_locator_rib(
     length,
-    base_width,
-    tip_width,
+    width,
     height,
-    end_radius
+    end_radius,
+    lead_in_depth=0.8,
+    lead_in_per_side=0.2
 ) {
-    // The rib enters the narrow panel-to-panel seam in -Y.
-    // Its X width tapers gently from base_width to tip_width.
-    // Rounded X/Z end profiles avoid a sharp-ended locating blade.
-    base_r = min(end_radius, min(base_width, length)/2 - 0.01);
-    tip_r  = min(end_radius, min(tip_width,  length)/2 - 0.01);
+    // Keep the locator essentially straight.  The print clearance is already
+    // included in `width`; only the final short insertion nose is tapered.
+    nose_depth = min(max(0, lead_in_depth), max(0, height-0.05));
+    body_depth = max(0.02, height - nose_depth);
+    tip_width = max(0.6, width - 2*lead_in_per_side);
+    r0 = min(end_radius, min(width, length)/2 - 0.01);
+    r1 = min(end_radius, min(tip_width, length)/2 - 0.01);
 
-    hull() {
-        translate([0, 0.01, 0])
-            rotate([90,0,0])
-                linear_extrude(height=0.02)
-                    offset(r=base_r)
-                        square([
-                            max(0.01, base_width - 2*base_r),
-                            max(0.01, length - 2*base_r)
-                        ], center=true);
-
-        translate([0, -height + 0.01, 0])
-            rotate([90,0,0])
-                linear_extrude(height=0.02)
-                    offset(r=tip_r)
-                        square([
-                            max(0.01, tip_width - 2*tip_r),
-                            max(0.01, length - 2*tip_r)
-                        ], center=true);
+    module rounded_section(w, r) {
+        offset(r=r)
+            square([
+                max(0.01, w - 2*r),
+                max(0.01, length - 2*r)
+            ], center=true);
     }
+
+    // Straight locating body from the coupler base toward the panel.
+    rotate([90,0,0])
+        linear_extrude(height=body_depth)
+            rounded_section(width, r0);
+
+    // Short lead-in only at the insertion tip.
+    if(nose_depth > 0)
+        hull() {
+            translate([0,-body_depth+0.01,0])
+                rotate([90,0,0])
+                    linear_extrude(height=0.02)
+                        rounded_section(width, r0);
+            translate([0,-height+0.01,0])
+                rotate([90,0,0])
+                    linear_extrude(height=0.02)
+                        rounded_section(tip_width, r1);
+        }
 }
+
 
 
 // Small Ø3 mm reference-style perforations inspired by the STEP bracket.
@@ -454,12 +466,13 @@ module middle_panel_coupler(
             // that enters the narrow seam between the two adjacent displays.
             if (centre_rib_height_value > 0 && centre_rib_width_value > 0 && centre_rib_length_value > 0)
                 translate([centre_locator_x_value, 0, centre_locator_z_value])
-                    tapered_seam_rib(
+                    seam_locator_rib(
                         length=centre_rib_length_value,
-                        base_width=centre_rib_width_value,
-                        tip_width=max(0.8, centre_rib_width_value * 0.73),
+                        width=centre_rib_width_value,
                         height=centre_rib_height_value,
-                        end_radius=min(centre_seam_rib_end_radius, centre_rib_width_value/2 - 0.01)
+                        end_radius=min(centre_seam_rib_end_radius, centre_rib_width_value/2 - 0.01),
+                        lead_in_depth=centre_seam_rib_lead_in_depth,
+                        lead_in_per_side=centre_seam_rib_lead_in_per_side
                     );
         }
 }

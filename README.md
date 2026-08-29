@@ -211,6 +211,9 @@ Open `v1.1/cad/main.scad` to view the complete concept.
 
 ## V1.2
 
+V1.2 coupler placement is based on the exact 160 × 320 mm nominal panel grid. Local seam locators use the larger gap at the tapered rear mounting plane, with 0.25 mm print clearance per side; see `v1.2/doc/grid-and-fit.md`.
+
+
 ### Concept
 
 V1.2 is a deliberately simpler continuation of V1.1.

@@ -300,6 +300,16 @@ function hub75_panel_grid_gap_x() = reference_width - panel_width;
 function hub75_panel_grid_gap_z() = reference_height - panel_height;
 function hub75_panel_grid_margin_x() = hub75_panel_grid_gap_x()/2;
 function hub75_panel_grid_margin_z() = hub75_panel_grid_gap_z()/2;
+
+// The rear housing is tapered inward by the STEP-derived 1.25 mm reference
+// inset on every side.  Coupler seam locators sit at the REAR mounting plane,
+// so their available gap is larger than the 0.30 mm front/body grid gap.
+function hub75_rear_outer_inset_x() = rear_outer_inset * panel_width / reference_width;
+function hub75_rear_outer_inset_z() = rear_outer_inset * panel_height / reference_height;
+function hub75_panel_rear_grid_gap_x() =
+    reference_width - (panel_width - 2*hub75_rear_outer_inset_x());
+function hub75_panel_rear_grid_gap_z() =
+    reference_height - (panel_height - 2*hub75_rear_outer_inset_z());
 function hub75_panel_mounting_tube_outer_diameter() = mounting_tube_outer_diameter;
 function hub75_panel_data_connector_x() = panel_width/2;
 function hub75_panel_data_connector_center_offset() = 113.5;

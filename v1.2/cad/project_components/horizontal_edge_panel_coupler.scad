@@ -51,6 +51,8 @@ seam_wedge_width = coupler_project_seam_locator_width(rib_clearance);
 seam_wedge_height = coupler_seam_wedge_height_default();
 seam_wedge_length = inboard_reach;
 seam_wedge_end_radius = 1.2;
+seam_wedge_lead_in_depth = 0.8;
+seam_wedge_lead_in_per_side = min(0.20, rib_clearance);
 
 /* [Outer display-edge ridge] */
 // Keep this low ridge equal in height and taper to the small seam wedge.
@@ -365,36 +367,48 @@ module tapered_segmented_outer_edge_ridge_3d(
     }
 }
 
-module tapered_seam_wedge(
+module seam_locator_wedge(
     length,
-    base_width,
-    tip_width,
+    width,
     height,
-    end_radius
+    end_radius,
+    lead_in_depth=0.8,
+    lead_in_per_side=0.2
 ) {
-    base_r = min(end_radius, min(base_width, length)/2 - 0.01);
-    tip_r  = min(end_radius, min(tip_width,  length)/2 - 0.01);
+    // The locator is sized from the real REAR seam gap with print clearance
+    // removed on both sides.  Keep the useful locating section parallel; only
+    // taper the last short nose to make assembly easier.
+    nose_depth = min(max(0, lead_in_depth), max(0, height-0.05));
+    body_depth = max(0.02, height - nose_depth);
+    tip_width = max(0.6, width - 2*lead_in_per_side);
+    r0 = min(end_radius, min(width, length)/2 - 0.01);
+    r1 = min(end_radius, min(tip_width, length)/2 - 0.01);
 
-    hull() {
-        translate([0, 0.01, 0])
-            rotate([90,0,0])
-                linear_extrude(height=0.02)
-                    offset(r=base_r)
-                        square([
-                            max(0.01, base_width - 2*base_r),
-                            max(0.01, length - 2*base_r)
-                        ], center=true);
-
-        translate([0, -height + 0.01, 0])
-            rotate([90,0,0])
-                linear_extrude(height=0.02)
-                    offset(r=tip_r)
-                        square([
-                            max(0.01, tip_width - 2*tip_r),
-                            max(0.01, length - 2*tip_r)
-                        ], center=true);
+    module rounded_section(w, r) {
+        offset(r=r)
+            square([
+                max(0.01, w - 2*r),
+                max(0.01, length - 2*r)
+            ], center=true);
     }
+
+    rotate([90,0,0])
+        linear_extrude(height=body_depth)
+            rounded_section(width, r0);
+
+    if(nose_depth > 0)
+        hull() {
+            translate([0,-body_depth+0.01,0])
+                rotate([90,0,0])
+                    linear_extrude(height=0.02)
+                        rounded_section(width, r0);
+            translate([0,-height+0.01,0])
+                rotate([90,0,0])
+                    linear_extrude(height=0.02)
+                        rounded_section(tip_width, r1);
+        }
 }
+
 
 
 module t_reference_perforations_2d(
@@ -730,12 +744,13 @@ module horizontal_edge_panel_coupler(
                 inward_sign = direction == "top" ? -1 : 1;
                 wedge_center_z = nominal_edge_z + inward_sign * seam_wedge_length_value/2;
                 translate([0, 0, wedge_center_z])
-                    tapered_seam_wedge(
+                    seam_locator_wedge(
                         length=seam_wedge_length_value,
-                        base_width=seam_wedge_width_value,
-                        tip_width=max(0.8, seam_wedge_width_value*0.73),
+                        width=seam_wedge_width_value,
                         height=seam_wedge_height_value,
-                        end_radius=min(seam_wedge_end_radius, seam_wedge_width_value/2 - 0.01)
+                        end_radius=min(seam_wedge_end_radius, seam_wedge_width_value/2 - 0.01),
+                        lead_in_depth=seam_wedge_lead_in_depth,
+                        lead_in_per_side=seam_wedge_lead_in_per_side
                     );
             }
         }
