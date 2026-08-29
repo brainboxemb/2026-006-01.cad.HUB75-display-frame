@@ -233,7 +233,7 @@ The current V1.2 concept includes:
 
 The printed couplers follow the actual rear-panel rib geometry and use the existing screw locations, locator features and reinforcement-bushing geometry as alignment references. The edge and corner families are dimensioned from the nominal 160 × 320 mm panel boundary while their physical fit geometry remains tied to the real panel rails, holes and bosses. This keeps the parts visually and mechanically consistent without moving the real fit features.
 
-The nominal placement grid is authoritative: the original panel is **320 × 160 mm**, and in this portrait assembly each cell is therefore **160 mm in X × 320 mm in Z**. The measured physical panel is 159.70 × 319.71 mm and is centred inside that cell. Internal coupler centres sit exactly on the nominal grid boundaries, while the physical undersize appears only as a small panel-to-panel gap. Panel-fit guides use a fixed **0.25 mm clearance per mating side**, independent of the small/medium/large coupler profile. Because the current X seam gap is only 0.30 mm, no printed seam blade is generated between adjacent panel bodies; a 3 mm locator wedge would be physically impossible there.
+The nominal placement grid is authoritative: the original panel is **320 × 160 mm**, and in this portrait assembly each cell is therefore **160 mm in X × 320 mm in Z**. The measured physical panel is 159.70 × 319.71 mm and is centred inside that cell. Internal coupler centres sit exactly on the nominal grid boundaries, while the physical undersize appears only as a small panel-to-panel gap. Panel-fit guides use a fixed **0.25 mm clearance per mating side**, independent of the small/medium/large coupler profile. The seam locator does not use the 0.30 mm front/body gap: it engages at the tapered rear mounting plane, where the usable seam is wider. With the STEP-derived rear inset and 0.25 mm print clearance per mating side, the current locator is about 2.30 mm wide and remains centred exactly on the nominal grid seam.
 
 ### Panel dimensional basis
 
@@ -392,6 +392,14 @@ between the shared profile rules of the middle, edge and corner variants.
 
 ![HUB75 display frame V1.2 - middle panel coupler fit section](v1.2/out/png/hub75-display-frame-middle-panel-fit-section.png)
 
+#### Transverse coupler fit sections
+
+Two additional diagnostic renders cut **across** the nominal panel seam. They expose the Y/Z profile of the seam locator, rear guide and panel body, making the rib height, lead-in and alignment visible even where the normal rear view is obscured by the edge ridge. Both use the canonical `medium` profile.
+
+![HUB75 display frame V1.2 - middle transverse fit section](v1.2/out/png/hub75-display-frame-middle-panel-fit-cross-section.png)
+
+![HUB75 display frame V1.2 - horizontal edge transverse fit section](v1.2/out/png/hub75-display-frame-horizontal-edge-fit-cross-section.png)
+
 #### Exploded rear view
 
 ![HUB75 display frame V1.2 - exploded rear view](v1.2/out/png/hub75-display-frame-exploded-rear.png)
@@ -450,6 +458,7 @@ v1.2/cad/
 │   ├── couplers_assembly.scad
 │   ├── tubes_assembly.scad
 │   ├── middle_panel_coupler_fit_section.scad
+│   ├── coupler_fit_cross_sections.scad
 │   ├── rear_fit_section.scad
 │   ├── coupler_comparison_assembly.scad
 │   └── display_assembly.scad
@@ -468,6 +477,8 @@ v1.2/cad/
     ├── rear_angled.scad
     ├── rear_wiring.scad
     ├── middle_panel_fit_section.scad
+    ├── middle_panel_fit_cross_section.scad
+    ├── horizontal_edge_fit_cross_section.scad
     ├── rear_fit_section.scad
     ├── couplers_side_by_side.scad          # canonical MEDIUM comparison
     ├── couplers_stacked.scad                # canonical MEDIUM comparison
