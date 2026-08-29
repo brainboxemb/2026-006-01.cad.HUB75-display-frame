@@ -396,9 +396,9 @@ between the shared profile rules of the middle, edge and corner variants.
 
 Two additional diagnostic renders cut **across** the nominal panel seam. They expose the Y/Z profile of the seam locator, rear guide and panel body, making the rib height, lead-in and alignment visible even where the normal rear view is obscured by the edge ridge. Both use the canonical `medium` profile.
 
-![HUB75 display frame V1.2 - middle transverse fit section](v1.2/out/png/hub75-display-frame-middle-panel-fit-cross-section.png)
+![HUB75 display frame V1.2 - middle local rear fit section](v1.2/out/png/hub75-display-frame-middle-panel-fit-cross-section.png)
 
-![HUB75 display frame V1.2 - horizontal edge transverse fit section](v1.2/out/png/hub75-display-frame-horizontal-edge-fit-cross-section.png)
+![HUB75 display frame V1.2 - horizontal edge local rear fit section](v1.2/out/png/hub75-display-frame-horizontal-edge-fit-cross-section.png)
 
 #### Exploded rear view
 
