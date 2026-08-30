@@ -2,9 +2,9 @@
 
 > The model and documentation were developed with the assistance of ChatGPT.
 
-| Profile envelope | Wall thickness | Guide height | Base thickness |
-| ---: | ---: | ---: | ---: |
-| 100 × 100 mm | 6 mm | 10 mm | 4 mm |
+| Profile envelope | Wall thickness | Guide height | Base thickness | Corner radius | Edge radius | Guide length | Tube clip offset |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 100 × 100 mm | 6 mm | 10 mm | 4 mm | 10 mm | 6 mm | 46 mm | 25 mm |
 
 ## Side by side
 

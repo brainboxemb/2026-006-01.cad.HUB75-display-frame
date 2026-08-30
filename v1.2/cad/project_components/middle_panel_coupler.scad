@@ -18,13 +18,14 @@ fit_clearance = coupler_fit_clearance_default();
 profile_side_material = wall_thickness + fit_clearance;
 horizontal_arm_height = hub75_rear_middle_rib_width() + 2*profile_side_material;
 vertical_arm_width = coupler_project_edge_vertical_arm_width();
-inside_corner_radius = coupler_profile_inside_radius_default();
-outer_corner_radius = coupler_profile_outside_radius_default();
+inside_corner_radius = project_coupler_corner_radius();
+outer_corner_radius = project_coupler_edge_radius();
 
 /* [Raised rib guides] */
 reinforcement_height = project_coupler_guide_height();
 rib_clearance = coupler_fit_clearance_default();
 guide_end_rounding = coupler_guide_end_rounding_default();
+guide_length = project_coupler_guide_length();
 
 /* [Mounting screws] */
 left_screw_x = -hub75_panel_nominal_width()/2 + hub75_panel_hole_x_right_centered();
@@ -124,11 +125,15 @@ module rib_side_guides_2d(
     inner_r,
     outer_r,
     clearance,
-    end_rounding=0
+    end_rounding=0,
+    guide_length_value=1e6
 ) {
     horizontal_rib_w = hub75_rear_middle_rib_width();
     vertical_rib_w = coupler_project_edge_seam_keepout_width();
     opening_corner_r = hub75_rear_opening_corner_radius();
+
+    intersection() {
+        square([2*guide_length_value, 2*guide_length_value], center=true);
 
     // First form the exact guide around the real rib keep-out, then apply a
     // small 2D opening operation. This softens the exposed guide endpoints
@@ -164,6 +169,7 @@ module rib_side_guides_2d(
                     opening_corner_r
                 );
         }
+    }
 }
 
 // Rib that enters the small gap between adjacent panels.  It is widest at
@@ -413,7 +419,8 @@ module middle_panel_coupler(
                                 horizontal_height, vertical_width,
                                 inside_radius, outside_radius,
                                 guide_wall_thickness_value,
-                                guide_end_rounding_value
+                                guide_end_rounding_value,
+                                guide_length
                             );
 
                     // The two separate HUB75 reinforcement bushings protrude

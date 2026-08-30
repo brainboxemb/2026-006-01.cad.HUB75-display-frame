@@ -1,12 +1,12 @@
-// HUB75 display frame - V1.2 shared-profile 100 mm horizontal edge panel coupler with two short tube clips
+// HUB75 display frame - V1.2 shared-profile horizontal edge panel coupler with two short tube clips
 //
 // Used for the four upper and four lower internal panel joins at the horizontal display edges.
 // The outer corner/end couplers are deliberately a separate component and
 // are not changed by this design.
 //
 // The T-shaped printed body follows the same design language as the middle
-// PLUS coupler. Its inward reach is deliberately the same 50 mm as one half
-// of the middle PLUS, while only the outward projection is capped below 20 mm.
+// PLUS coupler. Its inward reach follows half of the active profile envelope,
+// while only the outward projection is capped below 20 mm.
 // Raised guide material sits beside the real HUB75 rear ribs,
 // leaving a fitted T-shaped channel for the panel housing.
 
@@ -29,8 +29,8 @@ rib_clearance = coupler_fit_clearance_default();
 profile_side_material = coupler_project_side_material();
 horizontal_arm_height = coupler_project_horizontal_arm_height();
 vertical_arm_width = coupler_project_edge_vertical_arm_width();
-inside_corner_radius = coupler_profile_inside_radius_default();
-outer_corner_radius = coupler_profile_outside_radius_default();
+inside_corner_radius = project_coupler_corner_radius();
+outer_corner_radius = project_coupler_edge_radius();
 base_thickness = project_coupler_base_thickness();
 
 /* [Mounting holes] */
@@ -45,6 +45,7 @@ screw_row_to_panel_edge = hub75_panel_hole_z_bottom();
 /* [Panel fit] */
 guide_height = project_coupler_guide_height();
 guide_end_rounding = coupler_guide_end_rounding_default();
+guide_length = project_coupler_guide_length();
 
 /* [Seam wedge] */
 seam_wedge_width = coupler_project_seam_locator_width(rib_clearance);
@@ -89,7 +90,7 @@ perforation_edge_margin = 7.0;
 perforation_centre_keepout = 20.0;
 
 /* [Clip positions] */
-clip_x_positions = [-25.0, 25.0];
+clip_x_positions = [-project_coupler_tube_clip_offset(), project_coupler_tube_clip_offset()];
 
 /* [Tube clip] */
 clip_length = 16.0;
@@ -231,8 +232,11 @@ module t_side_guides_2d(
     clearance,
     end_rounding,
     horizontal_center_z=0,
-    inward_reach_value=inboard_reach
+    inward_reach_value=inboard_reach,
+    guide_length_value=1e6
 ) {
+    intersection() {
+        square([2*guide_length_value, height + 40], center=true);
     if(end_rounding > 0)
         offset(r=end_rounding)
             offset(delta=-end_rounding)
@@ -253,6 +257,7 @@ module t_side_guides_2d(
             offset(delta=clearance)
                 panel_edge_t_keepout_2d(direction,width,height);
         }
+    }
 }
 
 
@@ -652,7 +657,8 @@ module horizontal_edge_panel_coupler(
                                     rib_clearance_value,
                                     guide_end_rounding_value,
                                     horizontal_center_z,
-                                    inward_reach_value
+                                    inward_reach_value,
+                                    guide_length
                                 );
                                 outer_edge_zone_2d(
                                     direction,width,height,

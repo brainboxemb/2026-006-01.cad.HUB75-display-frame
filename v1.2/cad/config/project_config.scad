@@ -100,7 +100,7 @@ function stiffening_tube_top_z() =  tube_center_spacing/2;
 // Coupler design profiles are project-level presets. The selected profile is
 // the single source of truth for all effective coupler dimensions. Three
 // named presets are fixed and reproducible; selecting "custom" switches the
-// model to the four user-entered custom dimensions.
+// model to the user-entered custom dimensions.
 //
 //   small  =  60 mm, 2 mm wall,  4 mm guide, 2 mm base
 //   medium =  80 mm, 4 mm wall,  6 mm guide, 3 mm base
@@ -122,6 +122,29 @@ function coupler_base_thickness_for(name) =
     name == "large" ? 4.0 :
                       3.0;
 
+// Shape/placement presets. These describe printable coupler geometry, not
+// HUB75 panel geometry. Names are intentionally visual:
+//   corner_radius = concave transition where an arm meets the centre/body
+//   edge_radius   = convex rounding at the free outside end of an arm
+//
+// Keep the named profiles systematic rather than maintaining unrelated magic
+// numbers. The formulas below are evaluated from the preset profile envelope:
+//   corner radius    = profile size / 10
+//   edge radius      = profile size / 20 + 1 mm
+//   guide length     = half profile size - 4 mm
+//   tube clip offset = as far out as practical, but never closer than 12 mm
+//                      from the nominal free edge (8 mm half clip + 4 mm margin)
+//                      and capped at the established 25 mm position.
+// Custom mode may override all four values explicitly.
+function coupler_corner_radius_for(name) =
+    coupler_profile_size_for(name) / 10;
+function coupler_edge_radius_for(name) =
+    coupler_profile_size_for(name) / 20 + 1;
+function coupler_guide_length_for(name) =
+    max(0, coupler_profile_size_for(name)/2 - 4);
+function coupler_tube_clip_offset_for(name) =
+    min(25, max(0, coupler_profile_size_for(name)/2 - 12));
+
 function project_coupler_design_profile() =
     is_undef($coupler_design_profile) ? "medium" : $coupler_design_profile;
 
@@ -136,6 +159,14 @@ function project_coupler_custom_guide_height() =
     is_undef($coupler_custom_guide_height) ? coupler_guide_height_for("medium") : $coupler_custom_guide_height;
 function project_coupler_custom_base_thickness() =
     is_undef($coupler_custom_base_thickness) ? coupler_base_thickness_for("medium") : $coupler_custom_base_thickness;
+function project_coupler_custom_corner_radius() =
+    is_undef($coupler_custom_corner_radius) ? coupler_corner_radius_for("medium") : $coupler_custom_corner_radius;
+function project_coupler_custom_edge_radius() =
+    is_undef($coupler_custom_edge_radius) ? coupler_edge_radius_for("medium") : $coupler_custom_edge_radius;
+function project_coupler_custom_guide_length() =
+    is_undef($coupler_custom_guide_length) ? coupler_guide_length_for("medium") : $coupler_custom_guide_length;
+function project_coupler_custom_tube_clip_offset() =
+    is_undef($coupler_custom_tube_clip_offset) ? coupler_tube_clip_offset_for("medium") : $coupler_custom_tube_clip_offset;
 
 function project_coupler_profile_size() =
     project_coupler_design_profile() == "custom"
@@ -153,6 +184,22 @@ function project_coupler_base_thickness() =
     project_coupler_design_profile() == "custom"
         ? project_coupler_custom_base_thickness()
         : coupler_base_thickness_for(project_coupler_design_profile());
+function project_coupler_corner_radius() =
+    project_coupler_design_profile() == "custom"
+        ? project_coupler_custom_corner_radius()
+        : coupler_corner_radius_for(project_coupler_design_profile());
+function project_coupler_edge_radius() =
+    project_coupler_design_profile() == "custom"
+        ? project_coupler_custom_edge_radius()
+        : coupler_edge_radius_for(project_coupler_design_profile());
+function project_coupler_guide_length() =
+    project_coupler_design_profile() == "custom"
+        ? project_coupler_custom_guide_length()
+        : coupler_guide_length_for(project_coupler_design_profile());
+function project_coupler_tube_clip_offset() =
+    project_coupler_design_profile() == "custom"
+        ? project_coupler_custom_tube_clip_offset()
+        : coupler_tube_clip_offset_for(project_coupler_design_profile());
 
 // Decorative Ø3 pockets scale with the selected/overridden profile size.
 // The available decorative stations scale automatically with the active profile size.

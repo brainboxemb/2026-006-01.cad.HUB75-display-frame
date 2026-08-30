@@ -413,13 +413,15 @@ Two additional diagnostic renders are true **XY-plane slices at a fixed Z height
 V1.2 provides three fixed project-wide coupler presets plus a custom mode. The profile can be selected from the OpenSCAD Customizer when `v1.2/cad/main.scad` is open.
 
 ```text
-small        60 ×  60 mm profile envelope, 2 mm wall,  4 mm guide height, 2 mm base plate
-medium       80 ×  80 mm profile envelope, 4 mm wall,  6 mm guide height, 3 mm base plate
-large       100 × 100 mm profile envelope, 6 mm wall, 10 mm guide height, 4 mm base plate
-custom       user-entered profile size, wall thickness, guide height and base-plate thickness
+small        60 ×  60 mm envelope, 2 mm wall, 4 mm guide height, 2 mm base, 6 mm corner radius, 4 mm edge radius, 26 mm guide length, 18 mm tube-clip offset
+medium       80 ×  80 mm envelope, 4 mm wall, 6 mm guide height, 3 mm base, 8 mm corner radius, 5 mm edge radius, 36 mm guide length, 25 mm tube-clip offset
+large       100 × 100 mm envelope, 6 mm wall, 10 mm guide height, 4 mm base, 10 mm corner radius, 6 mm edge radius, 46 mm guide length, 25 mm tube-clip offset
+custom       user-entered values for all of the above dimensions
 ```
 
-The three named presets are fixed and reproducible. **Medium is the canonical V1.2 profile** and is used by the normal full-display documentation renders and the complete display STL. The numeric fields under **Custom coupler dimensions** are ignored while `large`, `medium` or `small` is selected. Selecting `custom` activates those four values directly; no separate enable checkbox and no magic `0` override values are used. The custom fields start with the medium dimensions as a practical baseline.
+The three named presets are fixed and reproducible. **Medium is the canonical V1.2 profile** and is used by the normal full-display documentation renders and the complete display STL. The numeric fields under **Custom coupler dimensions** are ignored while `large`, `medium` or `small` is selected. Selecting `custom` activates those values directly; no separate enable checkbox and no magic `0` override values are used. The custom fields start with the medium dimensions as a practical baseline.
+
+`corner radius` means the concave transition where an arm meets the coupler body. `edge radius` means the convex rounding at a free arm end. `guide length` limits how far a fitted guide may run from the local coupler reference, while `tube clip offset` is the clip-centre distance from that same reference. These names are used in the Customizer to avoid the ambiguous former inside/outside-radius terminology.
 
 The decorative Ø3 mm blind-pocket raster adapts automatically to the effective profile size, including custom sizes. Individual printable couplers are rendered and exported as STL for all three named profiles. Reusable objects such as the HUB75 panel and aluminium tube remain independent of these project-specific choices.
 

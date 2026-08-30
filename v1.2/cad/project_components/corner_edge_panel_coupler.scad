@@ -1,7 +1,7 @@
 // HUB75 display frame - V1.2 corner edge panel coupler
 //
 // One printable component is mirrored/oriented for all four display corners.
-// It shares the same 100 mm rounded profile language as the middle PLUS and
+// It shares the same active-profile rounded language as the middle PLUS and
 // horizontal-edge T couplers, but is cropped around one outside panel corner.
 // The body follows the real HUB75 side/end rails and uses short local tube
 // clips so each snap requires less force.
@@ -20,8 +20,8 @@ fit_clearance = coupler_fit_clearance_default();
 profile_side_material = coupler_project_side_material();
 horizontal_arm_height = coupler_project_horizontal_arm_height();
 vertical_arm_width = coupler_project_corner_vertical_arm_width();
-inside_corner_radius = coupler_profile_inside_radius_default();
-outside_corner_radius = coupler_profile_outside_radius_default();
+inside_corner_radius = project_coupler_corner_radius();
+outside_corner_radius = project_coupler_edge_radius();
 base_thickness = project_coupler_base_thickness();
 max_outside_projection = 19.5;
 
@@ -36,6 +36,7 @@ screw_to_horizontal_edge = hub75_panel_hole_z_bottom();
 rib_clearance = coupler_fit_clearance_default();
 guide_height = project_coupler_guide_height();
 guide_end_rounding = coupler_guide_end_rounding_default();
+guide_length = project_coupler_guide_length();
 bushing_clearance = coupler_bushing_clearance_default();
 locator_pin_clearance = coupler_locator_pin_clearance_default();
 
@@ -55,7 +56,7 @@ center_mark_edge_margin = coupler_center_mark_edge_margin_default();
 perforation_spacing = 10.0;
 
 /* [Tube clips] */
-clip_inboard_positions = [20.0];
+clip_inboard_positions = [project_coupler_tube_clip_offset()];
 clip_length = 16.0;
 clip_wall = tube_clip_wall();
 clip_inner_diameter = tube_clip_inner_diameter();
@@ -304,8 +305,11 @@ module corner_fitted_guides_2d(
     horizontal_height, vertical_width,
     inside_radius, outside_radius,
     outward_x, outward_z,
-    clearance, end_rounding
+    clearance, end_rounding,
+    guide_length_value=1e6
 ) {
+    intersection() {
+        square([2*guide_length_value, 2*guide_length_value], center=true);
     if(end_rounding > 0)
         offset(r=end_rounding)
             offset(delta=-end_rounding)
@@ -342,6 +346,7 @@ module corner_fitted_guides_2d(
             offset(delta=clearance)
                 corner_panel_keepout_2d(side,direction,size);
         }
+    }
 }
 
 module corner_outside_edge_zone_2d(side, direction, size, clearance) {
@@ -688,7 +693,8 @@ module corner_edge_panel_coupler(
                                     horizontal_height,vertical_width,
                                     inside_radius,outside_radius,
                                     outward_x,outward_z,
-                                    rib_clearance_value,guide_end_rounding_value
+                                    rib_clearance_value,guide_end_rounding_value,
+                                    guide_length
                                 );
                                 corner_inside_panel_2d(side,direction,size);
                             }
