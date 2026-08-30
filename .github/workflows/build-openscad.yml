@@ -27,6 +27,9 @@ jobs:
       export_projects: |
         v1.2/cad|v1.2/out/stl|hub75-display-frame
 
+      reference_projects: |
+        v1.2/cad|v1.2/out/reference|hub75-display-frame
+
       image_size: "2560,1440"
       changed_only: true
 
