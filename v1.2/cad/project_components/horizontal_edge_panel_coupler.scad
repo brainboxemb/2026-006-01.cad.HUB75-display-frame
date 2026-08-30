@@ -235,21 +235,26 @@ module t_side_guides_2d(
     inward_reach_value=inboard_reach,
     guide_length_value=1e6
 ) {
-    intersection() {
-        square([2*guide_length_value, height + 40], center=true);
+    // Crop to the requested guide reach BEFORE rounding, otherwise the crop
+    // itself removes the rounded endpoint (V121 regression).
     if(end_rounding > 0)
         offset(r=end_rounding)
             offset(delta=-end_rounding)
-                difference() {
+                intersection() {
+                    square([2*guide_length_value, height + 40], center=true);
+                    difference() {
                     edge_profile_2d(
                         direction,width,height,bar_height,stem_width,
                         inner_r,outer_r,horizontal_center_z,inward_reach_value
                     );
                     offset(delta=clearance)
                         panel_edge_t_keepout_2d(direction,width,height);
+                    }
                 }
     else
-        difference() {
+        intersection() {
+            square([2*guide_length_value, height + 40], center=true);
+            difference() {
             edge_profile_2d(
                 direction,width,height,bar_height,stem_width,
                 inner_r,outer_r,horizontal_center_z,inward_reach_value

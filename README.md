@@ -553,3 +553,9 @@ v1.2/out/png/
 ### V1.2 fit verification
 
 The rear-fit diagnostic render hides the panel front face/PCB and shows only the rear structural rims, making panel seams and coupler engagement easier to inspect.
+
+
+### Guide reach and rounded arm ends
+
+The free-end radius is derived from wall thickness rather than overall profile size. This guarantees that the rounded end cannot consume the complete fitted guide: named presets retain 1 mm of guide material per side at the free end. Guide reach is also derived from the free-end radius so the guide terminates close to the plate edge and keeps a rounded endpoint.
+

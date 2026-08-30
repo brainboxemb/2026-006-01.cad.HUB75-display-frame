@@ -130,8 +130,14 @@ function coupler_base_thickness_for(name) =
 // Keep the named profiles systematic rather than maintaining unrelated magic
 // numbers. The formulas below are evaluated from the preset profile envelope:
 //   corner radius    = profile size / 10
-//   edge radius      = profile size / 20 + 1 mm
-//   guide length     = half profile size - 4 mm
+//   edge radius      = wall thickness - 1 mm (minimum 0.5 mm)
+//                      This is deliberate: at a free arm end the remaining
+//                      guide thickness per side is wall_thickness-edge_radius.
+//                      Keeping 1 mm prevents the rounded plate end from
+//                      consuming the guide completely.
+//   guide length     = half profile size - max(1.5 mm, edge radius/2)
+//                      so the guide reaches close to the free end while still
+//                      leaving room for a rounded termination.
 //   tube clip offset = as far out as practical, but never closer than 12 mm
 //                      from the nominal free edge (8 mm half clip + 4 mm margin)
 //                      and capped at the established 25 mm position.
@@ -139,9 +145,9 @@ function coupler_base_thickness_for(name) =
 function coupler_corner_radius_for(name) =
     coupler_profile_size_for(name) / 10;
 function coupler_edge_radius_for(name) =
-    coupler_profile_size_for(name) / 20 + 1;
+    max(0.5, coupler_wall_thickness_for(name) - 1.0);
 function coupler_guide_length_for(name) =
-    max(0, coupler_profile_size_for(name)/2 - 4);
+    max(0, coupler_profile_size_for(name)/2 - max(1.5, coupler_edge_radius_for(name)/2));
 function coupler_tube_clip_offset_for(name) =
     min(25, max(0, coupler_profile_size_for(name)/2 - 12));
 

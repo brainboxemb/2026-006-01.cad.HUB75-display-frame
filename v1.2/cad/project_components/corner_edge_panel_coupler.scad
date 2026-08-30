@@ -308,12 +308,15 @@ module corner_fitted_guides_2d(
     clearance, end_rounding,
     guide_length_value=1e6
 ) {
-    intersection() {
-        square([2*guide_length_value, 2*guide_length_value], center=true);
+    // Crop to the configured reach first and round the exposed guide ends
+    // afterwards. This keeps corner/edge guides consistent with the middle
+    // and horizontal-edge components.
     if(end_rounding > 0)
         offset(r=end_rounding)
             offset(delta=-end_rounding)
-                difference() {
+                intersection() {
+                    square([2*guide_length_value, 2*guide_length_value], center=true);
+                    difference() {
                     corner_nominal_profile_2d(
                         side=side,direction=direction,
                         width=size,height=size,
@@ -328,9 +331,12 @@ module corner_fitted_guides_2d(
                     );
                     offset(delta=clearance)
                         corner_panel_keepout_2d(side,direction,size);
+                    }
                 }
     else
-        difference() {
+        intersection() {
+            square([2*guide_length_value, 2*guide_length_value], center=true);
+            difference() {
             corner_nominal_profile_2d(
                 side=side,direction=direction,
                 width=size,height=size,

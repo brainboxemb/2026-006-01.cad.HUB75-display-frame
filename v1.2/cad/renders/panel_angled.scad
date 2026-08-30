@@ -15,6 +15,7 @@ hub75_panel(
     connector_color=[0.06, 0.06, 0.06, 1]
 );
 
-$vpt = [0, 8, 0];
-$vpr = [78, 0, 158];
+$vpt = [0, 0, 0];
+// Use the same rear three-quarter camera orientation as rear_angled.scad.
+$vpr = [265, 0, 320];
 $vpd = 850;

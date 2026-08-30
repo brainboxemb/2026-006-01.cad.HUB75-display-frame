@@ -132,17 +132,15 @@ module rib_side_guides_2d(
     vertical_rib_w = coupler_project_edge_seam_keepout_width();
     opening_corner_r = hub75_rear_opening_corner_radius();
 
-    intersection() {
-        square([2*guide_length_value, 2*guide_length_value], center=true);
-
-    // First form the exact guide around the real rib keep-out, then apply a
-    // small 2D opening operation. This softens the exposed guide endpoints
-    // where the high wall terminates at the PLUS outline, instead of leaving
-    // the little pointed/triangular corner visible in V15.
+    // Limit the guide first, then round the resulting endpoints.  In V121
+    // the order was reversed; the square length crop cut the already-rounded
+    // guide ends back to a sharp edge.
     if (end_rounding > 0)
         offset(r=end_rounding)
             offset(delta=-end_rounding)
-                difference() {
+                intersection() {
+                    square([2*guide_length_value, 2*guide_length_value], center=true);
+                    difference() {
                     coupler_plus_profile_2d(
                         width, height,
                         h_arm_height, v_arm_width,
@@ -154,9 +152,12 @@ module rib_side_guides_2d(
                             vertical_rib_w,
                             opening_corner_r
                         );
+                    }
                 }
     else
-        difference() {
+        intersection() {
+            square([2*guide_length_value, 2*guide_length_value], center=true);
+            difference() {
             coupler_plus_profile_2d(
                 width, height,
                 h_arm_height, v_arm_width,
