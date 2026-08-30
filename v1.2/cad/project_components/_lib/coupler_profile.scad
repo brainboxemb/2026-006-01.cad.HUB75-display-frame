@@ -195,6 +195,64 @@ module coupler_rounded_guide_reach_2d(
     }
 }
 
+
+// Limit a fitted PLUS guide shell with the SAME profile language as the plate.
+// `curve_start` is where the guide stops following the plate free-end radius.
+// From that point the guide transitions into its own `end_rounding` curve.
+// The mask is only an intersection, so it can never add material outside the
+// authoritative fitted shell / plate geometry.
+module coupler_plus_guide_reach_2d(
+    curve_start,
+    end_rounding,
+    horizontal_arm_height,
+    vertical_arm_width,
+    inside_radius,
+    horizontal_arm_center_z=0,
+    vertical_arm_center_x=0
+) {
+    r = max(0, end_rounding);
+    extent = max(0.01, curve_start + r);
+    coupler_plus_profile_2d(
+        width=2*extent,
+        height=2*extent,
+        horizontal_arm_height=horizontal_arm_height,
+        vertical_arm_width=vertical_arm_width,
+        inside_radius=inside_radius,
+        outside_radius=r,
+        horizontal_arm_center_z=horizontal_arm_center_z,
+        vertical_arm_center_x=vertical_arm_center_x
+    );
+}
+
+// T equivalent of coupler_plus_guide_reach_2d().  The guide uses the same
+// canonical T construction as the plate, but its horizontal free ends switch
+// to the guide's own radius after `curve_start`.  This avoids the old square
+// crop and, importantly, avoids creating a second independent set of edge
+// points for the horizontal-edge coupler.
+module coupler_t_guide_reach_2d(
+    direction,
+    curve_start,
+    end_rounding,
+    height,
+    horizontal_arm_height,
+    vertical_arm_width,
+    inside_radius,
+    horizontal_arm_center_z=0
+) {
+    r = max(0, end_rounding);
+    extent = max(0.01, curve_start + r);
+    coupler_t_profile_2d(
+        direction=direction,
+        width=2*extent,
+        height=height,
+        horizontal_arm_height=horizontal_arm_height,
+        vertical_arm_width=vertical_arm_width,
+        inside_radius=inside_radius,
+        outside_radius=r,
+        horizontal_arm_center_z=horizontal_arm_center_z
+    );
+}
+
 // Canonical top T: retain the complete horizontal arm and the inward vertical
 // arm of the shared PLUS.  The horizontal arm may be offset from the screw-row
 // origin, which is required because the physical HUB75 end rail is not centred
