@@ -24,7 +24,7 @@ outer_corner_radius = project_coupler_edge_radius();
 /* [Raised rib guides] */
 reinforcement_height = project_coupler_guide_height();
 rib_clearance = coupler_fit_clearance_default();
-guide_end_rounding = coupler_guide_end_rounding_default();
+guide_end_rounding = project_coupler_guide_end_rounding();
 guide_length = project_coupler_guide_length();
 
 /* [Mounting screws] */

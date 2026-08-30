@@ -44,7 +44,7 @@ screw_row_to_panel_edge = hub75_panel_hole_z_bottom();
 
 /* [Panel fit] */
 guide_height = project_coupler_guide_height();
-guide_end_rounding = coupler_guide_end_rounding_default();
+guide_end_rounding = project_coupler_guide_end_rounding();
 guide_length = project_coupler_guide_length();
 
 /* [Seam wedge] */
