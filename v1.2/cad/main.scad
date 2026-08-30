@@ -17,7 +17,6 @@ use <assemblies/tubes_assembly.scad>
 use <project_components/middle_panel_coupler.scad>
 use <project_components/horizontal_edge_panel_coupler.scad>
 use <project_components/corner_edge_panel_coupler.scad>
-use <assemblies/middle_panel_coupler_fit_section.scad>
 use <assemblies/rear_fit_section.scad>
 use <assemblies/coupler_comparison_assembly.scad>
 use <components/_lib/reference_grid.scad>
@@ -25,12 +24,13 @@ use <components/_lib/reference_box.scad>
 use <components/hub75_panel.scad>
 
 /* [View] */
-view_mode = "assembly"; // [assembly, exploded, panels, single_panel, couplers, tubes, middle_panel_coupler, horizontal_edge_panel_coupler, middle_panel_fit_section, rear_fit_section, corner_edge_panel_coupler_left, corner_edge_panel_coupler_right, couplers_side_by_side, couplers_stacked]
+view_mode = "assembly"; // [assembly, exploded, panels, single_panel, couplers, tubes, middle_panel_coupler, horizontal_edge_panel_coupler, rear_fit_section, corner_edge_panel_coupler_left, corner_edge_panel_coupler_right, couplers_side_by_side, couplers_stacked]
 
 /* [Coupler profile] */
 coupler_design_profile = "medium"; // [small,medium,large,custom]
 
 /* [Custom coupler dimensions] */
+// These seven fields are the complete editable custom profile.
 profile_size = 80;
 wall_thickness = 4;
 guide_height = 6;
@@ -125,13 +125,6 @@ if(view_mode == "tubes")
 
 if(view_mode == "middle_panel_coupler")
     project_middle_panel_coupler();
-
-if(view_mode == "middle_panel_fit_section")
-    middle_panel_coupler_fit_section(
-        depth=5.0,
-        crop_width=145.0,
-        crop_height=115.0
-    );
 
 if(view_mode == "rear_fit_section")
     rear_fit_section(

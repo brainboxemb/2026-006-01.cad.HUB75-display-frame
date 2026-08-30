@@ -13,6 +13,7 @@ use <../components/_lib/reference_grid.scad>
 coupler_design_profile = "medium"; // [small,medium,large,custom]
 
 /* [Custom coupler dimensions] */
+// These seven fields are the complete editable custom profile.
 profile_size = 80;
 wall_thickness = 4;
 guide_height = 6;

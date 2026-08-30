@@ -123,97 +123,63 @@ function coupler_base_thickness_for(name) =
                       3.0;
 
 // Shape/placement rules. These describe printable coupler geometry, not
-// HUB75 panel geometry. The named profiles define only the base envelope
-// dimensions above; shape dimensions are derived from that envelope at run
-// time so arbitrary/custom profile sizes remain meaningful.
+// HUB75 panel geometry.  The named profiles define the user-visible design
+// values explicitly so the fixed presets and custom mode expose the same
+// conceptual controls.
 //
 // Names are intentionally visual:
 //   corner_radius = concave transition where an arm meets the centre/body
 //   edge_radius   = convex rounding at the free outside end of an arm
-//
-// The two radii describe different parts of the plate.  Keep them
-// parametrically tied to the overall envelope, but use a smaller ratio at
-// the free arm ends so the radius cannot visually consume the guide.
-coupler_corner_radius_ratio = 0.10;
-coupler_edge_radius_ratio = 0.05;
-coupler_radius_rounding_step = 0.5;
-// Guide free-end shape.  The split is defined against the *guide wall width*,
-// not against the plate radius and not against the overall profile size.
-//
-// 30% of the guide wall is allowed to continue into the plate's convex edge
-// radius.  The remaining 70% becomes the guide's own end radius.  Keeping the
-// two shares explicit makes the intended geometry readable and ensures small,
-// medium, large and custom profiles all use the same construction rule.
+function coupler_corner_radius_for(name) =
+    name == "small" ? 6.0 :
+    name == "large" ? 10.0 :
+                      8.0;
+function coupler_edge_radius_for(name) =
+    name == "small" ? 3.0 :
+    name == "large" ? 5.0 :
+                      4.0;
+
+// Guide free-end shape.  This split is derived from the guide wall width and
+// is intentionally NOT a preset value.
 coupler_guide_plate_radius_share = 0.30;
 coupler_guide_own_radius_share = 0.70;
 
-// Tube-clip positioning is physical rather than cosmetic: keep the clip centre
-// at least one half clip width (8 mm) plus 4 mm edge margin from the nominal
-// free edge, while retaining the established 25 mm maximum offset.
-coupler_tube_clip_half_width = 8.0;
-coupler_tube_clip_edge_margin = 4.0;
-coupler_tube_clip_max_offset = 25.0;
+// Tube-clip centre position is also an explicit profile design value.  This
+// keeps the named presets consistent with the editable custom field.
+function coupler_tube_clip_offset_for(name) =
+    name == "small" ? 18.0 :
+    name == "large" ? 25.0 :
+                      25.0;
 
-function coupler_round_to_step(value, step=coupler_radius_rounding_step) =
-    step <= 0 ? value : round(value/step)*step;
-
-function coupler_corner_radius_for_size(profile_size) =
-    coupler_round_to_step(profile_size * coupler_corner_radius_ratio);
-
-function coupler_edge_radius_for_size(profile_size, wall_thickness=undef) =
-    coupler_round_to_step(profile_size * coupler_edge_radius_ratio);
-
-// Guide free-end construction is derived from the plate envelope and the
-// actual guide-wall width.  `transition` is the point along the arm where the
-// guide stops following the plate edge and its own smooth cap takes over.
-//
-// The 30/70 split is intentionally measured in GUIDE-WALL width:
-//   30% -> travel while still following the plate edge radius
-//   70% -> axial depth of the guide's own rounded cap
-// This is not a percentage of profile size or plate radius.
 function coupler_guide_plate_follow_depth_for_wall(wall_thickness) =
     max(0, wall_thickness * min(1, max(0, coupler_guide_plate_radius_share)));
 
 function coupler_guide_cap_depth_for_wall(wall_thickness) =
     max(0, wall_thickness * min(1, max(0, coupler_guide_own_radius_share)));
 
-function coupler_guide_transition_for_size(profile_size, edge_radius=undef, wall_thickness=undef) = let(
-    er = is_undef(edge_radius) ? coupler_edge_radius_for_size(profile_size) : edge_radius,
-    wall = is_undef(wall_thickness) ? coupler_wall_thickness_default() : wall_thickness
-) max(0, profile_size/2 - er + coupler_guide_plate_follow_depth_for_wall(wall));
+// Derived guide geometry.  The guide is not a separately configured length:
+// it follows the straight plate edge to the start of edge_radius, then follows
+// 30% of the guide-wall width into that radius and uses the remaining 70% for
+// its own rounded cap.
+function coupler_guide_transition_for_size(profile_size, edge_radius, wall_thickness) =
+    max(0,
+        profile_size/2 - edge_radius
+        + coupler_guide_plate_follow_depth_for_wall(wall_thickness)
+    );
 
-// Total maximum reach of the guide including its own cap.  Keep this function
-// for callers that only need an envelope dimension; the guide geometry itself
-// uses the transition and cap depth separately.
-function coupler_guide_length_for_size(profile_size, edge_radius=undef, wall_thickness=undef) = let(
-    wall = is_undef(wall_thickness) ? coupler_wall_thickness_default() : wall_thickness
-) coupler_guide_transition_for_size(profile_size, edge_radius, wall)
-  + coupler_guide_cap_depth_for_wall(wall);
+function coupler_guide_length_for_size(profile_size, edge_radius, wall_thickness) =
+    coupler_guide_transition_for_size(profile_size, edge_radius, wall_thickness)
+    + coupler_guide_cap_depth_for_wall(wall_thickness);
 
 function coupler_guide_end_radius_for_wall(wall_thickness) =
     coupler_guide_cap_depth_for_wall(wall_thickness);
 
-function coupler_tube_clip_offset_for_size(profile_size) =
-    min(
-        coupler_tube_clip_max_offset,
-        max(0, profile_size/2 - coupler_tube_clip_half_width - coupler_tube_clip_edge_margin)
-    );
-
-function coupler_corner_radius_for(name) =
-    coupler_corner_radius_for_size(coupler_profile_size_for(name));
-function coupler_edge_radius_for(name) =
-    coupler_edge_radius_for_size(
-        coupler_profile_size_for(name),
-        coupler_wall_thickness_for(name)
-    );
 function coupler_guide_length_for(name) =
     coupler_guide_length_for_size(
         coupler_profile_size_for(name),
         coupler_edge_radius_for(name),
         coupler_wall_thickness_for(name)
     );
-function coupler_tube_clip_offset_for(name) =
-    coupler_tube_clip_offset_for_size(coupler_profile_size_for(name));
 
 function project_coupler_design_profile() =
     is_undef($coupler_design_profile) ? "medium" : $coupler_design_profile;
@@ -231,14 +197,11 @@ function project_coupler_custom_base_thickness() =
     is_undef($coupler_custom_base_thickness) ? coupler_base_thickness_for("medium") : $coupler_custom_base_thickness;
 function project_coupler_custom_corner_radius() =
     is_undef($coupler_custom_corner_radius)
-        ? coupler_corner_radius_for_size(project_coupler_custom_profile_size())
+        ? coupler_corner_radius_for("medium")
         : $coupler_custom_corner_radius;
 function project_coupler_custom_edge_radius() =
     is_undef($coupler_custom_edge_radius)
-        ? coupler_edge_radius_for_size(
-            project_coupler_custom_profile_size(),
-            project_coupler_custom_wall_thickness()
-          )
+        ? coupler_edge_radius_for("medium")
         : $coupler_custom_edge_radius;
 function project_coupler_custom_guide_length() =
     coupler_guide_length_for_size(
@@ -248,7 +211,7 @@ function project_coupler_custom_guide_length() =
     );
 function project_coupler_custom_tube_clip_offset() =
     is_undef($coupler_custom_tube_clip_offset)
-        ? coupler_tube_clip_offset_for_size(project_coupler_custom_profile_size())
+        ? coupler_tube_clip_offset_for("medium")
         : $coupler_custom_tube_clip_offset;
 
 function project_coupler_profile_size() =
@@ -291,7 +254,7 @@ function project_coupler_guide_cap_depth() =
     coupler_guide_cap_depth_for_wall(project_coupler_wall_thickness());
 // Backwards-compatible name used by older call sites.  It now means the axial
 // depth of the guide's own smooth cap, not a generic morphological rounding.
-function project_coupler_guide_end_rounding() = project_coupler_guide_cap_depth();
+function project_coupler_guide_end_rounding() = min(coupler_guide_end_rounding_default(), project_coupler_wall_thickness()/2);
 function project_coupler_tube_clip_offset() =
     project_coupler_design_profile() == "custom"
         ? project_coupler_custom_tube_clip_offset()

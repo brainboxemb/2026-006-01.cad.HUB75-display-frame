@@ -121,28 +121,24 @@ module rib_cross_keepout_2d(horizontal_rib_w, vertical_rib_w, corner_r) {
 
 
 module rib_side_guides_2d(
-    width,
-    height,
-    h_arm_height,
-    v_arm_width,
+    width, height,
+    h_arm_height, v_arm_width,
     inner_r,
     outer_r,
     clearance,
     end_rounding=0,
-    guide_length_value=1e6
+    guide_length_value=1e6,
+    guide_transition_value=guide_transition,
+    guide_cap_depth_value=guide_cap_depth,
+    guide_wall_width_value=wall_thickness
 ) {
     horizontal_rib_w = hub75_rear_middle_rib_width();
     vertical_rib_w = coupler_project_edge_seam_keepout_width();
     opening_corner_r = hub75_rear_opening_corner_radius();
 
-    // IMPORTANT: do not round the complete thin guide with
-    // offset(-r)/offset(+r).  On the 2 mm small-profile wall that operation
-    // erodes the guide itself and can make complete guide sections disappear.
-    // The guide is the exact fitted shell (plate minus panel keep-out), clipped
-    // only by its geometric reach.  The plate's own edge radius supplies the
-    // curved outer continuation; a local end-cap can be added independently
-    // without ever shrinking the whole guide wall.
-    intersection() {
+    // Authoritative fitted shell.  Do NOT shrink/expand this geometry to make
+    // a rounded end: that erodes the 2 mm small-profile guide to zero.
+    module fitted_guide() {
         difference() {
             coupler_plus_profile_2d(
                 width, height,
@@ -156,17 +152,19 @@ module rib_side_guides_2d(
                     opening_corner_r
                 );
         }
+    }
 
-        // Preserve the fitted shell up to the plate-follow transition and
-        // then cap each thin guide strip with its own smooth ellipse.  This is
-        // the actual 30/70 guide-width rule; no arm-sized profile is used to
-        // approximate the guide end.
+    // End shaping is a pure MASK over the fitted shell.  It preserves the
+    // complete guide wall until the local transition and then closes each
+    // free strip with its own circular cap.  No negative offset is used.
+    intersection() {
+        fitted_guide();
         coupler_plus_guide_end_mask_2d(
-            transition=guide_length_value,
-            cap_depth=end_rounding,
-            horizontal_arm_height=h_arm_height,
-            vertical_arm_width=v_arm_width,
-            wall_thickness=project_coupler_wall_thickness()
+            guide_transition_value,
+            guide_cap_depth_value,
+            h_arm_height,
+            v_arm_width,
+            guide_wall_width_value
         );
     }
 }
@@ -419,7 +417,7 @@ module middle_panel_coupler(
                                 inside_radius, outside_radius,
                                 guide_wall_thickness_value,
                                 guide_end_rounding_value,
-                                guide_transition
+                                guide_length
                             );
 
                     // The two separate HUB75 reinforcement bushings protrude
@@ -478,9 +476,6 @@ module middle_panel_coupler(
 }
 
 
-
-// Fit inspection is implemented as a real two-panel section in
-// assemblies/middle_panel_coupler_fit_section.scad.
 
 module middle_panel_coupler_print_orientation(part_color = preview_color) {
     rotate([180,0,0])

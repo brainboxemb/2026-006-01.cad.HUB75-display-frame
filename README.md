@@ -391,10 +391,6 @@ between the shared profile rules of the middle, edge and corner variants.
 
 ![HUB75 display frame V1.2 - couplers stacked](v1.2/out/png/hub75-display-frame-couplers-stacked.png)
 
-#### Middle panel coupler fit section
-
-![HUB75 display frame V1.2 - middle panel coupler fit section](v1.2/out/png/hub75-display-frame-middle-panel-fit-section.png)
-
 #### XY coupler fit cross-sections
 
 Two additional diagnostic renders are true **XY-plane slices at a fixed Z height**. The slice is placed just inboard of the horizontal coupler arm, so the arm cannot hide the fit. Looking perpendicular to the XY plane shows the physical panel edges, rear seam gap, locator rib and guide geometry in depth. This is the intended check for left/right print clearance and centring on the nominal seam. Both use the canonical `medium` profile.
@@ -415,20 +411,17 @@ Two additional diagnostic renders are true **XY-plane slices at a fixed Z height
 
 V1.2 provides three fixed project-wide coupler presets plus a custom mode. The profile can be selected from the OpenSCAD Customizer when `v1.2/cad/main.scad` is open.
 
-```text
-small        60 ×  60 mm envelope, 2 mm wall, 4 mm guide height, 2 mm base
-medium       80 ×  80 mm envelope, 4 mm wall, 6 mm guide height, 3 mm base
-large       100 × 100 mm envelope, 6 mm wall, 10 mm guide height, 4 mm base
-custom       user-entered base dimensions
-```
+| Profile | Envelope | Wall | Guide height | Base | Corner radius | Edge radius | Tube clip offset |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Small | 60 × 60 mm | 2 mm | 4 mm | 2 mm | 6 mm | 3 mm | 18 mm |
+| Medium | 80 × 80 mm | 4 mm | 6 mm | 3 mm | 8 mm | 4 mm | 25 mm |
+| Large | 100 × 100 mm | 6 mm | 10 mm | 4 mm | 10 mm | 5 mm | 25 mm |
 
-The three named presets are fixed and reproducible. **Medium is the canonical V1.2 profile** and is used by the normal full-display documentation renders and the complete display STL. The numeric fields under **Custom coupler dimensions** are ignored while `large`, `medium` or `small` is selected. Selecting `custom` activates those base values directly; no separate enable checkbox and no magic `0` override values are used.
+The three named presets are fixed and reproducible. **Medium is the canonical V1.2 profile** and is used by the normal full-display documentation renders and the complete display STL. The numeric fields under **Custom coupler dimensions** are ignored while `large`, `medium` or `small` is selected. Selecting `custom` activates the same seven design settings shown in the table above. The custom fields start with the medium values as a practical baseline.
 
-The plate/guide shape is deliberately **derived**, not stored as a second table of profile-specific dimensions. `corner radius` is calculated as 10% of the effective profile envelope and `edge radius` as 5%, both rounded to the configured 0.5 mm step. Guide reach is calculated from the plate geometry: it runs to the start of the plate edge radius, follows that curve for 30% of the guide wall width, and then finishes with its own radius based on the remaining 70% of the guide wall width. Tube-clip position is calculated from the free edge using the 8 mm half clip width plus a 4 mm edge margin, with the established 25 mm maximum centre offset.
+`corner_radius`, `edge_radius` and `tube_clip_offset` are explicit profile/custom settings. **Guide length is not a setting.** Guide transition and maximum reach are derived from the selected profile values: the guide runs to the start of the plate edge radius, follows the edge for 30% of the guide-wall width, and uses the remaining 70% of the guide-wall width for its own end-cap depth.
 
-`corner radius` means the concave transition where an arm meets the coupler body. `edge radius` means the convex rounding at a free arm end. Explicit custom shape overrides remain available when a genuinely non-proportional custom design is required; when left undefined, custom profiles use the same formulas based on their entered profile size.
-
-The decorative Ø3 mm blind-pocket raster adapts automatically to the effective profile size, including custom sizes. Individual printable couplers are rendered and exported as STL for all three named profiles. Reusable objects such as the HUB75 panel and aluminium tube remain independent of these project-specific choices.
+The decorative Ø3 mm blind-pocket raster adapts automatically to the effective profile size. Individual printable couplers are rendered and exported as STL for all three named profiles. Reusable objects such as the HUB75 panel and aluminium tube remain independent of these project-specific choices.
 
 #### Profile render galleries
 
@@ -464,7 +457,6 @@ v1.2/cad/
 │   ├── panels_assembly.scad
 │   ├── couplers_assembly.scad
 │   ├── tubes_assembly.scad
-│   ├── middle_panel_coupler_fit_section.scad
 │   ├── coupler_fit_cross_sections.scad
 │   ├── rear_fit_section.scad
 │   ├── coupler_comparison_assembly.scad
@@ -483,7 +475,6 @@ v1.2/cad/
     ├── rear.scad
     ├── rear_angled.scad
     ├── rear_wiring.scad
-    ├── middle_panel_fit_section.scad
     ├── middle_panel_fit_cross_section.scad
     ├── horizontal_edge_fit_cross_section.scad
     ├── rear_fit_section.scad

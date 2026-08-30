@@ -2,11 +2,30 @@
 
 > The model and documentation were developed with the assistance of ChatGPT.
 
-| Profile envelope | Wall thickness | Guide height | Base thickness | Corner radius | Edge radius | Guide length | Tube clip offset |
-|---:|---:|---:|---:|---:|---:|---:|---:|
-| 80 × 80 mm | 4 mm | 6 mm | 3 mm | 8 mm | 5 mm | 36 mm | 25 mm |
+## Profile preset values
 
-**Medium is the canonical V1.2 profile.** The normal full-display documentation renders and the complete display STL use this profile.
+These are the fixed values selected by the `medium` profile. The same fields are editable when `custom` is selected in the OpenSCAD Customizer.
+
+| Setting | Value |
+|---|---:|
+| Profile envelope | 80 × 80 mm |
+| Wall thickness | 4 mm |
+| Guide height | 6 mm |
+| Base thickness | 3 mm |
+| Corner radius | 8 mm |
+| Edge radius | 4 mm |
+| Tube clip offset | 25 mm |
+
+## Derived guide geometry
+
+These values are **calculated**, not independent profile settings. They are shown only to make the geometry easier to verify.
+
+| Derived value | Formula | Result |
+|---|---|---:|
+| Start of plate edge radius | `profile_size / 2 - edge_radius` | 36 mm |
+| Plate-follow depth | `wall_thickness × 0.30` | 1.2 mm |
+| Own cap depth | `wall_thickness × 0.70` | 2.8 mm |
+| Maximum guide reach | radius start + follow + cap | 40 mm |
 
 ## Side by side
 

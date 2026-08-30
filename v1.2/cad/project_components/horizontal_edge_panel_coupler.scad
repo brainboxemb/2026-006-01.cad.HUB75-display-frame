@@ -227,12 +227,11 @@ module t_side_guides_2d(
     end_rounding,
     horizontal_center_z=0,
     inward_reach_value=inboard_reach,
-    guide_length_value=1e6
+    guide_transition_value=guide_transition,
+    guide_cap_depth_value=guide_cap_depth,
+    guide_wall_width_value=wall_thickness
 ) {
-    // Keep the small-profile guide structurally intact: guide rounding must not
-    // be implemented by eroding the complete fitted shell.  Limit only its
-    // X reach; the plate profile itself supplies the curved outer envelope.
-    intersection() {
+    module fitted_guide() {
         difference() {
             edge_profile_2d(
                 direction,width,height,bar_height,stem_width,
@@ -241,21 +240,22 @@ module t_side_guides_2d(
             offset(delta=clearance)
                 panel_edge_t_keepout_2d(direction,width,height);
         }
+    }
 
-        // Same 30/70 free-end construction as the middle coupler.  The
-        // fitted T shell is authoritative; only its two horizontal guide strips
-        // are allowed beyond the plate-follow transition, each ending in its
-        // own smooth elliptical cap.
+    // Preserve the fitted T shell and shape only the two horizontal free ends
+    // with a positive circular-cap mask.  This intentionally contains no
+    // offset(delta=-r), so the 2 mm small guide cannot be erased.
+    intersection() {
+        fitted_guide();
         coupler_t_horizontal_guide_end_mask_2d(
-            transition=guide_length_value,
-            cap_depth=end_rounding,
-            horizontal_arm_height=bar_height,
-            wall_thickness=project_coupler_wall_thickness(),
-            horizontal_arm_center_z=horizontal_center_z
+            guide_transition_value,
+            guide_cap_depth_value,
+            bar_height,
+            guide_wall_width_value,
+            horizontal_center_z
         );
     }
 }
-
 
 module outer_edge_zone_2d(direction, width, height, edge_z, clearance) {
     // Region outside the physical HUB75 panel edge.  The normal fitted guide
@@ -653,8 +653,7 @@ module horizontal_edge_panel_coupler(
                                     rib_clearance_value,
                                     guide_end_rounding_value,
                                     horizontal_center_z,
-                                    inward_reach_value,
-                                    guide_transition
+                                    inward_reach_value
                                 );
                                 outer_edge_zone_2d(
                                     direction,width,height,

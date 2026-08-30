@@ -23,17 +23,21 @@ fit. Those two coordinate systems must never be substituted for each other.
 
 ## 2. One shared coupler profile system
 
-The named profiles define only their basic envelope dimensions:
+The named profiles explicitly define the same design settings that are exposed
+when `custom` is selected. This keeps fixed presets and custom mode conceptually
+consistent.
 
-| Profile | Size | Wall | Guide height | Base |
-|---|---:|---:|---:|---:|
-| Small | 60 mm | 2 mm | 4 mm | 2 mm |
-| Medium | 80 mm | 4 mm | 6 mm | 3 mm |
-| Large | 100 mm | 6 mm | 10 mm | 4 mm |
+| Profile | Size | Wall | Guide height | Base | Corner radius | Edge radius | Tube clip offset |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Small | 60 mm | 2 mm | 4 mm | 2 mm | 6 mm | 3 mm | 18 mm |
+| Medium | 80 mm | 4 mm | 6 mm | 3 mm | 8 mm | 4 mm | 25 mm |
+| Large | 100 mm | 6 mm | 10 mm | 4 mm | 10 mm | 5 mm | 25 mm |
 
-Shape dimensions are derived parametrically from those effective values. Do not
-put separate small/medium/large correction values in the middle, horizontal-edge
-or corner component files.
+These are **profile settings**. Derived geometry such as the start of the plate
+edge radius, guide transition, plate-follow depth, cap depth and maximum guide
+reach must be calculated from these settings. They are not extra Customizer
+controls and must not be stored as a second set of small/medium/large constants
+in individual component files.
 
 ## 3. Plate shape
 
@@ -69,7 +73,7 @@ At a free plate end the construction is:
    the end-shaping operation can remove material but can never add material
    outside the plate or into the panel keep-out.
 
-The 30/70 split is based on **guide-wall width**. It is not a percentage of
+The shared rounded-end split is based on **guide-wall width**. It is not a percentage of
 profile size and not a percentage of plate radius.
 
 ## 6. Guide length
@@ -86,10 +90,10 @@ The important derived locations are:
 
 ## 7. Tube clips
 
-Tube-clip placement is a separate physical design requirement. It is derived
-from the available plate envelope, half clip width and an explicit edge margin.
-Reducing the coupler profile must not leave the tube clip protruding simply
-because a medium/large offset was retained.
+Tube-clip placement is a separate physical design requirement and is an explicit
+profile/custom setting. The selected offset must still be validated against the
+available plate envelope so a smaller profile cannot leave a clip unsupported or
+unnecessarily protruding.
 
 ## 8. Component consistency
 
@@ -117,3 +121,13 @@ At minimum check:
 
 The reference drawings remain the coordinate-system check. The angled and
 cross-section renders are the printable-geometry check.
+
+## Guide end geometry
+
+The guide is derived from the same rounded plate profile as the coupler body. After subtracting the authoritative HUB75 rear keep-out plus print clearance, the exposed thin-guide ends are softly rounded. The guide follows the plate edge into its radius and terminates smoothly, without a square cut, wedge, cusp, or separate analytic cap. The same construction is used for small, medium and large; only the resolved profile dimensions change.
+
+### Local free-end rounding
+
+Guide-end rounding must be a **local** operation. The fitted guide shell remains authoritative over its full length. Only the free-end zone may be rounded; a shrink/expand operation must never be applied to the complete guide because that can erase the thin `small` guide. Both the outside and inside guide contours must turn around the free plate end; a square inner end face is not acceptable.
+
+The rounded cap must be constructed as a **positive local mask/cap** over the authoritative fitted shell. `offset(delta=-r)` is forbidden for guide-end shaping, including inside a local end zone.

@@ -1,7 +1,6 @@
 // HUB75 display frame - V1.2 full rear fit section
 //
-// Full-width equivalent of middle_panel_coupler_fit_section.scad. The display is
-// cut 5 mm forward from the rear mounting plane. This exposes the interface
+// The display is cut 5 mm forward from the rear mounting plane. This exposes the interface
 // between the real HUB75 rear ribs and every printed coupler simultaneously.
 
 include <../config/project_config.scad>
