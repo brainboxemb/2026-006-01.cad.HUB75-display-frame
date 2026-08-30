@@ -124,13 +124,21 @@ function corner_edge_panel_coupler_reference_z(direction="top") =
 // horizontal-edge coupler when both are placed on the same nominal panel edge.
 function corner_side_rail_center_x(side) =
     side == "left"
-        ? -screw_to_side_edge + hub75_rear_side_rail_width()/2
-        :  screw_to_side_edge - hub75_rear_side_rail_width()/2;
+        ? -screw_to_side_edge
+          + hub75_rear_outer_inset_x()
+          + hub75_rear_side_rail_width_at_mounting_plane()/2
+        :  screw_to_side_edge
+          - hub75_rear_outer_inset_x()
+          - hub75_rear_side_rail_width_at_mounting_plane()/2;
 
 function corner_end_rail_center_z(direction) =
     direction == "top"
-        ?  screw_to_horizontal_edge - hub75_rear_end_rail_width()/2
-        : -screw_to_horizontal_edge + hub75_rear_end_rail_width()/2;
+        ?  screw_to_horizontal_edge
+           - hub75_rear_outer_inset_z()
+           - hub75_rear_end_rail_width_at_mounting_plane()/2
+        : -screw_to_horizontal_edge
+           + hub75_rear_outer_inset_z()
+           + hub75_rear_end_rail_width_at_mounting_plane()/2;
 
 // Keep the physical corner profile in the real screw-centred coordinate
 // system.  The nominal 160 x 320 mm corner only determines where the outer
@@ -176,10 +184,12 @@ module corner_nominal_profile_2d(
 module corner_panel_keepout_2d(side, direction, total_size) {
     ix = side == "left" ? 1 : -1;
     iz = direction == "top" ? -1 : 1;
-    edge_x = -ix * screw_to_side_edge;
-    edge_z = -iz * screw_to_horizontal_edge;
-    side_w = hub75_rear_side_rail_width();
-    end_w = hub75_rear_end_rail_width();
+    physical_edge_x = -ix * screw_to_side_edge;
+    physical_edge_z = -iz * screw_to_horizontal_edge;
+    edge_x = physical_edge_x + ix*hub75_rear_outer_inset_x();
+    edge_z = physical_edge_z + iz*hub75_rear_outer_inset_z();
+    side_w = hub75_rear_side_rail_width_at_mounting_plane();
+    end_w = hub75_rear_end_rail_width_at_mounting_plane();
     corner_r = hub75_rear_opening_corner_radius();
     span = total_size + 30;
 
@@ -211,8 +221,8 @@ module corner_panel_keepout_2d(side, direction, total_size) {
 module corner_inside_panel_2d(side, direction, total_size) {
     ix = side == "left" ? 1 : -1;
     iz = direction == "top" ? -1 : 1;
-    edge_x = -ix * screw_to_side_edge;
-    edge_z = -iz * screw_to_horizontal_edge;
+    edge_x = -ix * screw_to_side_edge + ix*hub75_rear_outer_inset_x();
+    edge_z = -iz * screw_to_horizontal_edge + iz*hub75_rear_outer_inset_z();
     span = total_size + 30;
 
     xmin = ix > 0 ? edge_x : -span;
@@ -337,8 +347,8 @@ module corner_fitted_guides_2d(
 module corner_outside_edge_zone_2d(side, direction, size, clearance) {
     ix = side == "left" ? 1 : -1;
     iz = direction == "top" ? -1 : 1;
-    edge_x = -ix * screw_to_side_edge;
-    edge_z = -iz * screw_to_horizontal_edge;
+    edge_x = -ix * screw_to_side_edge + ix*hub75_rear_outer_inset_x();
+    edge_z = -iz * screw_to_horizontal_edge + iz*hub75_rear_outer_inset_z();
     span = size + 40;
 
     // Union of the two regions outside the physical panel edges.  Intersecting

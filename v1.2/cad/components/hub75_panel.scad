@@ -325,6 +325,17 @@ function hub75_rear_side_rail_width() = rear_frame_side_width_reference;
 function hub75_rear_end_rail_width() = rear_frame_end_width_reference;
 function hub75_rear_middle_rib_width() = rear_frame_crossbar_width_reference;
 function hub75_rear_opening_corner_radius() = rear_opening_corner_radius_reference;
+
+// Effective dimensions at the actual rear mounting plane. The outside housing
+// tapers inward while the electronics-bay openings remain vertical. Therefore
+// the mating side/end rails are narrower at the rear face than their nominal
+// STEP reference widths. Coupler fit geometry must use these dimensions.
+function hub75_rear_side_rail_width_at_mounting_plane() =
+    max(0, rear_frame_side_width_reference - hub75_rear_outer_inset_x());
+function hub75_rear_end_rail_width_at_mounting_plane() =
+    max(0, rear_frame_end_width_reference - hub75_rear_outer_inset_z());
+function hub75_rear_end_narrow_width_at_mounting_plane() =
+    max(0, rear_frame_end_narrow_width_reference - hub75_rear_outer_inset_z());
 function hub75_reinforcement_bushing_outer_diameter() = reinforcement_bushing_outer_diameter;
 function hub75_reinforcement_bushing_recess_diameter() = reinforcement_bushing_inner_diameter;
 function hub75_reinforcement_bushing_hole_diameter() = reinforcement_bushing_hole_diameter;

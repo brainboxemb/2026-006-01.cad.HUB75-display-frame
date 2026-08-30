@@ -118,7 +118,9 @@ $fn = 64;
 // its inward and outward sides.
 function panel_end_rail_center_z(direction) =
     (direction == "top" ? 1 : -1)
-    * (screw_row_to_panel_edge - hub75_rear_end_rail_width()/2);
+    * (screw_row_to_panel_edge
+       - hub75_rear_outer_inset_z()
+       - hub75_rear_end_rail_width_at_mounting_plane()/2);
 
 // Nominal 320 mm envelope edge relative to the real mounting-hole row.
 // This is the geometric + reference for the horizontal edge coupler.
@@ -178,11 +180,14 @@ function edge_locator_pin_z(direction) =
 // The end-rail position is derived from the real screw-row-to-edge distance.
 module panel_edge_t_keepout_2d(direction, total_width, total_height) {
     vertical_w = coupler_project_edge_seam_keepout_width();
-    horizontal_w = hub75_rear_end_rail_width();
+    horizontal_w = hub75_rear_end_rail_width_at_mounting_plane();
     corner_r = hub75_rear_opening_corner_radius();
 
     edge_sign = direction == "top" ? 1 : -1;
-    edge_z = edge_sign * screw_row_to_panel_edge;
+    // The outer housing edge is inset at the rear mounting plane. The bay
+    // opening itself stays vertical, so the rail occupies only the space
+    // between this rear edge and the unchanged opening edge.
+    edge_z = edge_sign * (screw_row_to_panel_edge - hub75_rear_outer_inset_z());
     rail_center_z = edge_z - edge_sign * horizontal_w/2;
     rail_inner_z = edge_z - edge_sign * horizontal_w;
 
