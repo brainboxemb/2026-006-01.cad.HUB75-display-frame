@@ -12,6 +12,7 @@
 
 use <../components/tube_clip.scad>
 use <../components/hub75_panel.scad>
+use <../components/_lib/panel_fit_geometry.scad>
 use <_lib/coupler_profile.scad>
 use <_lib/coupler_dimensions.scad>
 
@@ -34,8 +35,8 @@ outer_corner_radius = project_coupler_edge_radius();
 base_thickness = project_coupler_base_thickness();
 
 /* [Mounting holes] */
-left_hole_x = -hub75_panel_nominal_width()/2 + hub75_panel_hole_x_right_centered();
-right_hole_x = hub75_panel_nominal_width()/2 + hub75_panel_hole_x_left_centered();
+left_hole_x = hub75_fit_seam_left_hole_x();
+right_hole_x = hub75_fit_seam_right_hole_x();
 hole_diameter = coupler_screw_hole_diameter_default();
 screw_relief_depth = coupler_screw_relief_depth_default();
 screw_relief_radial = coupler_screw_relief_radial_default();
@@ -118,19 +119,12 @@ $fn = 64;
 // horizontal T arm around the REAL rail so the printed wall is the same on
 // its inward and outward sides.
 function panel_end_rail_center_z(direction) =
-    (direction == "top" ? 1 : -1)
-    * (screw_row_to_panel_edge
-       - hub75_rear_outer_inset_z()
-       - hub75_rear_end_rail_width_at_mounting_plane()/2);
+    hub75_fit_edge_rear_end_rail_center_z(direction);
 
 // Nominal 320 mm envelope edge relative to the real mounting-hole row.
 // This is the geometric + reference for the horizontal edge coupler.
 function panel_nominal_edge_reference_z(direction) =
-    direction == "top"
-        ? hub75_panel_nominal_height()/2
-            - (hub75_panel_hole_z_top() - hub75_panel_height()/2)
-        : -hub75_panel_nominal_height()/2
-            - (hub75_panel_hole_z_bottom() - hub75_panel_height()/2);
+    hub75_fit_edge_nominal_reference_z(direction);
 
 // Public comparison/inspection anchor: the engraved + lies on this nominal
 // 320 mm panel edge, expressed in the screw-centred local component system.
@@ -181,14 +175,12 @@ function edge_locator_pin_z(direction) =
 // The end-rail position is derived from the real screw-row-to-edge distance.
 module panel_edge_t_keepout_2d(direction, total_width, total_height) {
     vertical_w = coupler_project_edge_seam_keepout_width();
-    horizontal_w = hub75_rear_end_rail_width_at_mounting_plane();
+    horizontal_w = hub75_fit_rear_end_rail_width();
     corner_r = hub75_rear_opening_corner_radius();
 
     edge_sign = direction == "top" ? 1 : -1;
-    // The outer housing edge is inset at the rear mounting plane. The bay
-    // opening itself stays vertical, so the rail occupies only the space
-    // between this rear edge and the unchanged opening edge.
-    edge_z = edge_sign * (screw_row_to_panel_edge - hub75_rear_outer_inset_z());
+    // Canonical rear outer edge in this coupler's screw-row-centred system.
+    edge_z = hub75_fit_edge_rear_outer_edge_z(direction);
     rail_center_z = edge_z - edge_sign * horizontal_w/2;
     rail_inner_z = edge_z - edge_sign * horizontal_w;
 
@@ -235,26 +227,12 @@ module t_side_guides_2d(
     inward_reach_value=inboard_reach,
     guide_length_value=1e6
 ) {
-    // Crop to the requested guide reach BEFORE rounding, otherwise the crop
-    // itself removes the rounded endpoint (V121 regression).
-    if(end_rounding > 0)
-        offset(r=end_rounding)
-            offset(delta=-end_rounding)
-                intersection() {
-                    square([2*guide_length_value, height + 40], center=true);
-                    difference() {
-                    edge_profile_2d(
-                        direction,width,height,bar_height,stem_width,
-                        inner_r,outer_r,horizontal_center_z,inward_reach_value
-                    );
-                    offset(delta=clearance)
-                        panel_edge_t_keepout_2d(direction,width,height);
-                    }
-                }
-    else
-        intersection() {
-            square([2*guide_length_value, height + 40], center=true);
-            difference() {
+    // Keep the small-profile guide structurally intact: guide rounding must not
+    // be implemented by eroding the complete fitted shell.  Limit only its
+    // X reach; the plate profile itself supplies the curved outer envelope.
+    intersection() {
+        square([2*guide_length_value, height + 40], center=true);
+        difference() {
             edge_profile_2d(
                 direction,width,height,bar_height,stem_width,
                 inner_r,outer_r,horizontal_center_z,inward_reach_value

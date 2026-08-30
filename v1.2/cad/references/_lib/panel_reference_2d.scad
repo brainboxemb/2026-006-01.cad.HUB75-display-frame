@@ -18,6 +18,7 @@
 // of the rear side/end rail together with the rear outer edge.
 
 use <../../components/hub75_panel.scad>
+use <../../components/_lib/panel_fit_geometry.scad>
 use <../../components/_lib/reference_grid.scad>
 
 ref_line_width = 0.45;
@@ -64,25 +65,25 @@ module ref_hole(center=[0,0], diameter=3.0, ring=0.55) {
 }
 
 // ---- Canonical coordinates -------------------------------------------------
-function ref_panel_nominal_width() = hub75_panel_nominal_width();
-function ref_panel_nominal_height() = hub75_panel_nominal_height();
-function ref_panel_front_width() = hub75_panel_width();
-function ref_panel_front_height() = hub75_panel_height();
-function ref_panel_rear_width() = hub75_panel_width() - 2*hub75_rear_outer_inset_x();
-function ref_panel_rear_height() = hub75_panel_height() - 2*hub75_rear_outer_inset_z();
+function ref_panel_nominal_width() = 2*hub75_fit_nominal_half_x();
+function ref_panel_nominal_height() = 2*hub75_fit_nominal_half_z();
+function ref_panel_front_width() = 2*hub75_fit_front_outer_half_x();
+function ref_panel_front_height() = 2*hub75_fit_front_outer_half_z();
+function ref_panel_rear_width() = 2*hub75_fit_rear_outer_half_x();
+function ref_panel_rear_height() = 2*hub75_fit_rear_outer_half_z();
 
 // Inner edges of the OUTER rear frame, expressed around panel local (0,0).
 // The bay openings remain vertical while the outer housing tapers inward, so
 // these opening coordinates are referenced to the physical front/body size.
-function ref_panel_rear_inner_x() = hub75_panel_width()/2 - hub75_rear_side_rail_width();
-function ref_panel_rear_inner_z() = hub75_panel_height()/2 - hub75_rear_end_rail_width();
+function ref_panel_rear_inner_x() = hub75_fit_rear_inner_half_x();
+function ref_panel_rear_inner_z() = hub75_fit_rear_inner_half_z();
 
-function ref_panel_grid_gap_x() = hub75_panel_grid_gap_x();
-function ref_panel_grid_gap_z() = hub75_panel_grid_gap_z();
-function ref_panel_rear_grid_gap_x() = hub75_panel_rear_grid_gap_x();
-function ref_panel_rear_grid_gap_z() = hub75_panel_rear_grid_gap_z();
-function ref_panel_rear_side_rail_width_at_mounting_plane() = hub75_rear_side_rail_width_at_mounting_plane();
-function ref_panel_rear_end_rail_width_at_mounting_plane() = hub75_rear_end_rail_width_at_mounting_plane();
+function ref_panel_grid_gap_x() = hub75_fit_front_seam_gap_x();
+function ref_panel_grid_gap_z() = hub75_fit_front_seam_gap_z();
+function ref_panel_rear_grid_gap_x() = hub75_fit_rear_seam_gap_x();
+function ref_panel_rear_grid_gap_z() = hub75_fit_rear_seam_gap_z();
+function ref_panel_rear_side_rail_width_at_mounting_plane() = hub75_fit_rear_side_rail_width();
+function ref_panel_rear_end_rail_width_at_mounting_plane() = hub75_fit_rear_end_rail_width();
 
 // ---- Four panel boundary layers -------------------------------------------
 module hub75_nominal_cell_2d(center=[0,0], line_width=ref_major_line_width) {

@@ -6,6 +6,7 @@
 
 use <../components/hub75_panel.scad>
 
+// Use the panel in its canonical physical orientation; only the camera moves.
 hub75_panel(
     show_orientation=true,
     show_connectors=true,
@@ -13,9 +14,9 @@ hub75_panel(
     front_color=[0.52, 0.52, 0.52, 1],
     pcb_color=[0.02, 0.20, 0.07, 1],
     connector_color=[0.06, 0.06, 0.06, 1]
-);
+    );
 
 $vpt = [0, 0, 0];
 // Use the same rear three-quarter camera orientation as rear_angled.scad.
-$vpr = [265, 0, 320];
+$vpr = [85, 0, 220];
 $vpd = 850;

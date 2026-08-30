@@ -28,8 +28,8 @@ guide_end_rounding = project_coupler_guide_end_rounding();
 guide_length = project_coupler_guide_length();
 
 /* [Mounting screws] */
-left_screw_x = -hub75_panel_nominal_width()/2 + hub75_panel_hole_x_right_centered();
-right_screw_x = hub75_panel_nominal_width()/2 + hub75_panel_hole_x_left_centered();
+left_screw_x = hub75_fit_seam_left_hole_x();
+right_screw_x = hub75_fit_seam_right_hole_x();
 screw_hole_diameter = coupler_screw_hole_diameter_default();
 screw_relief_depth = coupler_screw_relief_depth_default();
 screw_relief_radial = coupler_screw_relief_radial_default();
@@ -80,6 +80,7 @@ show_print_orientation = false;
 $fn = 96;
 
 use <../components/hub75_panel.scad>
+use <../components/_lib/panel_fit_geometry.scad>
 use <_lib/coupler_profile.scad>
 use <_lib/coupler_dimensions.scad>
 
@@ -132,32 +133,16 @@ module rib_side_guides_2d(
     vertical_rib_w = coupler_project_edge_seam_keepout_width();
     opening_corner_r = hub75_rear_opening_corner_radius();
 
-    // Limit the guide first, then round the resulting endpoints.  In V121
-    // the order was reversed; the square length crop cut the already-rounded
-    // guide ends back to a sharp edge.
-    if (end_rounding > 0)
-        offset(r=end_rounding)
-            offset(delta=-end_rounding)
-                intersection() {
-                    square([2*guide_length_value, 2*guide_length_value], center=true);
-                    difference() {
-                    coupler_plus_profile_2d(
-                        width, height,
-                        h_arm_height, v_arm_width,
-                        inner_r, outer_r
-                    );
-                    offset(delta=clearance)
-                        rib_cross_keepout_2d(
-                            horizontal_rib_w,
-                            vertical_rib_w,
-                            opening_corner_r
-                        );
-                    }
-                }
-    else
-        intersection() {
-            square([2*guide_length_value, 2*guide_length_value], center=true);
-            difference() {
+    // IMPORTANT: do not round the complete thin guide with
+    // offset(-r)/offset(+r).  On the 2 mm small-profile wall that operation
+    // erodes the guide itself and can make complete guide sections disappear.
+    // The guide is the exact fitted shell (plate minus panel keep-out), clipped
+    // only by its geometric reach.  The plate's own edge radius supplies the
+    // curved outer continuation; a local end-cap can be added independently
+    // without ever shrinking the whole guide wall.
+    intersection() {
+        square([2*guide_length_value, 2*guide_length_value], center=true);
+        difference() {
             coupler_plus_profile_2d(
                 width, height,
                 h_arm_height, v_arm_width,

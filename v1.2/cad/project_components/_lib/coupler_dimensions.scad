@@ -6,14 +6,15 @@
 // functions so wall thickness and plate proportions cannot drift apart.
 
 use <../../components/hub75_panel.scad>
+use <../../components/_lib/panel_fit_geometry.scad>
 include <../../config/project_config.scad>
 use <coupler_profile.scad>
 
 function coupler_project_side_material() =
     project_coupler_wall_thickness() + coupler_fit_clearance_default();
 
-function coupler_project_front_seam_gap() = max(0, hub75_panel_grid_gap_x());
-function coupler_project_rear_seam_gap() = max(0, hub75_panel_rear_grid_gap_x());
+function coupler_project_front_seam_gap() = max(0, hub75_fit_front_seam_gap_x());
+function coupler_project_rear_seam_gap() = max(0, hub75_fit_rear_seam_gap_x());
 
 // The locator engages the gap at the REAR mounting plane, not the front/body
 // envelope.  The rear housing tapers inward, giving about 2.80 mm free space
@@ -24,20 +25,20 @@ function coupler_project_seam_locator_width(clearance=coupler_fit_clearance_defa
 
 // Both edge and corner parts sit around the same physical top/bottom rear rail.
 function coupler_project_horizontal_arm_height() =
-    hub75_rear_end_rail_width_at_mounting_plane() + 2*coupler_project_side_material();
+    hub75_fit_rear_end_rail_width() + 2*coupler_project_side_material();
 
 // At an internal seam, two side rails face each other with the nominal panel
 // pitch gap between them.  Only the two *outer* sides receive printed wall
 // material; there is no fictitious wall inserted between the panels.
 function coupler_project_edge_vertical_arm_width() =
-    2*hub75_rear_side_rail_width_at_mounting_plane()
+    2*hub75_fit_rear_side_rail_width()
     + coupler_project_rear_seam_gap()
     + 2*coupler_project_side_material();
 
 // At an outside corner there is only one panel side rail.
 function coupler_project_corner_vertical_arm_width() =
-    hub75_rear_side_rail_width_at_mounting_plane() + 2*coupler_project_side_material();
+    hub75_fit_rear_side_rail_width() + 2*coupler_project_side_material();
 
 // Matching physical keep-out width at an internal seam.
 function coupler_project_edge_seam_keepout_width() =
-    2*hub75_rear_side_rail_width_at_mounting_plane() + coupler_project_rear_seam_gap();
+    2*hub75_fit_rear_side_rail_width() + coupler_project_rear_seam_gap();

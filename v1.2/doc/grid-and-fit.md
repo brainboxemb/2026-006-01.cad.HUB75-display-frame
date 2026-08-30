@@ -69,3 +69,15 @@ The drawings distinguish four boundaries which must not be mixed:
 The rear outer and rear inner boundaries together define the real mating rail width used by coupler keep-outs. The reference set includes panel, middle, horizontal-edge, top-left corner and top-right corner coordinate views.
 
 All reference entrypoints reuse the same shared reference-grid implementation as the top-level CAD views. The grid remains independently switchable from the Customizer when a reference `.scad` file is opened directly.
+
+## Canonical panel fit coordinates
+
+All mating geometry now passes through `cad/components/_lib/panel_fit_geometry.scad`.
+`hub75_panel.scad` remains the authoritative physical panel model; the fit
+adapter only translates that model into one shared panel-centred coordinate
+system for the middle, horizontal-edge and corner couplers and for the 2D
+reference drawings.
+
+The adapter keeps the nominal placement cell, physical front outer edge, rear
+outer edge and rear inner/opening edge separate.  Component files should not
+reconstruct those boundaries with local offsets.

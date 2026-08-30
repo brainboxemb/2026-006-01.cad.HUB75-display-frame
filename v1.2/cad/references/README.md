@@ -38,3 +38,10 @@ grid_show_half = true;
 ```
 
 so the grid can be enabled/disabled even when opening only a file from this directory.
+
+## Geometry source
+
+The reference drawings use the same `components/_lib/panel_fit_geometry.scad`
+adapter as the printable couplers. This is intentional: a line shown in a
+reference drawing and the matching coupler keep-out are derived from the same
+panel geometry instead of copied dimensions.

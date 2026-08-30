@@ -9,7 +9,7 @@ use <../assemblies/display_assembly.scad>
 exploded_render_distance = 40;
 
 $vpt = [0, 0, 0];
-$vpr = [265, 0, 320];
+$vpr = [85, 0, 220];
 $vpd = 1050;
 
 display_assembly(

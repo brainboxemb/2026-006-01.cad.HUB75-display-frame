@@ -7,8 +7,8 @@ $coupler_design_profile = "medium"; // Canonical V1.2 documentation profile.
 use <../assemblies/display_assembly.scad>
 
 $vpt = [0, 0, 0];
-// Mirror front [72, 0, 22] to the rear: X -> 180-X, Z -> 180-Z.
-$vpr = [265, 0, 320];
+// Same elevation as front_angled.scad; azimuth is rotated 180 degrees for the rear.
+$vpr = [85, 0, 220];
 $vpd = 1050;
 
 display_assembly(

@@ -8,6 +8,7 @@
 
 use <../components/tube_clip.scad>
 use <../components/hub75_panel.scad>
+use <../components/_lib/panel_fit_geometry.scad>
 use <_lib/coupler_profile.scad>
 use <_lib/coupler_dimensions.scad>
 
@@ -103,14 +104,10 @@ function corner_locator_pin_z(direction) =
 // the nominal drawing dimensions keeps the corner profile and its pocket
 // raster tied to the rounded 160 x 320 reference envelope.
 function corner_nominal_reference_x(side) =
-    side == "left"
-        ? -hub75_panel_nominal_width()/2 - hub75_panel_hole_x_left_centered()
-        :  hub75_panel_nominal_width()/2 - hub75_panel_hole_x_right_centered();
+    hub75_fit_corner_nominal_reference_x(side);
 
 function corner_nominal_reference_z(direction) =
-    direction == "top"
-        ?  hub75_panel_nominal_height()/2 - hub75_panel_hole_z_top_centered()
-        : -hub75_panel_nominal_height()/2 - hub75_panel_hole_z_bottom_centered();
+    hub75_fit_corner_nominal_reference_z(direction);
 
 // Public comparison/inspection anchors.  These are the nominal 160 x 320 mm
 // corner (+) expressed in the screw-centred local component system.
@@ -124,22 +121,10 @@ function corner_edge_panel_coupler_reference_z(direction="top") =
 // must follow these real rail centres so its 5 mm wall rule matches the
 // horizontal-edge coupler when both are placed on the same nominal panel edge.
 function corner_side_rail_center_x(side) =
-    side == "left"
-        ? -screw_to_side_edge
-          + hub75_rear_outer_inset_x()
-          + hub75_rear_side_rail_width_at_mounting_plane()/2
-        :  screw_to_side_edge
-          - hub75_rear_outer_inset_x()
-          - hub75_rear_side_rail_width_at_mounting_plane()/2;
+    hub75_fit_corner_side_rail_center_x(side);
 
 function corner_end_rail_center_z(direction) =
-    direction == "top"
-        ?  screw_to_horizontal_edge
-           - hub75_rear_outer_inset_z()
-           - hub75_rear_end_rail_width_at_mounting_plane()/2
-        : -screw_to_horizontal_edge
-           + hub75_rear_outer_inset_z()
-           + hub75_rear_end_rail_width_at_mounting_plane()/2;
+    hub75_fit_corner_end_rail_center_z(direction);
 
 // Keep the physical corner profile in the real screw-centred coordinate
 // system.  The nominal 160 x 320 mm corner only determines where the outer
@@ -206,12 +191,10 @@ module corner_nominal_profile_2d(
 module corner_panel_keepout_2d(side, direction, total_size) {
     ix = side == "left" ? 1 : -1;
     iz = direction == "top" ? -1 : 1;
-    physical_edge_x = -ix * screw_to_side_edge;
-    physical_edge_z = -iz * screw_to_horizontal_edge;
-    edge_x = physical_edge_x + ix*hub75_rear_outer_inset_x();
-    edge_z = physical_edge_z + iz*hub75_rear_outer_inset_z();
-    side_w = hub75_rear_side_rail_width_at_mounting_plane();
-    end_w = hub75_rear_end_rail_width_at_mounting_plane();
+    edge_x = hub75_fit_corner_rear_outer_edge_x(side);
+    edge_z = hub75_fit_corner_rear_outer_edge_z(direction);
+    side_w = hub75_fit_rear_side_rail_width();
+    end_w = hub75_fit_rear_end_rail_width();
     corner_r = hub75_rear_opening_corner_radius();
     span = total_size + 30;
 
@@ -243,8 +226,8 @@ module corner_panel_keepout_2d(side, direction, total_size) {
 module corner_inside_panel_2d(side, direction, total_size) {
     ix = side == "left" ? 1 : -1;
     iz = direction == "top" ? -1 : 1;
-    edge_x = -ix * screw_to_side_edge + ix*hub75_rear_outer_inset_x();
-    edge_z = -iz * screw_to_horizontal_edge + iz*hub75_rear_outer_inset_z();
+    edge_x = hub75_fit_corner_rear_outer_edge_x(side);
+    edge_z = hub75_fit_corner_rear_outer_edge_z(direction);
     span = total_size + 30;
 
     xmin = ix > 0 ? edge_x : -span;
@@ -329,35 +312,11 @@ module corner_fitted_guides_2d(
     clearance, end_rounding,
     guide_length_value=1e6
 ) {
-    // Crop to the configured reach first and round the exposed guide ends
-    // afterwards. This keeps corner/edge guides consistent with the middle
-    // and horizontal-edge components.
-    if(end_rounding > 0)
-        offset(r=end_rounding)
-            offset(delta=-end_rounding)
-                intersection() {
-                    square([2*guide_length_value, 2*guide_length_value], center=true);
-                    difference() {
-                    corner_nominal_profile_2d(
-                        side=side,direction=direction,
-                        width=size,height=size,
-                        horizontal_arm_height=horizontal_height,
-                        vertical_arm_width=vertical_width,
-                        inside_radius=inside_radius,
-                        outside_radius=outside_radius,
-                        outward_x=outward_x,
-                        outward_z=outward_z,
-                        horizontal_arm_center_z=corner_end_rail_center_z(direction),
-                        vertical_arm_center_x=corner_side_rail_center_x(side)
-                    );
-                    offset(delta=clearance)
-                        corner_panel_keepout_2d(side,direction,size);
-                    }
-                }
-    else
-        intersection() {
-            square([2*guide_length_value, 2*guide_length_value], center=true);
-            difference() {
+    // Same rule as middle/edge: never use a global morphological rounding on
+    // the thin fitted guide shell.  That destroys the 2 mm small-profile wall.
+    intersection() {
+        square([2*guide_length_value, 2*guide_length_value], center=true);
+        difference() {
             corner_nominal_profile_2d(
                 side=side,direction=direction,
                 width=size,height=size,
@@ -379,8 +338,8 @@ module corner_fitted_guides_2d(
 module corner_outside_edge_zone_2d(side, direction, size, clearance) {
     ix = side == "left" ? 1 : -1;
     iz = direction == "top" ? -1 : 1;
-    edge_x = -ix * screw_to_side_edge + ix*hub75_rear_outer_inset_x();
-    edge_z = -iz * screw_to_horizontal_edge + iz*hub75_rear_outer_inset_z();
+    edge_x = hub75_fit_corner_rear_outer_edge_x(side);
+    edge_z = hub75_fit_corner_rear_outer_edge_z(direction);
     span = size + 40;
 
     // Union of the two regions outside the physical panel edges.  Intersecting
