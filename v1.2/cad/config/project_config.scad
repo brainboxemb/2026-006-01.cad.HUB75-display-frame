@@ -169,7 +169,7 @@ function coupler_edge_radius_for_size(profile_size, wall_thickness=undef) =
 //
 // The 30/70 split is intentionally measured in GUIDE-WALL width:
 //   30% -> travel while still following the plate edge radius
-//   70% -> axial depth of the guide's own elliptical cap
+//   70% -> axial depth of the guide's own rounded cap
 // This is not a percentage of profile size or plate radius.
 function coupler_guide_plate_follow_depth_for_wall(wall_thickness) =
     max(0, wall_thickness * min(1, max(0, coupler_guide_plate_radius_share)));

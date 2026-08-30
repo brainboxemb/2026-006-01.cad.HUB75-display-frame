@@ -169,35 +169,37 @@ module coupler_plus_profile_2d(
 // A fitted guide is a thin wall.  Its free end must not be cut by the arm
 // envelope itself: that produces the square vertical face seen in V132-V134.
 // Instead, preserve the fitted shell up to a transition point and finish each
-// thin guide strip with its own elliptical cap.
-//
-// The ellipse is deliberate: its transverse radius is half the guide-wall
-// thickness (so it is tangent to the straight strip), while its axial depth is
-// the configured 70% share of guide-wall width.  Intersecting this mask with
-// the authoritative fitted shell means the first 30% can still follow the
-// plate edge radius, while the final 70% is the guide's own curve.
-module coupler_ellipse_2d(rx, ry, fn=48) {
-    safe_ry = max(0.001, ry);
-    safe_rx = max(0.001, rx);
-    scale([safe_rx/safe_ry, 1]) circle(r=safe_ry, $fn=fn);
-}
-
+// thin guide strip with a hull-built rounded cap.  The transition already
+// contains the configured 30% plate-follow distance; the cap zone is the
+// remaining 70% of guide-wall width.  Using hull() keeps the join smooth and
+// avoids a mathematically stitched cusp.
 module coupler_horizontal_strip_cap_mask_2d(
     transition, cap_depth, strip_center_z, wall_thickness, side_sign=1
 ) {
     wall = max(0.01, wall_thickness);
     t = max(0.01, transition);
     cap = max(0.01, cap_depth);
+    r = wall/2;
 
-    // Straight guide up to the transition point.
+    // Keep the strip fully open up to the transition point.  The final cap is
+    // deliberately made with hull() instead of analytically stitching two
+    // curves together.  This avoids the sharp cusp that appeared when the
+    // plate-follow curve and the guide's own ellipse were intersected.
     translate([side_sign*t/2, strip_center_z])
         square([t, wall], center=true);
 
-    // Own guide curve. At x=transition its tangent is horizontal and exactly
-    // matches the straight strip; it reaches cap_depth farther outward.
-    translate([side_sign*t, strip_center_z])
-        scale([side_sign, 1])
-            coupler_ellipse_2d(cap, wall/2);
+    // The own-cap zone occupies `cap` in the longitudinal direction.  Its
+    // outer end is a real semicircular guide end with radius wall/2.  The hull
+    // joins it smoothly to the full-width guide section at the transition.
+    // The 30/70 split is applied before this module: `transition` already
+    // includes the 30% plate-follow distance, and `cap` is the remaining 70%.
+    end_center = max(t, t + cap - r);
+    hull() {
+        translate([side_sign*t, strip_center_z])
+            circle(r=r, $fn=48);
+        translate([side_sign*end_center, strip_center_z])
+            circle(r=r, $fn=48);
+    }
 }
 
 module coupler_vertical_strip_cap_mask_2d(
@@ -206,13 +208,18 @@ module coupler_vertical_strip_cap_mask_2d(
     wall = max(0.01, wall_thickness);
     t = max(0.01, transition);
     cap = max(0.01, cap_depth);
+    r = wall/2;
 
     translate([strip_center_x, side_sign*t/2])
         square([wall, t], center=true);
 
-    translate([strip_center_x, side_sign*t])
-        scale([1, side_sign])
-            rotate(90) coupler_ellipse_2d(cap, wall/2);
+    end_center = max(t, t + cap - r);
+    hull() {
+        translate([strip_center_x, side_sign*t])
+            circle(r=r, $fn=48);
+        translate([strip_center_x, side_sign*end_center])
+            circle(r=r, $fn=48);
+    }
 }
 
 // PLUS mask for the middle coupler.  The large central square deliberately
