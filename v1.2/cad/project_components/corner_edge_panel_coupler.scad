@@ -161,25 +161,46 @@ module corner_nominal_profile_2d(
 ) {
     reference_x = abs(corner_nominal_reference_x(side));
     reference_z = abs(corner_nominal_reference_z(direction));
-    effective_width = 2 * max(1, width/2 - reference_x);
-    effective_height = 2 * max(1, height/2 - reference_z);
+
+    // Desired extents are measured from the mounting-screw origin.  The
+    // profile must reach BOTH the requested outside projection and the
+    // profile_size/2 inward reach from the nominal panel corner.  The older
+    // `effective_width = 2*(size/2-reference)` construction became too small
+    // for the 60 mm profile, so its source PLUS ended before the outside crop
+    // and the corner guide literally had no plate underneath it.
+    inward_x = max(1, width/2 - reference_x);
+    inward_z = max(1, height/2 - reference_z);
     screw_local_outward_x = reference_x + outward_x;
     screw_local_outward_z = reference_z + outward_z;
 
-    coupler_corner_profile_2d(
-        side=side,
-        direction=direction,
-        width=effective_width,
-        height=effective_height,
-        horizontal_arm_height=horizontal_arm_height,
-        vertical_arm_width=vertical_arm_width,
-        inside_radius=inside_radius,
-        outside_radius=outside_radius,
-        outward_x=screw_local_outward_x,
-        outward_z=screw_local_outward_z,
-        horizontal_arm_center_z=horizontal_arm_center_z,
-        vertical_arm_center_x=vertical_arm_center_x
-    );
+    // Build a sufficiently large symmetric source PLUS, then crop it to the
+    // exact asymmetric screw-local bounds.  Arm centre lines stay in the real
+    // panel/screw coordinate system; only the outer envelope is asymmetric.
+    source_width = 2 * max(inward_x, screw_local_outward_x);
+    source_height = 2 * max(inward_z, screw_local_outward_z);
+
+    xmin = side == "left" ? -screw_local_outward_x : -inward_x;
+    xmax = side == "left" ?  inward_x              :  screw_local_outward_x;
+    zmin = direction == "top" ? -inward_z              : -screw_local_outward_z;
+    zmax = direction == "top" ?  screw_local_outward_z :  inward_z;
+
+    intersection() {
+        coupler_corner_profile_2d(
+            side=side,
+            direction=direction,
+            width=source_width,
+            height=source_height,
+            horizontal_arm_height=horizontal_arm_height,
+            vertical_arm_width=vertical_arm_width,
+            inside_radius=inside_radius,
+            outside_radius=outside_radius,
+            outward_x=screw_local_outward_x,
+            outward_z=screw_local_outward_z,
+            horizontal_arm_center_z=horizontal_arm_center_z,
+            vertical_arm_center_x=vertical_arm_center_x
+        );
+        translate([xmin,zmin]) square([xmax-xmin,zmax-zmin], center=false);
+    }
 }
 
 module corner_panel_keepout_2d(side, direction, total_size) {

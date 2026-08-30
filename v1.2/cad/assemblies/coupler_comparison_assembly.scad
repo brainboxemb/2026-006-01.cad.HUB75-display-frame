@@ -18,8 +18,7 @@ wall_thickness = 4;
 guide_height = 6;
 base_thickness = 3;
 corner_radius = 8;
-edge_radius = 5;
-guide_length = 36;
+edge_radius = 4;
 tube_clip_offset = 25;
 
 $coupler_design_profile = coupler_design_profile;
@@ -29,7 +28,6 @@ $coupler_custom_guide_height = guide_height;
 $coupler_custom_base_thickness = base_thickness;
 $coupler_custom_corner_radius = corner_radius;
 $coupler_custom_edge_radius = edge_radius;
-$coupler_custom_guide_length = guide_length;
 $coupler_custom_tube_clip_offset = tube_clip_offset;
 
 // Comparison spacing is derived from the active nominal profile size.  It is

@@ -210,7 +210,7 @@ v1.1/cad/
 Open `v1.1/cad/main.scad` to view the complete concept.
 
 
-> **V124 guide/profile geometry correction:** plate `edge_radius` is once again treated as plate geometry (profile-size based), not as a subtraction from guide-wall thickness. Guide end rounding is separately bounded by the actual guide wall, so the small profile cannot lose its guide through an oversized rounding operation.
+
 
 ## V1.2
 

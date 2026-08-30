@@ -131,17 +131,13 @@ function coupler_base_thickness_for(name) =
 //   corner_radius = concave transition where an arm meets the centre/body
 //   edge_radius   = convex rounding at the free outside end of an arm
 //
-// Ratios are the actual design parameters.  The resulting radii are rounded
-// to whole millimetres for predictable printable geometry.  At the current
-// 60/80/100 mm profile sizes a 10% ratio happens to resolve to 6/8/10 mm,
-// but those are results, not stored profile-specific values.
+// The two radii describe different parts of the plate.  Keep them
+// parametrically tied to the overall envelope, but use a smaller ratio at
+// the free arm ends so the radius cannot visually consume the guide.
 coupler_corner_radius_ratio = 0.10;
-coupler_edge_radius_ratio = 0.10;
-// Raised guides use the same proportional reach for every profile instead of
-// maintaining separate precomputed lengths.  47.5% of the profile envelope
-// leaves a small amount of plate at the free end while still giving the small
-// profile useful guide length.
-coupler_guide_length_ratio = 0.475;
+coupler_edge_radius_ratio = 0.05;
+coupler_radius_rounding_step = 0.5;
+
 // Tube-clip positioning is physical rather than cosmetic: keep the clip centre
 // at least one half clip width (8 mm) plus 4 mm edge margin from the nominal
 // free edge, while retaining the established 25 mm maximum offset.
@@ -149,12 +145,21 @@ coupler_tube_clip_half_width = 8.0;
 coupler_tube_clip_edge_margin = 4.0;
 coupler_tube_clip_max_offset = 25.0;
 
+function coupler_round_to_step(value, step=coupler_radius_rounding_step) =
+    step <= 0 ? value : round(value/step)*step;
+
 function coupler_corner_radius_for_size(profile_size) =
-    round(profile_size * coupler_corner_radius_ratio);
-function coupler_edge_radius_for_size(profile_size) =
-    round(profile_size * coupler_edge_radius_ratio);
-function coupler_guide_length_for_size(profile_size) =
-    max(0, profile_size * coupler_guide_length_ratio);
+    coupler_round_to_step(profile_size * coupler_corner_radius_ratio);
+
+function coupler_edge_radius_for_size(profile_size, wall_thickness=undef) =
+    coupler_round_to_step(profile_size * coupler_edge_radius_ratio);
+
+// Guide reach is not a percentage. It follows the straight part of the arm
+// and stops exactly where the convex free-end radius starts.
+function coupler_guide_length_for_size(profile_size, edge_radius=undef, wall_thickness=undef) = let(
+    er = is_undef(edge_radius) ? coupler_edge_radius_for_size(profile_size) : edge_radius
+) max(0, profile_size/2 - er);
+
 function coupler_tube_clip_offset_for_size(profile_size) =
     min(
         coupler_tube_clip_max_offset,
@@ -164,9 +169,16 @@ function coupler_tube_clip_offset_for_size(profile_size) =
 function coupler_corner_radius_for(name) =
     coupler_corner_radius_for_size(coupler_profile_size_for(name));
 function coupler_edge_radius_for(name) =
-    coupler_edge_radius_for_size(coupler_profile_size_for(name));
+    coupler_edge_radius_for_size(
+        coupler_profile_size_for(name),
+        coupler_wall_thickness_for(name)
+    );
 function coupler_guide_length_for(name) =
-    coupler_guide_length_for_size(coupler_profile_size_for(name));
+    coupler_guide_length_for_size(
+        coupler_profile_size_for(name),
+        coupler_edge_radius_for(name),
+        coupler_wall_thickness_for(name)
+    );
 function coupler_tube_clip_offset_for(name) =
     coupler_tube_clip_offset_for_size(coupler_profile_size_for(name));
 
@@ -190,12 +202,13 @@ function project_coupler_custom_corner_radius() =
         : $coupler_custom_corner_radius;
 function project_coupler_custom_edge_radius() =
     is_undef($coupler_custom_edge_radius)
-        ? coupler_edge_radius_for_size(project_coupler_custom_profile_size())
+        ? coupler_edge_radius_for_size(
+            project_coupler_custom_profile_size(),
+            project_coupler_custom_wall_thickness()
+          )
         : $coupler_custom_edge_radius;
 function project_coupler_custom_guide_length() =
-    is_undef($coupler_custom_guide_length)
-        ? coupler_guide_length_for_size(project_coupler_custom_profile_size())
-        : $coupler_custom_guide_length;
+    max(0, project_coupler_custom_profile_size()/2 - project_coupler_custom_edge_radius());
 function project_coupler_custom_tube_clip_offset() =
     is_undef($coupler_custom_tube_clip_offset)
         ? coupler_tube_clip_offset_for_size(project_coupler_custom_profile_size())
