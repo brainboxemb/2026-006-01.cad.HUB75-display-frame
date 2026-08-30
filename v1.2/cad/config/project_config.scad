@@ -137,11 +137,15 @@ function coupler_base_thickness_for(name) =
 coupler_corner_radius_ratio = 0.10;
 coupler_edge_radius_ratio = 0.05;
 coupler_radius_rounding_step = 0.5;
-// Guides are allowed to follow the plate into the convex free-end radius.
-// 0.70 means the guide continues through 70% of the radius width before its
-// own rounded end begins. This is a geometric relation to the plate edge, not
-// a percentage of the overall profile size.
-coupler_guide_edge_radius_follow_fraction = 0.70;
+// Guide free-end shape.  The split is defined against the *guide wall width*,
+// not against the plate radius and not against the overall profile size.
+//
+// 30% of the guide wall is allowed to continue into the plate's convex edge
+// radius.  The remaining 70% becomes the guide's own end radius.  Keeping the
+// two shares explicit makes the intended geometry readable and ensures small,
+// medium, large and custom profiles all use the same construction rule.
+coupler_guide_plate_radius_share = 0.30;
+coupler_guide_own_radius_share = 0.70;
 
 // Tube-clip positioning is physical rather than cosmetic: keep the clip centre
 // at least one half clip width (8 mm) plus 4 mm edge margin from the nominal
@@ -159,14 +163,35 @@ function coupler_corner_radius_for_size(profile_size) =
 function coupler_edge_radius_for_size(profile_size, wall_thickness=undef) =
     coupler_round_to_step(profile_size * coupler_edge_radius_ratio);
 
-// Guide reach follows the plate geometry.  The straight part ends at
-// profile_size/2-edge_radius; from there the guide is allowed to follow a
-// configurable fraction of the plate's convex end radius.  Its own end cap
-// then provides the final printed transition.
-function coupler_guide_length_for_size(profile_size, edge_radius=undef, wall_thickness=undef) = let(
+// Guide free-end construction is derived from the plate envelope and the
+// actual guide-wall width.  `transition` is the point along the arm where the
+// guide stops following the plate edge and its own smooth cap takes over.
+//
+// The 30/70 split is intentionally measured in GUIDE-WALL width:
+//   30% -> travel while still following the plate edge radius
+//   70% -> axial depth of the guide's own elliptical cap
+// This is not a percentage of profile size or plate radius.
+function coupler_guide_plate_follow_depth_for_wall(wall_thickness) =
+    max(0, wall_thickness * min(1, max(0, coupler_guide_plate_radius_share)));
+
+function coupler_guide_cap_depth_for_wall(wall_thickness) =
+    max(0, wall_thickness * min(1, max(0, coupler_guide_own_radius_share)));
+
+function coupler_guide_transition_for_size(profile_size, edge_radius=undef, wall_thickness=undef) = let(
     er = is_undef(edge_radius) ? coupler_edge_radius_for_size(profile_size) : edge_radius,
-    follow = min(1, max(0, coupler_guide_edge_radius_follow_fraction))
-) max(0, profile_size/2 - er + follow*er);
+    wall = is_undef(wall_thickness) ? coupler_wall_thickness_default() : wall_thickness
+) max(0, profile_size/2 - er + coupler_guide_plate_follow_depth_for_wall(wall));
+
+// Total maximum reach of the guide including its own cap.  Keep this function
+// for callers that only need an envelope dimension; the guide geometry itself
+// uses the transition and cap depth separately.
+function coupler_guide_length_for_size(profile_size, edge_radius=undef, wall_thickness=undef) = let(
+    wall = is_undef(wall_thickness) ? coupler_wall_thickness_default() : wall_thickness
+) coupler_guide_transition_for_size(profile_size, edge_radius, wall)
+  + coupler_guide_cap_depth_for_wall(wall);
+
+function coupler_guide_end_radius_for_wall(wall_thickness) =
+    coupler_guide_cap_depth_for_wall(wall_thickness);
 
 function coupler_tube_clip_offset_for_size(profile_size) =
     min(
@@ -254,12 +279,19 @@ function project_coupler_guide_length() =
     project_coupler_design_profile() == "custom"
         ? project_coupler_custom_guide_length()
         : coupler_guide_length_for(project_coupler_design_profile());
-// End-rounding is a guide operation, so it must fit inside the actual
-// guide wall.  The guide wall remaining after panel clearance is exactly the
-// selected profile wall thickness.  Capping the radius at half that thickness
-// prevents the small profile from being eroded by a fixed 1.5 mm rounding.
-function project_coupler_guide_end_rounding() =
-    min(coupler_guide_end_rounding_default(), project_coupler_wall_thickness()/2);
+function project_coupler_guide_transition() =
+    coupler_guide_transition_for_size(
+        project_coupler_profile_size(),
+        project_coupler_edge_radius(),
+        project_coupler_wall_thickness()
+    );
+function project_coupler_guide_plate_follow_depth() =
+    coupler_guide_plate_follow_depth_for_wall(project_coupler_wall_thickness());
+function project_coupler_guide_cap_depth() =
+    coupler_guide_cap_depth_for_wall(project_coupler_wall_thickness());
+// Backwards-compatible name used by older call sites.  It now means the axial
+// depth of the guide's own smooth cap, not a generic morphological rounding.
+function project_coupler_guide_end_rounding() = project_coupler_guide_cap_depth();
 function project_coupler_tube_clip_offset() =
     project_coupler_design_profile() == "custom"
         ? project_coupler_custom_tube_clip_offset()

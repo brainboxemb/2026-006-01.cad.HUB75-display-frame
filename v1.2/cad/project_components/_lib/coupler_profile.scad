@@ -162,6 +162,108 @@ module coupler_plus_profile_2d(
 }
 
 
+
+// ---------------------------------------------------------------------------
+// Shared guide free-end geometry
+// ---------------------------------------------------------------------------
+// A fitted guide is a thin wall.  Its free end must not be cut by the arm
+// envelope itself: that produces the square vertical face seen in V132-V134.
+// Instead, preserve the fitted shell up to a transition point and finish each
+// thin guide strip with its own elliptical cap.
+//
+// The ellipse is deliberate: its transverse radius is half the guide-wall
+// thickness (so it is tangent to the straight strip), while its axial depth is
+// the configured 70% share of guide-wall width.  Intersecting this mask with
+// the authoritative fitted shell means the first 30% can still follow the
+// plate edge radius, while the final 70% is the guide's own curve.
+module coupler_ellipse_2d(rx, ry, fn=48) {
+    safe_ry = max(0.001, ry);
+    safe_rx = max(0.001, rx);
+    scale([safe_rx/safe_ry, 1]) circle(r=safe_ry, $fn=fn);
+}
+
+module coupler_horizontal_strip_cap_mask_2d(
+    transition, cap_depth, strip_center_z, wall_thickness, side_sign=1
+) {
+    wall = max(0.01, wall_thickness);
+    t = max(0.01, transition);
+    cap = max(0.01, cap_depth);
+
+    // Straight guide up to the transition point.
+    translate([side_sign*t/2, strip_center_z])
+        square([t, wall], center=true);
+
+    // Own guide curve. At x=transition its tangent is horizontal and exactly
+    // matches the straight strip; it reaches cap_depth farther outward.
+    translate([side_sign*t, strip_center_z])
+        scale([side_sign, 1])
+            coupler_ellipse_2d(cap, wall/2);
+}
+
+module coupler_vertical_strip_cap_mask_2d(
+    transition, cap_depth, strip_center_x, wall_thickness, side_sign=1
+) {
+    wall = max(0.01, wall_thickness);
+    t = max(0.01, transition);
+    cap = max(0.01, cap_depth);
+
+    translate([strip_center_x, side_sign*t/2])
+        square([wall, t], center=true);
+
+    translate([strip_center_x, side_sign*t])
+        scale([1, side_sign])
+            rotate(90) coupler_ellipse_2d(cap, wall/2);
+}
+
+// PLUS mask for the middle coupler.  The large central square deliberately
+// leaves all fitted/rounded inner-corner geometry untouched.  Only geometry
+// beyond `transition` is restricted to the four thin guide-strip caps.
+module coupler_plus_guide_end_mask_2d(
+    transition, cap_depth, horizontal_arm_height, vertical_arm_width,
+    wall_thickness, horizontal_arm_center_z=0, vertical_arm_center_x=0
+) {
+    wall = max(0.01, wall_thickness);
+    h_strip = horizontal_arm_height/2 - wall/2;
+    v_strip = vertical_arm_width/2 - wall/2;
+
+    union() {
+        square([2*transition, 2*transition], center=true);
+
+        for (sz=[-1,1], sx=[-1,1])
+            coupler_horizontal_strip_cap_mask_2d(
+                transition, cap_depth,
+                horizontal_arm_center_z + sz*h_strip, wall, sx
+            );
+
+        for (sx=[-1,1], sz=[-1,1])
+            coupler_vertical_strip_cap_mask_2d(
+                transition, cap_depth,
+                vertical_arm_center_x + sx*v_strip, wall, sz
+            );
+    }
+}
+
+// T mask for the horizontal-edge coupler.  Only the left/right free ends of
+// the horizontal rail guides are capped here.  The inward stem remains fully
+// governed by the authoritative T plate/fit geometry.
+module coupler_t_horizontal_guide_end_mask_2d(
+    transition, cap_depth, horizontal_arm_height, wall_thickness,
+    horizontal_arm_center_z=0
+) {
+    wall = max(0.01, wall_thickness);
+    h_strip = horizontal_arm_height/2 - wall/2;
+    big = 1e5;
+
+    union() {
+        square([2*transition, big], center=true);
+        for (sz=[-1,1], sx=[-1,1])
+            coupler_horizontal_strip_cap_mask_2d(
+                transition, cap_depth,
+                horizontal_arm_center_z + sz*h_strip, wall, sx
+            );
+    }
+}
+
 // Limit an already-fitted guide shell to a requested reach while giving the
 // clipped guide its own rounded end.  The shell itself remains authoritative:
 // the offset is intersected back with the original child geometry, so this

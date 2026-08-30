@@ -26,6 +26,8 @@ reinforcement_height = project_coupler_guide_height();
 rib_clearance = coupler_fit_clearance_default();
 guide_end_rounding = project_coupler_guide_end_rounding();
 guide_length = project_coupler_guide_length();
+guide_transition = project_coupler_guide_transition();
+guide_cap_depth = project_coupler_guide_cap_depth();
 
 /* [Mounting screws] */
 left_screw_x = hub75_fit_seam_left_hole_x();
@@ -155,14 +157,16 @@ module rib_side_guides_2d(
                 );
         }
 
-        // Follow the plate radius up to the configured transition point;
-        // from there the guide gets its own rounded free end.
-        coupler_plus_guide_reach_2d(
-            curve_start=guide_length_value,
-            end_rounding=end_rounding,
+        // Preserve the fitted shell up to the plate-follow transition and
+        // then cap each thin guide strip with its own smooth ellipse.  This is
+        // the actual 30/70 guide-width rule; no arm-sized profile is used to
+        // approximate the guide end.
+        coupler_plus_guide_end_mask_2d(
+            transition=guide_length_value,
+            cap_depth=end_rounding,
             horizontal_arm_height=h_arm_height,
             vertical_arm_width=v_arm_width,
-            inside_radius=inner_r
+            wall_thickness=project_coupler_wall_thickness()
         );
     }
 }
@@ -415,7 +419,7 @@ module middle_panel_coupler(
                                 inside_radius, outside_radius,
                                 guide_wall_thickness_value,
                                 guide_end_rounding_value,
-                                guide_length
+                                guide_transition
                             );
 
                     // The two separate HUB75 reinforcement bushings protrude

@@ -424,7 +424,7 @@ custom       user-entered base dimensions
 
 The three named presets are fixed and reproducible. **Medium is the canonical V1.2 profile** and is used by the normal full-display documentation renders and the complete display STL. The numeric fields under **Custom coupler dimensions** are ignored while `large`, `medium` or `small` is selected. Selecting `custom` activates those base values directly; no separate enable checkbox and no magic `0` override values are used.
 
-The plate/guide shape is deliberately **derived**, not stored as a second table of profile-specific dimensions. `corner radius` and `edge radius` are both calculated as 10% of the effective profile envelope and rounded to whole millimetres. `guide length` is 47.5% of that envelope. Tube-clip position is calculated from the free edge using the 8 mm half clip width plus a 4 mm edge margin, with the established 25 mm maximum centre offset. For the current 60/80/100 mm envelopes these rules resolve to 6/8/10 mm radii, 28.5/38/47.5 mm guide lengths and 18/25/25 mm clip offsets, but those numbers are outcomes of the formulas rather than preset constants.
+The plate/guide shape is deliberately **derived**, not stored as a second table of profile-specific dimensions. `corner radius` is calculated as 10% of the effective profile envelope and `edge radius` as 5%, both rounded to the configured 0.5 mm step. Guide reach is calculated from the plate geometry: it runs to the start of the plate edge radius, follows that curve for 30% of the guide wall width, and then finishes with its own radius based on the remaining 70% of the guide wall width. Tube-clip position is calculated from the free edge using the 8 mm half clip width plus a 4 mm edge margin, with the established 25 mm maximum centre offset.
 
 `corner radius` means the concave transition where an arm meets the coupler body. `edge radius` means the convex rounding at a free arm end. Explicit custom shape overrides remain available when a genuinely non-proportional custom design is required; when left undefined, custom profiles use the same formulas based on their entered profile size.
 
@@ -562,5 +562,5 @@ The rear-fit diagnostic render hides the panel front face/PCB and shows only the
 
 ### Guide reach and rounded arm ends
 
-The free-end radius is derived from wall thickness rather than overall profile size. This guarantees that the rounded end cannot consume the complete fitted guide: named presets retain 1 mm of guide material per side at the free end. Guide reach is also derived from the free-end radius so the guide terminates close to the plate edge and keeps a rounded endpoint.
+The guide free end uses one shared construction rule for middle, horizontal-edge and corner couplers. At the start of the plate `edge radius`, 30% of the guide wall width continues along the plate curve. The remaining 70% defines the guide's own end radius. This keeps the transition tied to the actual guide width rather than to a profile-size percentage or a fixed per-profile dimension.
 
