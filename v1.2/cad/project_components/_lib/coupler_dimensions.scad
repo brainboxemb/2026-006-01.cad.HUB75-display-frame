@@ -24,8 +24,23 @@ function coupler_project_seam_locator_width(clearance=coupler_fit_clearance_defa
     max(0, coupler_project_rear_seam_gap() - 2*clearance);
 
 // Both edge and corner parts sit around the same physical top/bottom rear rail.
+//
+// The plate must remain underneath the fitted guide while that guide follows
+// the convex free-end radius.  A bar that is only `rail + 2*wall` wide is
+// sufficient on the straight section, but becomes too narrow inside the
+// rounded plate corner.  Derive the extra support from the circle geometry:
+// at a fraction `f` into an edge radius `r`, the rounded plate has lost
+// `r * (1 - sqrt(1-f^2))` of half-width.  Add exactly that amount on both
+// sides so the guide keeps its full wall thickness up to its own end curve.
+function coupler_project_guide_curve_support_per_side() = let(
+    r = project_coupler_edge_radius(),
+    f = min(1, max(0, coupler_guide_edge_radius_follow_fraction))
+) r * (1 - sqrt(max(0, 1 - f*f)));
+
 function coupler_project_horizontal_arm_height() =
-    hub75_fit_rear_end_rail_width() + 2*coupler_project_side_material();
+    hub75_fit_rear_end_rail_width()
+    + 2*coupler_project_side_material()
+    + 2*coupler_project_guide_curve_support_per_side();
 
 // At an internal seam, two side rails face each other with the nominal panel
 // pitch gap between them.  Only the two *outer* sides receive printed wall

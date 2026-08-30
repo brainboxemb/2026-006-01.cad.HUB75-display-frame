@@ -140,8 +140,11 @@ module rib_side_guides_2d(
     // only by its geometric reach.  The plate's own edge radius supplies the
     // curved outer continuation; a local end-cap can be added independently
     // without ever shrinking the whole guide wall.
-    intersection() {
-        square([2*guide_length_value, 2*guide_length_value], center=true);
+    coupler_rounded_guide_reach_2d(
+        reach_x=guide_length_value,
+        reach_z=guide_length_value,
+        end_rounding=end_rounding
+    )
         difference() {
             coupler_plus_profile_2d(
                 width, height,
@@ -155,7 +158,6 @@ module rib_side_guides_2d(
                     opening_corner_r
                 );
         }
-    }
 }
 
 // Rib that enters the small gap between adjacent panels.  It is widest at

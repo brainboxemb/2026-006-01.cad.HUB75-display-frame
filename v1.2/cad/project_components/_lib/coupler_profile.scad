@@ -161,6 +161,40 @@ module coupler_plus_profile_2d(
     polygon(points=pts);
 }
 
+
+// Limit an already-fitted guide shell to a requested reach while giving the
+// clipped guide its own rounded end.  The shell itself remains authoritative:
+// the offset is intersected back with the original child geometry, so this
+// operation can only shape the free end and can never thicken the fitted wall.
+//
+// `reach_x` / `reach_z` are half-extents from the local origin.  Set one axis
+// to a very large value when only the other axis should be limited.
+module coupler_rounded_guide_reach_2d(
+    reach_x=1e6,
+    reach_z=1e6,
+    end_rounding=0
+) {
+    r = max(0, end_rounding);
+    inner_x = max(0.01, reach_x - r);
+    inner_z = max(0.01, reach_z - r);
+
+    if (r <= 0) {
+        intersection() {
+            children();
+            square([2*reach_x, 2*reach_z], center=true);
+        }
+    } else {
+        intersection() {
+            children();
+            offset(r=r)
+                intersection() {
+                    children();
+                    square([2*inner_x, 2*inner_z], center=true);
+                }
+        }
+    }
+}
+
 // Canonical top T: retain the complete horizontal arm and the inward vertical
 // arm of the shared PLUS.  The horizontal arm may be offset from the screw-row
 // origin, which is required because the physical HUB75 end rail is not centred

@@ -230,8 +230,11 @@ module t_side_guides_2d(
     // Keep the small-profile guide structurally intact: guide rounding must not
     // be implemented by eroding the complete fitted shell.  Limit only its
     // X reach; the plate profile itself supplies the curved outer envelope.
-    intersection() {
-        square([2*guide_length_value, height + 40], center=true);
+    coupler_rounded_guide_reach_2d(
+        reach_x=guide_length_value,
+        reach_z=height + 40,
+        end_rounding=end_rounding
+    )
         difference() {
             edge_profile_2d(
                 direction,width,height,bar_height,stem_width,
@@ -240,7 +243,6 @@ module t_side_guides_2d(
             offset(delta=clearance)
                 panel_edge_t_keepout_2d(direction,width,height);
         }
-    }
 }
 
 

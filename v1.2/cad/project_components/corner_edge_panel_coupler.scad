@@ -314,8 +314,11 @@ module corner_fitted_guides_2d(
 ) {
     // Same rule as middle/edge: never use a global morphological rounding on
     // the thin fitted guide shell.  That destroys the 2 mm small-profile wall.
-    intersection() {
-        square([2*guide_length_value, 2*guide_length_value], center=true);
+    coupler_rounded_guide_reach_2d(
+        reach_x=guide_length_value,
+        reach_z=guide_length_value,
+        end_rounding=end_rounding
+    )
         difference() {
             corner_nominal_profile_2d(
                 side=side,direction=direction,
@@ -332,7 +335,6 @@ module corner_fitted_guides_2d(
             offset(delta=clearance)
                 corner_panel_keepout_2d(side,direction,size);
         }
-    }
 }
 
 module corner_outside_edge_zone_2d(side, direction, size, clearance) {
